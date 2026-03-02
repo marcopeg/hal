@@ -20,7 +20,8 @@
     "prepublishOnly": "pnpm run build",
     "sync-skills": "node .agents/scripts/sync-skills.mjs",
     "prepare": "husky",
-    "deploy": "npm version patch && npm publish --access public"
+    "deploy": "npm version patch && npm publish --access public",
+    "docs": "npx mdts"
   },
   "keywords": [
     "telegram",

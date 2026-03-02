@@ -34,29 +34,36 @@ The engine reads its standard config files from the project directory:
 
 You get the full power of your chosen AI coding agent — file access, code execution, configured MCP tools — all accessible through Telegram.
 
-### Supported Engines
+## 🤖 AI Providers
 
-| Engine | CLI Command | Status | Instructions File |
-|--------|-------------|--------|-------------------|
-| **Claude Code** | `claude` | Full support | `CLAUDE.md` |
-| **GitHub Copilot** | `copilot` | Full support | `AGENTS.md` |
-| **Codex** | `codex` | Full support | `AGENTS.md` |
-| **OpenCode** | `opencode` | Stub (basic prompt/response) | `AGENTS.md` |
-| **Cursor** | `agent` | Full support | `AGENTS.md` |
-| **Antigravity** | `gemini` | Full support | `GEMINI.md` |
+This is the list of the currently supported agentic platforms:
 
-Setup and per-provider details: [Providers](docs/providers/README.md).
+- [OpenCode](docs/providers/opencode/README.md)
+- [Codex](docs/providers/codex/README.md)
+- [Claude Code](docs/providers/claude/README.md)
+- [Copilot](docs/providers/copilot/README.md)
+- [Cursor](docs/providers/cursor/README.md)
+- [Antigravity](docs/providers/antigravity/README.md)
+
+Each provider has pros/cons and some limitations.  
+Here we try to keep updated a feature comparison table:
+
+| Feature | [OpenCode](docs/providers/opencode/README.md) | [Codex](docs/providers/codex/README.md) | [Claude Code](docs/providers/claude/README.md) | [Copilot](docs/providers/copilot/README.md) | [Cursor](docs/providers/cursor/README.md) | [Antigravity](docs/providers/antigravity/README.md) |
+|--------|:--------:|:-----:|:------:|:-------:|:------:|:------------:|
+| **Instruction file** | `AGENTS.md` | `AGENTS.md` | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` | `GEMINI.md` |
+| **Main skills folder** | `.agents/skills/` | `.agents/skills/` | `.claude/skills/` | `.agents/skills/` | `.agents/skills/` | `.agent/skills/` |
+| **Per-user session** | ✗ | ✗ | ✓ | ✗ | ✗ | ✓ |
+| **Network access** | — | ✓ | — | — | — | — |
+| **Full disk access** | — | ✓ | — | — | — | — |
+| **YOLO mode** | — | ✓ | — | — | — | ✓ |
+| **Streaming progress** | ✗ | ✗ | ✓ | ✗ | ✗ | ✓ |
+
+Read more in the [Providers](docs/providers/README.md) docs.
 
 ## Prerequisites
 
 - Node.js 18+
-- At least one supported AI coding CLI installed and authenticated:
-  - [Claude Code](https://github.com/anthropics/claude-code) — `claude` — `curl -fsSL https://claude.com/install | bash`
-  - [GitHub Copilot CLI](https://github.com/github/copilot-cli) — `copilot` — `npm install -g @github/copilot`
-  - [Codex CLI](https://github.com/openai/codex) — `codex` — `npm install -g @openai/codex`
-  - [OpenCode](https://github.com/opencode-ai/opencode) — `opencode` — `curl -fsSL https://opencode.ai/install | bash`
-  - [Cursor CLI](https://cursor.com/cli) — `agent` — `curl https://cursor.com/install -fsS | bash`
-  - [Gemini CLI](https://github.com/google-gemini/gemini-cli) — `gemini` (Antigravity engine) — `npm install -g @google/gemini-cli`
+- At least one supported AI coding CLI installed and authenticated
 - A Telegram bot token per project (from [@BotFather](https://t.me/BotFather)) — see [Creating a Telegram Bot](#creating-a-telegram-bot)
 - **ffmpeg** (required for voice messages) — `brew install ffmpeg` on macOS
 
@@ -66,21 +73,15 @@ Setup and per-provider details: [Providers](docs/providers/README.md).
 # Create hal.config.json in the current directory
 npx @marcopeg/hal init
 
-# Initialize with a specific engine
-npx @marcopeg/hal init --engine copilot
-
-# Edit hal.config.json: add your bot token and project path
-# then start all bots
-npx @marcopeg/hal
-```
-
-## Installation
-
-```bash
-# Initialize config in a specific directory
+# Or in a specific folder (config and bots will use that directory)
 npx @marcopeg/hal init --cwd ./workspace
 
-# Start bots using the config in that directory
+# Optional: pick engine at init
+npx @marcopeg/hal init --engine copilot
+npx @marcopeg/hal init --cwd ./workspace --engine copilot
+
+# Edit hal.config.json: add your bot token and project path, then start
+npx @marcopeg/hal
 npx @marcopeg/hal --cwd ./workspace
 ```
 
@@ -127,21 +128,6 @@ Create a `hal.config.json` in your workspace. Use `${VAR_NAME}` for secrets and 
 ```
 
 </details>
-
-## CLI Commands
-
-```bash
-# Show help
-npx @marcopeg/hal --help
-
-# Initialize config file
-npx @marcopeg/hal init
-npx @marcopeg/hal init --cwd ./workspace
-
-# Start all bots
-npx @marcopeg/hal
-npx @marcopeg/hal --cwd ./workspace
-```
 
 ## Bot Commands
 
