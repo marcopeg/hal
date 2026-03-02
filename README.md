@@ -42,11 +42,10 @@ You get the full power of your chosen AI coding agent — file access, code exec
 | **GitHub Copilot** | `copilot` | Full support | `AGENTS.md` |
 | **Codex** | `codex` | Full support | `AGENTS.md` |
 | **OpenCode** | `opencode` | Stub (basic prompt/response) | `AGENTS.md` |
+| **Cursor** | `agent` | Full support | `AGENTS.md` |
 | **Antigravity** | `gemini` | Full support | `GEMINI.md` |
 
-See [Engine Configuration](#engine-configuration) for setup details.
-
-See [Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code), [GitHub Copilot CLI documentation](https://docs.github.com/en/copilot/concepts/agents/copilot-cli), the Codex CLI (`codex --help`), and [Gemini CLI documentation](https://github.com/google-gemini/gemini-cli) for engine-specific configuration.
+Setup and per-provider details: [Providers](docs/providers/README.md).
 
 ## Prerequisites
 
@@ -495,267 +494,19 @@ In this example:
 - **frontend** uses GitHub Copilot with the `gpt-5-mini` model
 - **legacy** is inactive and will be skipped at boot
 
-The `engine` object supports five fields. Engine-specific sub-objects (e.g. `codex`, `antigravity`) can be used to control permissions and behavior per engine.
+The `engine` object supports the fields below. Engine-specific options (e.g. Codex permissions, Antigravity flags) are documented in the [provider docs](docs/providers/README.md).
 
 | Field | Description | Default |
 |-------|-------------|---------|
-| `name` | Engine identifier: `claude`, `copilot`, `codex`, `opencode`, `antigravity` | `"claude"` |
+| `name` | Engine identifier: `claude`, `copilot`, `codex`, `opencode`, `cursor`, `antigravity` | `"claude"` |
 | `command` | Custom path to the CLI binary | _(engine name)_ |
 | `model` | AI model override (omit for engine or HAL default; see [Model defaults](#model-defaults)) | _(per engine)_ |
 | `session` | Use persistent sessions (`--resume` / `--continue`) | `true` |
 | `sessionMsg` | Message sent when renewing session (e.g. `/clean`) | `"hi!"` |
 
-When using the Antigravity engine, the `engine` object also accepts an `antigravity` block:
+Engine-specific options (e.g. Codex permissions, Antigravity flags): see [provider docs](docs/providers/README.md).
 
-| Field | Description | Default |
-|-------|-------------|---------|
-| `antigravity.approvalMode` | Tool approval policy: `default`, `auto_edit`, or `yolo` | `"yolo"` |
-| `antigravity.sandbox` | Run in containerized/seatbelt sandbox | `false` |
-
-`approvalMode` defaults to `yolo` because HAL runs non-interactively — `default` and `auto_edit` would cause hangs or policy denials in headless mode.
-
-When using the Codex engine, the `engine` object also accepts a `codex` block:
-
-| Field | Description | Default |
-|-------|-------------|---------|
-| `codex.networkAccess` | Allow outbound network in shell commands | `false` |
-| `codex.fullDiskAccess` | Unrestricted filesystem access (implies network) | `false` |
-| `codex.dangerouslyEnableYolo` | Disable all sandboxing and approvals | `false` |
-
-#### Claude Code
-
-| | |
-|---|---|
-| **Home** | [claude.com/claude-code](https://claude.com/claude-code) · [GitHub](https://github.com/anthropics/claude-code) |
-| **Engine name** | `claude` |
-| **CLI command** | `claude` |
-| **Instructions file** | `CLAUDE.md` |
-| **Skills directory** | `.claude/skills/` |
-
-**Install and authenticate:**
-
-```bash
-# Install (native installer — no Node.js required)
-curl -fsSL https://claude.com/install | bash
-
-# Or via npm
-npm install -g @anthropic-ai/claude-code
-
-# Authenticate (opens browser OAuth flow)
-claude
-```
-
-Requires a Pro, Max, Teams, Enterprise, or API Console account. Credentials are stored in the system keychain.
-
-**HAL usage:**
-
-- **Config:** `engine.name: "claude"`. Optional: `engine.command`, `engine.model` (passed as `--model`), `engine.session`, `engine.sessionMsg`.
-- **Invocation:** `claude -p <prompt> --output-format stream-json --verbose [--model <m>] [--resume <sessionId>]`
-- **Sessions:** When `engine.session` is `true`, the CLI is invoked with `--resume {sessionId}`. `/clean` clears the stored session and replies with a static message (no engine call).
-- **Streaming:** JSONL output with live progress from tool-use events.
-- **Project files:** `CLAUDE.md`, `.claude/settings.json`.
-
-```json
-{ "engine": { "name": "claude", "model": "sonnet", "session": true } }
-```
-
-#### GitHub Copilot
-
-| | |
-|---|---|
-| **Home** | [github.com/features/copilot/cli](https://github.com/features/copilot/cli) · [GitHub](https://github.com/github/copilot-cli) |
-| **Engine name** | `copilot` |
-| **CLI command** | `copilot` |
-| **Instructions file** | `AGENTS.md` |
-| **Skills directory** | `.agents/skills/`, `.github/skills/`, `.claude/skills/` |
-
-**Install and authenticate:**
-
-```bash
-# Install via npm (requires Node.js 22+)
-npm install -g @github/copilot
-
-# Or via Homebrew
-brew install --cask copilot-cli
-
-# Authenticate (interactive — follow the prompts)
-copilot
-# Then use /login inside the CLI
-```
-
-Requires a Copilot Pro, Pro+, Business, or Enterprise plan. You can also authenticate via a fine-grained personal access token with the "Copilot Requests" permission, using the `COPILOT_GITHUB_TOKEN`, `GH_TOKEN`, or `GITHUB_TOKEN` environment variable.
-
-**HAL usage:**
-
-- **Config:** `engine.name: "copilot"`. Optional: `engine.command`, `engine.model` (see [Copilot Models](#github-copilot-models)), `engine.session`, `engine.sessionMsg`.
-- **Invocation:** `copilot -p <prompt> --allow-all [--model <m>] [--continue]`
-- **Sessions:** When `engine.session` is `true`, the CLI is invoked with `--continue`. `/clean` sends `engine.sessionMsg` to the engine without `--continue` to start a fresh session; the engine’s reply is sent to the user.
-- **Project file:** `AGENTS.md`.
-
-```json
-{ "engine": { "name": "copilot", "model": "claude-sonnet-4.6", "session": true } }
-```
-
-#### Codex
-
-| | |
-|---|---|
-| **Home** | [developers.openai.com/codex](https://developers.openai.com/codex/cli/) · [GitHub](https://github.com/openai/codex) |
-| **Engine name** | `codex` |
-| **CLI command** | `codex` |
-| **Instructions file** | `AGENTS.md` |
-| **Skills directory** | `.agents/skills/` |
-
-**Install and authenticate:**
-
-```bash
-# Install via npm
-npm install -g @openai/codex
-
-# Or via Homebrew
-brew install --cask codex
-
-# Authenticate (opens browser OAuth or prompts for API key)
-codex
-```
-
-Requires a ChatGPT Plus, Pro, Business, Edu, or Enterprise plan — or an OpenAI API key. Credentials are stored in the system keychain.
-
-**HAL usage:**
-
-- **Config:** `engine.name: "codex"`. Optional: `engine.command`, `engine.model` (e.g. `gpt-5.1-codex-mini`), `engine.session`, `engine.sessionMsg`, and the permission flags under `engine.codex` (see table above).
-- **Invocation:** `codex exec -p <prompt> --skip-git-repo-check [permission flags] [-m <model>]` or `codex exec resume --last` for session continuation.
-- **Sessions:** When `engine.session` is `true`, the CLI is invoked with `codex exec resume --last` to continue the most recent session; otherwise `codex exec` starts a fresh run. `/clean` sends `engine.sessionMsg` without resuming, so the engine starts a new session; the engine’s reply is sent to the user.
-- **Permission flags:** HAL always passes `--skip-git-repo-check` so Codex runs without the trusted-directory check. You can escalate via `engine.codex`: `networkAccess` (allow outbound HTTP etc.), `fullDiskAccess` (unrestricted filesystem; implies network), or `dangerouslyEnableYolo` (disable all sandboxing and approvals). Higher tiers supersede lower ones. **Warning:** Use `dangerouslyEnableYolo` only in hardened environments (e.g. Docker, VMs).
-- **Project file:** `AGENTS.md`.
-
-```json
-{
-  "engine": {
-    "name": "codex",
-    "model": "gpt-5.1-codex-mini",
-    "codex": { "networkAccess": true, "fullDiskAccess": true }
-  }
-}
-```
-
-#### OpenCode
-
-| | |
-|---|---|
-| **Home** | [opencode.ai](https://opencode.ai/) · [GitHub](https://github.com/opencode-ai/opencode) |
-| **Engine name** | `opencode` |
-| **CLI command** | `opencode` |
-| **Instructions file** | `AGENTS.md` |
-| **Skills directory** | `.agents/skills/`, `.opencode/skills/`, `.claude/skills/` |
-
-**Install and authenticate:**
-
-```bash
-# Install via the official script
-curl -fsSL https://opencode.ai/install | bash
-
-# Or via npm / Homebrew / Scoop
-npm install -g opencode
-brew install opencode
-
-# Authenticate (configure provider API keys)
-opencode auth login
-```
-
-Supports 75+ LLM providers. Credentials are stored in `~/.local/share/opencode/auth.json`.
-
-**HAL usage:**
-
-- **Config:** `engine.name: "opencode"`. Optional: `engine.command`, `engine.model` (e.g. `opencode/gpt-5-nano`), `engine.session`, `engine.sessionMsg`.
-- **Invocation:** `opencode run [-m <model>] [-c] <prompt>` with `OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=true` env var.
-- **Sessions:** When `engine.session` is `true`, the CLI is invoked with `-c` (continue). `/clean` sends `engine.sessionMsg` without `-c` to start a fresh session; the engine’s reply is sent to the user.
-- **Note:** OpenCode is a basic prompt/response adapter — no streaming progress events.
-- **Project file:** `AGENTS.md`.
-
-```json
-{ "engine": { "name": "opencode", "model": "opencode/gpt-5-nano" } }
-```
-
-#### Cursor
-
-| | |
-|---|---|
-| **Home** | [cursor.com/cli](https://cursor.com/cli) · [Docs](https://cursor.com/docs/cli/overview) |
-| **Engine name** | `cursor` |
-| **CLI command** | `agent` |
-| **Instructions file** | `AGENTS.md` |
-| **Skills directory** | `.agents/skills/`, `.cursor/skills/` |
-
-**Install and authenticate:**
-
-```bash
-# Install
-curl https://cursor.com/install -fsS | bash
-# Ensure ~/.local/bin is on your $PATH
-
-# Authenticate (for headless/CI use, set the API key env var)
-export CURSOR_API_KEY=your-key-here
-```
-
-Requires a Cursor subscription. For headless mode, set `CURSOR_API_KEY` as an environment variable.
-
-**HAL usage:**
-
-- **Config:** `engine.name: "cursor"`. Optional: `engine.command`, `engine.model` (default: `auto`), `engine.session`, `engine.sessionMsg`.
-- **Invocation:** `agent --print --workspace <cwd> --trust --force --model <m> [--continue] <prompt>`
-- **Sessions:** When `engine.session` is `true`, the CLI is invoked with `--continue`. `/clean` sends `engine.sessionMsg` without `--continue` to start a fresh session; the engine’s reply is sent to the user.
-- **Project file:** `AGENTS.md`.
-
-```json
-{ "engine": { "name": "cursor", "model": "auto" } }
-```
-
-#### Antigravity (Gemini CLI)
-
-| | |
-|---|---|
-| **Home** | [antigravity.google](https://antigravity.google/) (IDE) · [Gemini CLI GitHub](https://github.com/google-gemini/gemini-cli) |
-| **Engine name** | `antigravity` |
-| **CLI command** | `gemini` |
-| **Instructions file** | `GEMINI.md` |
-| **Skills directory** | `.agent/skills/` |
-
-[Google Antigravity](https://antigravity.google/) is an agent-first IDE (VS Code fork). It does not expose its own headless CLI — the terminal counterpart is [Gemini CLI](https://github.com/google-gemini/gemini-cli), Google’s open-source terminal AI agent that shares the same skills/rules ecosystem.
-
-**Install and authenticate:**
-
-```bash
-# Install via npm (requires Node.js 18+)
-npm install -g @google/gemini-cli
-
-# Or run without installing
-npx @google/gemini-cli
-
-# Authenticate (opens browser sign-in on first run)
-gemini
-```
-
-Free-tier access with a personal Google account (Gemini 2.5 Pro, 60 req/min, 1000 req/day). Also supports Google AI Studio or Vertex AI keys for higher limits.
-
-**HAL usage:**
-
-- **Config:** `engine.name: "antigravity"`. Optional: `engine.command`, `engine.model` (e.g. `gemini-2.5-pro`, passed as `--model`; default: `auto`), `engine.session`, `engine.sessionMsg`, and the flags under `engine.antigravity` (see table above).
-- **Invocation:** `gemini -p <prompt> --output-format stream-json --approval-mode <mode> [--model <m>] [--resume <sessionId>] [--sandbox]`
-- **Sessions:** When `engine.session` is `true`, the CLI is invoked with `--resume {sessionId}`. `/clean` clears the stored session and replies with a static message (no engine call — same as Claude).
-- **Streaming:** JSONL output with live progress from tool-use events.
-- **Project files:** `GEMINI.md`, `.agent/skills/`.
-- **Custom flags:** `engine.antigravity.approvalMode` (`yolo` default) and `engine.antigravity.sandbox` (`false` default).
-
-```json
-{
-  "engine": {
-    "name": "antigravity",
-    "model": "gemini-2.5-pro",
-    "antigravity": { "approvalMode": "yolo", "sandbox": false }
-  }
-}
-```
+**Per-provider setup, install, and options:** [Claude](docs/providers/claude/README.md) · [Copilot](docs/providers/copilot/README.md) · [Codex](docs/providers/codex/README.md) · [OpenCode](docs/providers/opencode/README.md) · [Cursor](docs/providers/cursor/README.md) · [Antigravity](docs/providers/antigravity/README.md).
 
 #### Providers (model list)
 
