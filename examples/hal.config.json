@@ -3,7 +3,7 @@
     "access": {
       "allowedUserIds": []
     },
-    "_engine": {
+    "engine": {
       "name": "claude",
       "session": true
     },
@@ -21,16 +21,10 @@
       ]
     },
     "logging": {
-      "level": "info",
-      "flow": true,
       "persist": true
     },
-    "rateLimit": {
-      "max": 10,
-      "windowMs": 60000
-    },
     "transcription": {
-      "model": "medium",
+      "model": "base.en",
       "showTranscription": true
     }
   },
@@ -44,12 +38,11 @@
       "active": true,
       "engine": {
         "name": "codex",
+        "model": "gpt-5.2",
         "codex": {
           "networkAccess": true,
-          "fullDiskAccess": true,
-          "__dangerouslyEnableYolo": true
-        },
-        "model": "gpt-5.2"
+          "fullDiskAccess": true
+        }
       },
       "telegram": {
         "botToken": "${OBSIDIAN_TELEGRAM_TOKEN}"

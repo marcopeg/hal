@@ -8,58 +8,63 @@ A Telegram bot that provides access to AI coding agents as a personal assistant.
 
 ## Features
 
-- **Multi-engine support** — use Claude Code, GitHub Copilot, Codex, OpenCode, or Antigravity per project
-- **Multi-project support** — run multiple bots from a single config, each connected to a different directory
 - Chat with your AI coding agent via Telegram
 - Send images and documents for analysis
 - **Voice message support** with local Whisper transcription
 - **File sending** — the engine can send files back to you
-- **Context injection** — every message includes metadata (timestamps, user info, custom values) and supports hot-reloaded hooks
+- **Multi-engine support** — use Claude Code, GitHub Copilot, Codex, OpenCode, or Antigravity per project
+- **Multi-project support** — run multiple bots from a single config, each connected to a different independent directory
+- **Context injection** — every message includes system metadata (timestamps, user info, custom values) and supports custom injections via config and per-project hooks (`.mjs`) with hot-reload
 - **Custom slash commands** — add `.mjs` command files per-project or globally; hot-reloaded so the engine can create new commands at runtime
-- **Skills** — `.claude/skills/` entries are automatically exposed as Telegram slash commands; no extra setup needed
-- Persistent conversation sessions per user
+- **Skills** — `.agents/skills/` entries are automatically exposed as Telegram slash commands; no extra setup needed
+- Persistent conversation sessions per user (availability based on engine)
 - Per-project access control, rate limiting, and logging
-- Log persistence to file with daily rotation support
 
 ## How It Works
 
-This tool runs one AI coding agent subprocess per project, each in its configured working directory. The default engine is Claude Code, but each project can use a different engine.
+This tool runs one AI coding agent subprocess per project, each in its configured working directory. You can choose your [favourite engine](./docs/engines/README.md) globally, or each project can use a different engine.
 
 The engine reads its standard config files from the project directory:
 
-- `CLAUDE.md` / `AGENTS.md` — Project-specific instructions and context (filename depends on engine)
+- `AGENTS.md` — Project-specific instructions and context (filename may depend on engine)
+- `.agents/skills/` — Custom skills and slash commands (pattern may depend on engine)
 - `.claude/settings.json` — Permissions and tool settings (Claude Code)
-- `.claude/commands/` — Custom slash commands
 - `.mcp.json` — MCP server configurations
 
 You get the full power of your chosen AI coding agent — file access, code execution, configured MCP tools — all accessible through Telegram.
 
-### Supported Engines
-
-| Engine | CLI Command | Status | Instructions File |
-|--------|-------------|--------|-------------------|
-| **Claude Code** | `claude` | Full support | `CLAUDE.md` |
-| **GitHub Copilot** | `copilot` | Full support | `AGENTS.md` |
-| **Codex** | `codex` | Full support | `AGENTS.md` |
-| **OpenCode** | `opencode` | Stub (basic prompt/response) | `AGENTS.md` |
-| **Antigravity** | `gemini` | Full support | `GEMINI.md` |
-
-See [Engine Configuration](#engine-configuration) for setup details.
-
-See [Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code), [GitHub Copilot CLI documentation](https://docs.github.com/en/copilot/concepts/agents/copilot-cli), the Codex CLI (`codex --help`), and [Gemini CLI documentation](https://github.com/google-gemini/gemini-cli) for engine-specific configuration.
-
 ## Prerequisites
 
 - Node.js 18+
-- At least one supported AI coding CLI installed and authenticated:
-  - [Claude Code](https://github.com/anthropics/claude-code) — `claude` — `curl -fsSL https://claude.com/install | bash`
-  - [GitHub Copilot CLI](https://github.com/github/copilot-cli) — `copilot` — `npm install -g @github/copilot`
-  - [Codex CLI](https://github.com/openai/codex) — `codex` — `npm install -g @openai/codex`
-  - [OpenCode](https://github.com/opencode-ai/opencode) — `opencode` — `curl -fsSL https://opencode.ai/install | bash`
-  - [Cursor CLI](https://cursor.com/cli) — `agent` — `curl https://cursor.com/install -fsS | bash`
-  - [Gemini CLI](https://github.com/google-gemini/gemini-cli) — `gemini` (Antigravity engine) — `npm install -g @google/gemini-cli`
-- A Telegram bot token per project (from [@BotFather](https://t.me/BotFather)) — see [Creating a Telegram Bot](#creating-a-telegram-bot)
+- At least one supported AI coding CLI installed and authenticated - see [engines](docs/engines/README.md)
+- A Telegram bot token per project (from [@BotFather](https://t.me/BotFather)) — see [Telegram](docs/telegram/README.md#creating-a-telegram-bot)
 - **ffmpeg** (required for voice messages) — `brew install ffmpeg` on macOS
+
+## Supported Engines 🤖
+
+This is the list of the currently supported engines (Claude Code, Copilot, Codex, OpenCode, Cursor, Antigravity):
+
+- [OpenCode](docs/engines/opencode/README.md)
+- [Codex](docs/engines/codex/README.md)
+- [Claude Code](docs/engines/claude/README.md)
+- [Copilot](docs/engines/copilot/README.md)
+- [Cursor](docs/engines/cursor/README.md)
+- [Antigravity](docs/engines/antigravity/README.md)
+
+Each engine has pros/cons and some limitations.  
+Here we try to keep updated a feature comparison table:
+
+| Feature | [OpenCode](docs/engines/opencode/README.md) | [Codex](docs/engines/codex/README.md) | [Claude Code](docs/engines/claude/README.md) | [Copilot](docs/engines/copilot/README.md) | [Cursor](docs/engines/cursor/README.md) | [Antigravity](docs/engines/antigravity/README.md) |
+|--------|:--------:|:-----:|:------:|:-------:|:------:|:------------:|
+| **Instruction file** | `AGENTS.md` | `AGENTS.md` | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` | `GEMINI.md` |
+| **Main skills folder** | `.agents/skills/` | `.agents/skills/` | `.claude/skills/` | `.agents/skills/` | `.agents/skills/` | `.agent/skills/` |
+| **Per-user session** | ✗ | ✗ | ✓ | ✗ | ✗ | ✓ |
+| **Network access** | — | ✓ | — | — | — | — |
+| **Full disk access** | — | ✓ | — | — | — | — |
+| **YOLO mode** | — | ✓ | — | — | — | ✓ |
+| **Streaming progress** | ✗ | ✗ | ✓ | ✗ | ✗ | ✓ |
+
+Read more in the [engine docs](docs/engines/README.md).
 
 ## Quick Start
 
@@ -67,29 +72,40 @@ See [Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code),
 # Create hal.config.json in the current directory
 npx @marcopeg/hal init
 
-# Initialize with a specific engine
-npx @marcopeg/hal init --engine copilot
-
-# Edit hal.config.json: add your bot token and project path
-# then start all bots
-npx @marcopeg/hal
-```
-
-## Installation
-
-```bash
-# Initialize config in a specific directory
+# Or in a specific folder (config and bots will use that directory)
 npx @marcopeg/hal init --cwd ./workspace
 
-# Start bots using the config in that directory
+# Optional: pick engine at init
+npx @marcopeg/hal init --engine copilot
+npx @marcopeg/hal init --cwd ./workspace --engine copilot
+
+# Edit hal.config.json: add your bot token and project path, then start
+npx @marcopeg/hal
 npx @marcopeg/hal --cwd ./workspace
 ```
 
+## Telegram
+
+Before running HAL you need a Telegram bot token and your own Telegram user ID. Both are required to set up your first project.
+
+- **[Register a bot](docs/telegram/README.md#creating-a-telegram-bot)** — Get a bot token from BotFather and add it to your config.
+- **[Find your user ID](docs/telegram/README.md#finding-your-telegram-user-id)** — Get your numeric user ID and add it to `allowedUserIds`.
+
 ## Configuration
 
-### hal.config.json
+HAL is configured via `hal.config.json` (and optional `hal.config.local.json`) in the directory where you run the CLI. Full reference:
 
-Create a `hal.config.json` in your workspace directory (where you run the CLI from). Secrets like bot tokens should be kept out of this file — use `${VAR_NAME}` placeholders and store the values in `.env.local` or the shell environment instead.
+- **[Configuration](docs/config/README.md)** — config files, env vars, `globals`, `projects[]`, dataDir, log files, directory structure
+- **[Context](docs/config/context/README.md)** — context injection (implicit keys, custom context, hooks)
+- **[Commands](docs/config/commands/README.md)** — built-in command config (`/start`, `/help`, `/reset`, `/clean`, `/model`, `/git`)
+- **[Engines](docs/engines/README.md)** — supported engines, engine config, model list, model defaults, per-engine setup
+- **[Logging](docs/config/logging/README.md)** — log level, flow, persist, log file paths
+- **[Rate limit](docs/config/rate-limit/README.md)** — max messages per user per time window
+
+<details>
+<summary>Minimal config example</summary>
+
+Create a `hal.config.json` in your workspace. Use `${VAR_NAME}` for secrets and set them in `.env.local`.
 
 ```json
 {
@@ -118,758 +134,7 @@ Create a `hal.config.json` in your workspace directory (where you run the CLI fr
 }
 ```
 
-### hal.config.local.json
-
-An optional `hal.config.local.json` placed next to `hal.config.json` is deep-merged on top of the base config at boot time. It is gitignored and is the recommended place for machine-specific values or secrets that you don't want committed.
-
-Every field is optional. Project entries are matched to base projects by `name` (preferred) or `cwd` — they cannot introduce new projects.
-
-```json
-{
-  "projects": [
-    {
-      "name": "backend",
-      "telegram": { "botToken": "7123456789:AAHActual-token-here" },
-      "logging": { "persist": true }
-    }
-  ]
-}
-```
-
-### Environment variable substitution
-
-Any string value in `hal.config.json` or `hal.config.local.json` (except inside `context` blocks — see [Context Injection](#context-injection)) can reference an environment variable with `${VAR_NAME}` syntax. Variables are resolved at boot time from the following sources in priority order (first match wins):
-
-1. `{config-dir}/.env.local` _(gitignored)_
-2. `{config-dir}/.env`
-3. `{project-cwd}/.env.local` _(gitignored)_
-4. `{project-cwd}/.env`
-5. Shell environment (`process.env`)
-
-```bash
-# .env  (safe to commit — no real secrets)
-BACKEND_BOT_TOKEN=
-FRONTEND_BOT_TOKEN=
-
-# .env.local  (gitignored — real secrets go here)
-BACKEND_BOT_TOKEN=7123456789:AAHActual-token-here
-FRONTEND_BOT_TOKEN=7987654321:AAHAnother-token-here
-```
-
-If a referenced variable cannot be resolved from any source the bot exits at boot with a clear error message naming the variable and the config field that references it.
-
-On every boot an `info`-level log lists all config and env files that were loaded, in resolution order, so you can always see exactly where each value came from.
-
-### Context Injection
-
-Every message sent to the engine is automatically enriched with a structured context header. This provides metadata (message info, timestamps, custom values) so the AI can reason about the current request without extra tool calls.
-
-#### Implicit context (always-on)
-
-These keys are injected for every message, even without any `context` configuration:
-
-| Key | Description |
-|-----|-------------|
-| `bot.messageId` | Telegram message ID |
-| `bot.timestamp` | Message Unix timestamp (seconds) |
-| `bot.datetime` | Message datetime, ISO 8601 |
-| `bot.userId` | Sender's Telegram user ID |
-| `bot.username` | Sender's @username (if set) |
-| `bot.firstName` | Sender's first name |
-| `bot.chatId` | Chat ID |
-| `bot.messageType` | `text` / `photo` / `document` / `voice` |
-| `project.name` | Project name (falls back to internal slug if not set) |
-| `project.cwd` | Resolved absolute project working directory |
-| `project.slug` | Project slug (full path with `/` → `-`) |
-| `sys.datetime` | Current local datetime with timezone |
-| `sys.date` | Current date, `YYYY-MM-DD` |
-| `sys.time` | Current time, `HH:MM:SS` |
-| `sys.ts` | Current Unix timestamp (seconds) |
-| `sys.tz` | Timezone name (e.g. `Europe/Berlin`) |
-| `engine.name` | Engine identifier (e.g. `claude`, `copilot`) |
-| `engine.command` | CLI command used to invoke the engine |
-| `engine.model` | AI model from config (only present when explicitly set) |
-| `engine.defaultModel` | HAL default model applied (only present when `engine.model` is omitted; see [Model defaults](#model-defaults)) |
-
-#### Custom context via config
-
-Add a `context` object at the root level of `hal.config.json` (applies to all projects) or inside individual projects (overrides root per key):
-
-```json
-{
-  "globals": { ... },
-  "context": {
-    "messageId": "${bot.messageId}",
-    "currentTime": "${sys.datetime}",
-    "buildVersion": "#{git rev-parse --short HEAD}"
-  },
-  "projects": [
-    {
-      "name": "backend",
-      "cwd": "./backend",
-      "telegram": { "botToken": "${BACKEND_BOT_TOKEN}" },
-      "context": {
-        "project": "backend",
-        "liveTimestamp": "@{date +\"%Y-%m-%d %H:%M:%S\"}"
-      }
-    }
-  ]
-}
-```
-
-Project context is merged on top of root — `backend` inherits `messageId`, `currentTime`, and `buildVersion` from root context, and adds `project` and `liveTimestamp`.
-
-#### Variable substitution patterns
-
-Three patterns are supported in context values:
-
-| Pattern | Evaluated | Description |
-|---------|-----------|-------------|
-| `${expr}` | Per message | Looks up `expr` in implicit context (`bot.*`, `sys.*`), then env vars |
-| `#{cmd}` | Once at boot | Runs shell command, caches result for all messages |
-| `@{cmd}` | Per message | Runs shell command fresh for each message |
-
-#### Context hooks
-
-For advanced enrichment, you can provide a `context.mjs` hook file that transforms the context object with arbitrary JavaScript. Two hook locations are supported:
-
-| Location | Scope |
-|----------|-------|
-| `{configDir}/.hal/hooks/context.mjs` | Global — runs for all projects |
-| `{project.cwd}/.hal/hooks/context.mjs` | Project — runs for that project only |
-
-When both exist, they chain: global runs first, its output feeds into the project hook. Both are **hot-reloaded** on every message (no restart needed) — so the AI engine itself can create or modify hooks at runtime.
-
-```js
-// .hal/hooks/context.mjs
-export default async (context) => ({
-  ...context,
-  project: "my-tracker",
-  user: await fetchUserProfile(context["bot.userId"])
-})
-```
-
-- **Input**: fully-resolved `Record\<string, string\>` context
-- **Output**: a `Record\<string, string\>` — the final context passed to the engine
-- If a hook throws, the bot logs the error and falls back to the pre-hook context
-
-#### Prompt format
-
-The resolved context is prepended to the user message before passing to the engine:
-
-```
-# Context
-- bot.messageId: 12345
-- sys.datetime: 2026-02-26 14:30:00 UTC+1
-- project: backend
-
-# User Message
-What files changed today?
-```
-
-### `globals`
-
-Default settings applied to all projects. Any setting defined in a project overrides its global counterpart.
-
-| Key | Description | Default |
-|-----|-------------|---------|
-| `globals.engine.name` | Engine: `claude`, `copilot`, `codex`, `opencode`, `antigravity` | `"claude"` |
-| `globals.engine.command` | Override the CLI command path | _(engine name)_ |
-| `globals.engine.model` | Override the AI model (see [Model defaults](#model-defaults)) | _(per engine)_ |
-| `globals.engine.session` | Use persistent sessions (`--resume` / `--continue`) | `true` |
-| `globals.engine.sessionMsg` | Message sent when renewing session (e.g. `/clean`) | `"hi!"` |
-| `globals.engine.codex.*` | Codex permission flags (see [Engine Configuration](#engine-configuration)) | all `false` |
-| `globals.engine.antigravity.*` | Antigravity flags (see [Engine Configuration](#engine-configuration)) | see below |
-| `globals.logging.level` | Log level: `debug`, `info`, `warn`, `error` | `"info"` |
-| `globals.logging.flow` | Write logs to terminal | `true` |
-| `globals.logging.persist` | Write logs to file | `false` |
-| `globals.rateLimit.max` | Max messages per window per user | `10` |
-| `globals.rateLimit.windowMs` | Rate limit window in ms | `60000` |
-| `globals.providers` | Per-engine model lists for `/model` command (see [Providers](#providers-model-list)) | `{}` |
-| `globals.access.allowedUserIds` | Telegram user IDs allowed by default | `[]` |
-| `globals.dataDir` | Default user data directory | _(see below)_ |
-| `globals.transcription.model` | Whisper model for voice | `"base.en"` |
-| `globals.transcription.showTranscription` | Show transcribed text | `true` |
-| `globals.commands` | Toggle and configure `/start`, `/help`, `/reset`, `/clean`, `/model`, `/git` for all projects | _(see [`commands`](#commands))_ |
-
-### `projects[]`
-
-Each project entry creates one Telegram bot connected to one directory.
-
-| Key | Required | Description |
-|-----|----------|-------------|
-| `name` | No | Unique identifier used as a slug for logs/data paths |
-| `active` | No | Set to `false` to skip this project at boot (default: `true`) |
-| `cwd` | **Yes** | Path to the project directory (relative to config file, or absolute) |
-| `telegram.botToken` | **Yes** | Telegram bot token from BotFather |
-| `access.allowedUserIds` | No | Override the global user whitelist for this bot |
-| `engine.name` | No | Override the engine for this project |
-| `engine.command` | No | Override the CLI command path |
-| `engine.model` | No | Override the AI model (see [Model defaults](#model-defaults)) |
-| `engine.session` | No | Use persistent sessions for this project |
-| `engine.sessionMsg` | No | Message used when renewing session |
-| `engine.codex.*` | No | Codex permission flags (see [Engine Configuration](#engine-configuration)) |
-| `engine.antigravity.*` | No | Antigravity flags (see [Engine Configuration](#engine-configuration)) |
-| `providers` | No | Override the global model list for this project (see [Providers](#providers-model-list)) |
-| `transcription.showTranscription` | No | Override transcription display |
-| `dataDir` | No | Override user data directory (see below) |
-| `context` | No | Per-project context overrides (see [Context Injection](#context-injection)) |
-| `commands` | No | Toggle and configure `/start`, `/help`, `/reset`, `/clean`, `/model`, `/git` (see [`commands`](#commands)) |
-
-### `commands`
-
-Customize built-in command behavior and toggle individual commands on/off. Can be set under `globals` (shared default for all projects) or per project (overrides globals). Project-level settings take precedence.
-
-Each command supports an `enabled` flag (default `true` for most, `false` for `/git`):
-
-```json
-{
-  "commands": {
-    "model": { "enabled": true },
-    "git": { "enabled": true },
-    "start": { "enabled": true },
-    "help": { "enabled": true },
-    "reset": { "enabled": true },
-    "clean": { "enabled": true }
-  }
-}
-```
-
-The `/start`, `/help`, `/reset`, and `/clean` commands additionally support a custom `message`:
-
-
-```json
-{
-  "globals": {
-    "commands": {
-      "start": {
-        "session": { "reset": true },
-        "message": { "text": "Welcome, ${bot.firstName}!" }
-      },
-      "help": {
-        "message": { "from": "./HELP.md" }
-      },
-      "reset": {
-        "session": { "reset": true },
-        "timeout": 120,
-        "message": {
-          "confirm": "This will erase everything. Proceed?",
-          "done": "All wiped!"
-        }
-      },
-      "clean": {
-        "message": { "text": "Session reset. Ready for a new conversation." }
-      }
-    }
-  }
-}
-```
-
-Each command supports a `message` object with exactly one of:
-
-| Field | Description |
-|-------|-------------|
-| `message.text` | Inline message string |
-| `message.from` | Path to a file (relative to project `cwd`) whose content is used as the message |
-
-Setting both `text` and `from`, or neither, is a configuration error.
-
-The `/start` command additionally supports `session.reset` (boolean, default `false`). When `true`, the session is reset after sending the welcome message (same effect as `/clean`).
-
-The `/reset` command asks for confirmation before deleting user data. It sends an inline keyboard with **Yes, go ahead!** and **Abort!** buttons. The prompt auto-expires after `timeout` seconds (default `60`), removing the buttons. Sending `/reset` again while a prompt is active invalidates the previous one.
-
-`/reset` supports these options:
-
-| Field | Description | Default |
-|-------|-------------|---------|
-| `session.reset` | Also reset the LLM session after wiping data | `false` |
-| `timeout` | Seconds before the confirmation prompt auto-expires | `60` |
-| `message.confirm` | Custom confirmation prompt text | `"This is going to delete the user data folder. Are you sure?"` |
-| `message.done` | Custom message shown after successful reset | `"done!"` |
-
-The `/clean` command always resets the LLM session regardless of configuration — user files (uploads, downloads) are preserved. The custom message only changes what the user sees afterward.
-
-**Defaults** (when no `commands` config is set):
-
-| Command | Default message |
-|---------|-----------------|
-| `/start` | `Welcome to ${project.name}!` followed by the command list |
-| `/help` | The command list |
-| `/reset` | Confirmation prompt: `"This is going to delete the user data folder. Are you sure?"`, then `"done!"` on confirm |
-| `/clean` | `Session reset. Your next message starts a new conversation.` |
-
-Messages are sent with Telegram's legacy Markdown formatting. Supported syntax: `*bold*`, `_italic_`, `` `inline code` ``, ` ```code blocks``` `, `[link text](url)`.
-
-#### Variable substitution in command messages
-
-All `message.text` values and file contents from `message.from` support the same placeholder patterns used elsewhere:
-
-| Pattern | Description |
-|---------|-------------|
-| `${varName}` | Implicit context (`bot.firstName`, `sys.date`, `project.name`, etc.) and env vars |
-| `@{cmd}` | Message-time shell command |
-
-Additionally, the special `${HAL_COMMANDS}` placeholder expands to a formatted list of all available commands, divided into five sections (empty sections are omitted):
-
-- **Project Commands** — `.mjs` commands from the project's `.hal/commands/` directory
-- **Project Skills** — engine skills marked with `public: true` in their `SKILL.md` frontmatter
-- **System Commands** — `.mjs` commands from the global `.hal/commands/` directory (shared across projects)
-- **Hal Commands** — built-in commands (`/start`, `/help`, `/reset`, `/clean`, `/model`)
-- **Versioning** — git built-in commands (`/git_init`, `/git_status`, `/git_commit`, `/git_clean`) — only when `commands.git.enabled: true`
-
-Example `WELCOME.md`:
-
-```markdown
-Welcome to ${project.name}, ${bot.firstName}!
-
-${HAL_COMMANDS}
-```
-
-#### Making skills visible in the command list
-
-By default, skills are not listed in `${HAL_COMMANDS}`. Add `public: true` to a skill's frontmatter to include it:
-
-```yaml
----
-name: crm
-description: Manage your contacts
-public: true
----
-```
-
-### Project Slug
-
-The slug is used as a folder name for log and data paths. It is derived from:
-1. The `name` field, if provided
-2. Otherwise, the `cwd` value slugified (e.g. `./foo/bar` → `foo-bar`)
-
-### `dataDir` Values
-
-| Value | Resolved Path |
-|-------|---------------|
-| _(empty)_ | `{project-cwd}/.hal/users` |
-| `~` | `{config-dir}/.hal/{slug}/data` |
-| Relative path (e.g. `.mydata`) | `{project-cwd}/{value}` |
-| Absolute path | Used as-is |
-
-### Log Files
-
-When `logging.persist: true`, logs are written to:
-```
-{config-dir}/.hal/logs/{project-slug}/YYYY-MM-DD.txt
-```
-
-### Engine Configuration
-
-Set the engine globally or per-project. The engine determines which AI coding CLI is invoked for each message.
-
-```json
-{
-  "globals": {
-    "engine": { "name": "claude" }
-  },
-  "projects": [
-    {
-      "name": "backend",
-      "cwd": "./backend",
-      "telegram": { "botToken": "${BACKEND_BOT_TOKEN}" }
-    },
-    {
-      "name": "frontend",
-      "cwd": "./frontend",
-      "engine": { "name": "copilot", "model": "gpt-5-mini" },
-      "telegram": { "botToken": "${FRONTEND_BOT_TOKEN}" }
-    },
-    {
-      "name": "legacy",
-      "active": false,
-      "cwd": "./legacy",
-      "telegram": { "botToken": "${LEGACY_BOT_TOKEN}" }
-    }
-  ]
-}
-```
-
-In this example:
-- **backend** inherits the global engine (Claude Code, default model)
-- **frontend** uses GitHub Copilot with the `gpt-5-mini` model
-- **legacy** is inactive and will be skipped at boot
-
-The `engine` object supports five fields. Engine-specific sub-objects (e.g. `codex`, `antigravity`) can be used to control permissions and behavior per engine.
-
-| Field | Description | Default |
-|-------|-------------|---------|
-| `name` | Engine identifier: `claude`, `copilot`, `codex`, `opencode`, `antigravity` | `"claude"` |
-| `command` | Custom path to the CLI binary | _(engine name)_ |
-| `model` | AI model override (omit for engine or HAL default; see [Model defaults](#model-defaults)) | _(per engine)_ |
-| `session` | Use persistent sessions (`--resume` / `--continue`) | `true` |
-| `sessionMsg` | Message sent when renewing session (e.g. `/clean`) | `"hi!"` |
-
-When using the Antigravity engine, the `engine` object also accepts an `antigravity` block:
-
-| Field | Description | Default |
-|-------|-------------|---------|
-| `antigravity.approvalMode` | Tool approval policy: `default`, `auto_edit`, or `yolo` | `"yolo"` |
-| `antigravity.sandbox` | Run in containerized/seatbelt sandbox | `false` |
-
-`approvalMode` defaults to `yolo` because HAL runs non-interactively — `default` and `auto_edit` would cause hangs or policy denials in headless mode.
-
-When using the Codex engine, the `engine` object also accepts a `codex` block:
-
-| Field | Description | Default |
-|-------|-------------|---------|
-| `codex.networkAccess` | Allow outbound network in shell commands | `false` |
-| `codex.fullDiskAccess` | Unrestricted filesystem access (implies network) | `false` |
-| `codex.dangerouslyEnableYolo` | Disable all sandboxing and approvals | `false` |
-
-#### Claude Code
-
-| | |
-|---|---|
-| **Home** | [claude.com/claude-code](https://claude.com/claude-code) · [GitHub](https://github.com/anthropics/claude-code) |
-| **Engine name** | `claude` |
-| **CLI command** | `claude` |
-| **Instructions file** | `CLAUDE.md` |
-| **Skills directory** | `.claude/skills/` |
-
-**Install and authenticate:**
-
-```bash
-# Install (native installer — no Node.js required)
-curl -fsSL https://claude.com/install | bash
-
-# Or via npm
-npm install -g @anthropic-ai/claude-code
-
-# Authenticate (opens browser OAuth flow)
-claude
-```
-
-Requires a Pro, Max, Teams, Enterprise, or API Console account. Credentials are stored in the system keychain.
-
-**HAL usage:**
-
-- **Config:** `engine.name: "claude"`. Optional: `engine.command`, `engine.model` (passed as `--model`), `engine.session`, `engine.sessionMsg`.
-- **Invocation:** `claude -p <prompt> --output-format stream-json --verbose [--model <m>] [--resume <sessionId>]`
-- **Sessions:** When `engine.session` is `true`, the CLI is invoked with `--resume {sessionId}`. `/clean` clears the stored session and replies with a static message (no engine call).
-- **Streaming:** JSONL output with live progress from tool-use events.
-- **Project files:** `CLAUDE.md`, `.claude/settings.json`.
-
-```json
-{ "engine": { "name": "claude", "model": "sonnet", "session": true } }
-```
-
-#### GitHub Copilot
-
-| | |
-|---|---|
-| **Home** | [github.com/features/copilot/cli](https://github.com/features/copilot/cli) · [GitHub](https://github.com/github/copilot-cli) |
-| **Engine name** | `copilot` |
-| **CLI command** | `copilot` |
-| **Instructions file** | `AGENTS.md` |
-| **Skills directory** | `.agents/skills/`, `.github/skills/`, `.claude/skills/` |
-
-**Install and authenticate:**
-
-```bash
-# Install via npm (requires Node.js 22+)
-npm install -g @github/copilot
-
-# Or via Homebrew
-brew install --cask copilot-cli
-
-# Authenticate (interactive — follow the prompts)
-copilot
-# Then use /login inside the CLI
-```
-
-Requires a Copilot Pro, Pro+, Business, or Enterprise plan. You can also authenticate via a fine-grained personal access token with the "Copilot Requests" permission, using the `COPILOT_GITHUB_TOKEN`, `GH_TOKEN`, or `GITHUB_TOKEN` environment variable.
-
-**HAL usage:**
-
-- **Config:** `engine.name: "copilot"`. Optional: `engine.command`, `engine.model` (see [Copilot Models](#github-copilot-models)), `engine.session`, `engine.sessionMsg`.
-- **Invocation:** `copilot -p <prompt> --allow-all [--model <m>] [--continue]`
-- **Sessions:** When `engine.session` is `true`, the CLI is invoked with `--continue`. `/clean` sends `engine.sessionMsg` to the engine without `--continue` to start a fresh session; the engine’s reply is sent to the user.
-- **Project file:** `AGENTS.md`.
-
-```json
-{ "engine": { "name": "copilot", "model": "claude-sonnet-4.6", "session": true } }
-```
-
-#### Codex
-
-| | |
-|---|---|
-| **Home** | [developers.openai.com/codex](https://developers.openai.com/codex/cli/) · [GitHub](https://github.com/openai/codex) |
-| **Engine name** | `codex` |
-| **CLI command** | `codex` |
-| **Instructions file** | `AGENTS.md` |
-| **Skills directory** | `.agents/skills/` |
-
-**Install and authenticate:**
-
-```bash
-# Install via npm
-npm install -g @openai/codex
-
-# Or via Homebrew
-brew install --cask codex
-
-# Authenticate (opens browser OAuth or prompts for API key)
-codex
-```
-
-Requires a ChatGPT Plus, Pro, Business, Edu, or Enterprise plan — or an OpenAI API key. Credentials are stored in the system keychain.
-
-**HAL usage:**
-
-- **Config:** `engine.name: "codex"`. Optional: `engine.command`, `engine.model` (e.g. `gpt-5.1-codex-mini`), `engine.session`, `engine.sessionMsg`, and the permission flags under `engine.codex` (see table above).
-- **Invocation:** `codex exec -p <prompt> --skip-git-repo-check [permission flags] [-m <model>]` or `codex exec resume --last` for session continuation.
-- **Sessions:** When `engine.session` is `true`, the CLI is invoked with `codex exec resume --last` to continue the most recent session; otherwise `codex exec` starts a fresh run. `/clean` sends `engine.sessionMsg` without resuming, so the engine starts a new session; the engine’s reply is sent to the user.
-- **Permission flags:** HAL always passes `--skip-git-repo-check` so Codex runs without the trusted-directory check. You can escalate via `engine.codex`: `networkAccess` (allow outbound HTTP etc.), `fullDiskAccess` (unrestricted filesystem; implies network), or `dangerouslyEnableYolo` (disable all sandboxing and approvals). Higher tiers supersede lower ones. **Warning:** Use `dangerouslyEnableYolo` only in hardened environments (e.g. Docker, VMs).
-- **Project file:** `AGENTS.md`.
-
-```json
-{
-  "engine": {
-    "name": "codex",
-    "model": "gpt-5.1-codex-mini",
-    "codex": { "networkAccess": true, "fullDiskAccess": true }
-  }
-}
-```
-
-#### OpenCode
-
-| | |
-|---|---|
-| **Home** | [opencode.ai](https://opencode.ai/) · [GitHub](https://github.com/opencode-ai/opencode) |
-| **Engine name** | `opencode` |
-| **CLI command** | `opencode` |
-| **Instructions file** | `AGENTS.md` |
-| **Skills directory** | `.agents/skills/`, `.opencode/skills/`, `.claude/skills/` |
-
-**Install and authenticate:**
-
-```bash
-# Install via the official script
-curl -fsSL https://opencode.ai/install | bash
-
-# Or via npm / Homebrew / Scoop
-npm install -g opencode
-brew install opencode
-
-# Authenticate (configure provider API keys)
-opencode auth login
-```
-
-Supports 75+ LLM providers. Credentials are stored in `~/.local/share/opencode/auth.json`.
-
-**HAL usage:**
-
-- **Config:** `engine.name: "opencode"`. Optional: `engine.command`, `engine.model` (e.g. `opencode/gpt-5-nano`), `engine.session`, `engine.sessionMsg`.
-- **Invocation:** `opencode run [-m <model>] [-c] <prompt>` with `OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=true` env var.
-- **Sessions:** When `engine.session` is `true`, the CLI is invoked with `-c` (continue). `/clean` sends `engine.sessionMsg` without `-c` to start a fresh session; the engine’s reply is sent to the user.
-- **Note:** OpenCode is a basic prompt/response adapter — no streaming progress events.
-- **Project file:** `AGENTS.md`.
-
-```json
-{ "engine": { "name": "opencode", "model": "opencode/gpt-5-nano" } }
-```
-
-#### Cursor
-
-| | |
-|---|---|
-| **Home** | [cursor.com/cli](https://cursor.com/cli) · [Docs](https://cursor.com/docs/cli/overview) |
-| **Engine name** | `cursor` |
-| **CLI command** | `agent` |
-| **Instructions file** | `AGENTS.md` |
-| **Skills directory** | `.agents/skills/`, `.cursor/skills/` |
-
-**Install and authenticate:**
-
-```bash
-# Install
-curl https://cursor.com/install -fsS | bash
-# Ensure ~/.local/bin is on your $PATH
-
-# Authenticate (for headless/CI use, set the API key env var)
-export CURSOR_API_KEY=your-key-here
-```
-
-Requires a Cursor subscription. For headless mode, set `CURSOR_API_KEY` as an environment variable.
-
-**HAL usage:**
-
-- **Config:** `engine.name: "cursor"`. Optional: `engine.command`, `engine.model` (default: `auto`), `engine.session`, `engine.sessionMsg`.
-- **Invocation:** `agent --print --workspace <cwd> --trust --force --model <m> [--continue] <prompt>`
-- **Sessions:** When `engine.session` is `true`, the CLI is invoked with `--continue`. `/clean` sends `engine.sessionMsg` without `--continue` to start a fresh session; the engine’s reply is sent to the user.
-- **Project file:** `AGENTS.md`.
-
-```json
-{ "engine": { "name": "cursor", "model": "auto" } }
-```
-
-#### Antigravity (Gemini CLI)
-
-| | |
-|---|---|
-| **Home** | [antigravity.google](https://antigravity.google/) (IDE) · [Gemini CLI GitHub](https://github.com/google-gemini/gemini-cli) |
-| **Engine name** | `antigravity` |
-| **CLI command** | `gemini` |
-| **Instructions file** | `GEMINI.md` |
-| **Skills directory** | `.agent/skills/` |
-
-[Google Antigravity](https://antigravity.google/) is an agent-first IDE (VS Code fork). It does not expose its own headless CLI — the terminal counterpart is [Gemini CLI](https://github.com/google-gemini/gemini-cli), Google’s open-source terminal AI agent that shares the same skills/rules ecosystem.
-
-**Install and authenticate:**
-
-```bash
-# Install via npm (requires Node.js 18+)
-npm install -g @google/gemini-cli
-
-# Or run without installing
-npx @google/gemini-cli
-
-# Authenticate (opens browser sign-in on first run)
-gemini
-```
-
-Free-tier access with a personal Google account (Gemini 2.5 Pro, 60 req/min, 1000 req/day). Also supports Google AI Studio or Vertex AI keys for higher limits.
-
-**HAL usage:**
-
-- **Config:** `engine.name: "antigravity"`. Optional: `engine.command`, `engine.model` (e.g. `gemini-2.5-pro`, passed as `--model`; default: `auto`), `engine.session`, `engine.sessionMsg`, and the flags under `engine.antigravity` (see table above).
-- **Invocation:** `gemini -p <prompt> --output-format stream-json --approval-mode <mode> [--model <m>] [--resume <sessionId>] [--sandbox]`
-- **Sessions:** When `engine.session` is `true`, the CLI is invoked with `--resume {sessionId}`. `/clean` clears the stored session and replies with a static message (no engine call — same as Claude).
-- **Streaming:** JSONL output with live progress from tool-use events.
-- **Project files:** `GEMINI.md`, `.agent/skills/`.
-- **Custom flags:** `engine.antigravity.approvalMode` (`yolo` default) and `engine.antigravity.sandbox` (`false` default).
-
-```json
-{
-  "engine": {
-    "name": "antigravity",
-    "model": "gemini-2.5-pro",
-    "antigravity": { "approvalMode": "yolo", "sandbox": false }
-  }
-}
-```
-
-#### Providers (model list)
-
-The `providers` config lets you define which models are available for each engine in the `/model` Telegram command. This is a top-level key under `globals` (or per-project to override).
-
-```json
-{
-  "globals": {
-    "providers": {
-      "codex": [
-        { "name": "gpt-5.3-codex", "description": "Most capable Codex model" },
-        { "name": "gpt-5.2-codex", "description": "Advanced coding model" },
-        { "name": "gpt-5.2", "description": "General agentic model" }
-      ],
-      "claude": [
-        { "name": "claude-sonnet-4-6", "description": "Balanced performance and speed" },
-        { "name": "claude-opus-4-6", "description": "Most capable, complex reasoning" }
-      ]
-    }
-  }
-}
-```
-
-Each entry has:
-
-| Field | Required | Description |
-|-------|----------|-------------|
-| `name` | **Yes** | The model identifier passed to the engine CLI (e.g. `gpt-5.3-codex`) |
-| `description` | No | Short description shown in the Telegram model picker |
-
-**Behavior of `/model`:**
-
-- **With `providers` configured:** `/model` (no argument) shows a list of inline buttons for the configured models. `/model <name>` validates against the list before accepting.
-- **Without `providers`:** `/model` (no argument) shows a helper message prompting the user to type `/model <name>`. `/model <name>` accepts any value.
-
-**Available models per engine:** Refer to each engine's official documentation:
-
-| Engine | Models reference |
-|--------|----------------|
-| Codex | <https://developers.openai.com/codex/models/> |
-| Claude Code | <https://support.claude.com/en/articles/11940350-claude-code-model-configuration> |
-| Cursor | <https://cursor.com/docs/models> |
-| Copilot | <https://docs.github.com/en/copilot/reference/ai-models/supported-models> |
-| OpenCode | <https://opencode.ai/docs/models/> |
-| Antigravity | <https://antigravity.google/docs/models> |
-
-#### Model defaults
-
-When `engine.model` is omitted (neither in globals nor project config), behavior depends on the engine:
-
-- **Engine default** — Codex, Copilot, Cursor, and Antigravity: HAL does not pass a model flag, so the CLI picks its own default (Cursor passes `--model auto`; Antigravity defaults to `auto`).
-- **HAL default** — Claude Code and OpenCode: HAL passes a built-in default so the engine always receives a model. Defaults are defined in `src/default-models.ts`:
-  - Claude Code: `default` (account-recommended model)
-  - OpenCode: `opencode/gpt-5-nano` (free Zen model)
-
-To change HAL defaults, edit `src/default-models.ts`.
-
-## Directory Structure
-
-With a config at `~/workspace/hal.config.json`:
-
-```
-~/workspace/
-├── hal.config.json
-├── hal.config.local.json    (gitignored — local overrides / secrets)
-├── .hal/
-│   ├── hooks/
-│   │   └── context.mjs            (global context hook, optional)
-│   ├── commands/
-│   │   └── mycommand.mjs          (global command, available to all projects)
-│   └── logs/
-│       ├── backend/
-│       │   └── 2026-02-26.txt     (when persist: true)
-│       └── frontend/
-│           └── 2026-02-26.txt
-├── .env                     (variable declarations, safe to commit)
-├── .env.local               (gitignored — actual secret values)
-├── backend/
-│   ├── CLAUDE.md
-│   ├── .claude/
-│   │   ├── settings.json
-│   │   └── skills/
-│   │       └── deploy/
-│   │           └── SKILL.md         (skill exposed as /deploy command)
-│   └── .hal/
-│       ├── hooks/
-│       │   └── context.mjs        (project context hook, optional)
-│       ├── commands/
-│       │   └── deploy.mjs         (project-specific command, optional)
-│       └── users/
-│           └── {userId}/
-│               ├── uploads/       # Files FROM user (to Claude)
-│               ├── downloads/     # Files TO user (from Claude)
-│               └── session.json   # Session data
-└── frontend/
-    ├── CLAUDE.md
-    └── .hal/
-        └── users/
-```
-
-## CLI Commands
-
-```bash
-# Show help
-npx @marcopeg/hal --help
-
-# Initialize config file
-npx @marcopeg/hal init
-npx @marcopeg/hal init --cwd ./workspace
-
-# Start all bots
-npx @marcopeg/hal
-npx @marcopeg/hal --cwd ./workspace
-```
+</details>
 
 ## Bot Commands
 
@@ -880,253 +145,16 @@ npx @marcopeg/hal --cwd ./workspace
 | `/reset` | Wipes out all user data and resets the LLM session    |
 | `/clean` | Resets the LLM session                                |
 
-## Custom Commands
+## Custom commands and skills
 
-You can add your own slash commands as `.mjs` files. When a user sends `/mycommand`, the bot looks for a matching file before passing the message to Claude.
+Add your own slash commands as `.mjs` files (project or global), or use engine skill folders that HAL exposes as commands. Custom commands can override a skill with the same name. Both are hot-reloaded.
 
-### File locations
+- **[Custom commands](docs/custom-commands/README.md)** — file locations, handler arguments (`args`, `ctx`, `gram`, `agent`, `projectCtx`), examples.
+- **[Skills](docs/skills/README.md)** — SKILL.md format, per-engine directories, precedence.
 
-| Location | Scope |
-|----------|-------|
-| `{project.cwd}/.hal/commands/{name}.mjs` | Project-specific |
-| `{configDir}/.hal/commands/{name}.mjs` | Global — available to all projects |
+## Voice messages
 
-Project-specific commands take precedence over global ones on name collision.
-
-### Command file format
-
-```js
-// .hal/commands/deploy.mjs
-export const description = 'Deploy the project'; // shown in Telegram's / menu
-
-export default async function({ args, ctx, projectCtx }) {
-  const env = args[0] ?? 'staging';
-  return `Deploying to ${env}...`;
-}
-```
-
-The only required export is `description` (shown in Telegram's `/` suggestion menu) and a `default` function. The return value is sent to the user as a message. Return `null` or `undefined` to suppress the reply (e.g. if your command sends its own response via `gram`).
-
-### Handler arguments
-
-#### `args: string[]`
-
-Tokens following the command name, split on whitespace.
-
-```
-/deploy staging eu-west  →  args = ['staging', 'eu-west']
-/status                  →  args = []
-```
-
-#### `ctx: Record\<string, string\>`
-
-The fully-resolved context that would be sent to the AI for this message — identical to what the engine sees in its `# Context` header. Includes all implicit keys plus any config vars and hook results:
-
-| Key group | Description |
-|-----------|-------------|
-| `bot.*` | `bot.userId`, `bot.username`, `bot.firstName`, `bot.chatId`, `bot.messageId`, `bot.timestamp`, `bot.datetime`, `bot.messageType` |
-| `sys.*` | `sys.date`, `sys.time`, `sys.datetime`, `sys.ts`, `sys.tz` |
-| `project.*` | `project.name`, `project.cwd`, `project.slug` |
-| `engine.*` | `engine.name`, `engine.command`, `engine.model` (if set), `engine.defaultModel` (if HAL default applied) |
-| custom | Any keys defined in `context` config blocks, after `${}` / `#{}` / `@{}` substitution and context hook transforms |
-
-Use `/context` (the built-in global command) to inspect the exact keys available at runtime.
-
-#### `gram: Grammy Context`
-
-The raw [Grammy](https://grammy.dev) message context, giving direct access to the Telegram Bot API. Only needed for advanced use cases: sending multiple messages, editing or deleting messages, uploading files, reacting to messages, etc.
-
-Common patterns:
-
-```js
-// Send a temporary status message, then delete it
-const status = await gram.reply('Working...');
-// ... do work ...
-await gram.api.deleteMessage(gram.chat.id, status.message_id);
-
-// Edit the status message while working
-await gram.api.editMessageText(gram.chat.id, status.message_id, 'Still working...');
-
-// React to the original message
-await gram.react([{ type: 'emoji', emoji: '👍' }]);
-
-// Send a file
-await gram.replyWithDocument(new InputFile('/path/to/file.pdf'));
-```
-
-When using `gram` to send your own reply, return `null` or `undefined` to suppress the default text reply:
-
-```js
-export default async function({ gram }) {
-  await gram.reply('Done!');
-  return null;
-}
-```
-
-#### `agent: Agent`
-
-An engine-agnostic interface for making one-shot AI calls from within a command. The underlying provider is configured per-project — currently Claude Code, with support for other engines planned. Command handlers always use this interface and never talk to any engine directly.
-
-```ts
-interface Agent {
-  call(
-    prompt: string,
-    options?: { onProgress?: (message: string) => void }
-  ): Promise\<string\>;
-}
-```
-
-Unlike regular user messages, agent calls have no session history and no context header prepended — the prompt is sent to the engine as-is.
-
-| Option | Type | Description |
-|--------|------|-------------|
-| `onProgress` | `(message: string) => void` | Called during execution with activity updates (e.g. `"Reading: /path/to/file"`). Use it to keep the user informed while the agent is working. |
-
-Returns the agent's final text output as a string. Throws on failure — the bot's command error handler will catch it and reply with `Command failed: {message}`.
-
-```js
-export default async function({ args, gram, agent }) {
-  const status = await gram.reply('Thinking...');
-
-  const answer = await agent.call(`Summarise: ${args.join(' ')}`, {
-    onProgress: async (activity) => {
-      try {
-        await gram.api.editMessageText(gram.chat.id, status.message_id, `⏳ ${activity}`);
-      } catch { /* ignore if message was already edited */ }
-    },
-  });
-
-  await gram.api.deleteMessage(gram.chat.id, status.message_id);
-  return answer;
-}
-```
-
-See [`examples/.hal/commands/joke.mjs`](examples/.hal/commands/joke.mjs) for a full example that combines `gram` for live status cycling with `agent.call` + `onProgress` for activity updates.
-
-#### `projectCtx: ProjectContext`
-
-The project-level context object. Useful fields:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `projectCtx.config.name` | `string \| undefined` | Project name from config |
-| `projectCtx.config.slug` | `string` | Internal slug (used for log/data paths) |
-| `projectCtx.config.cwd` | `string` | Absolute path to the project directory |
-| `projectCtx.config.configDir` | `string` | Absolute path to the directory containing `hal.config.json` |
-| `projectCtx.config.dataDir` | `string` | Absolute path to user data storage root |
-| `projectCtx.config.context` | `Record\<string, string\> \| undefined` | Raw config-level context values (pre-hook) |
-| `projectCtx.logger` | Pino logger | Structured logger — use for debug output that ends up in log files |
-
-### Examples
-
-- [`examples/obsidian/.hal/commands/status.mjs`](examples/obsidian/.hal/commands/status.mjs) — project-specific command using `projectCtx.config`
-- [`examples/.hal/commands/context.mjs`](examples/.hal/commands/context.mjs) — global command that dumps the full resolved context
-- [`examples/.hal/commands/joke.mjs`](examples/.hal/commands/joke.mjs) — global command using `agent.call` with live status cycling and `onProgress` updates
-
-### Skills
-
-Skills follow the [Agent Skills standard](https://agentskills.io/). Each engine looks for skills in engine-specific directories (highest priority first):
-
-| Engine       | Skill directories (priority order)                     |
-|--------------|--------------------------------------------------------|
-| Claude       | `.claude/skills`                                       |
-| Codex        | `.agents/skills`                                       |
-| Copilot      | `.agents/skills`, `.github/skills`, `.claude/skills`   |
-| OpenCode     | `.agents/skills`, `.opencode/skills`, `.claude/skills` |
-| Cursor       | `.agents/skills`, `.cursor/skills`                     |
-| Antigravity  | `.agent/skills`                                        |
-
-When the same skill name exists in multiple directories, the highest-priority directory wins (first-found). Each skill is a folder containing a `SKILL.md` file with a YAML frontmatter block and a prompt body:
-
-```
-{project-cwd}/
-└── .agents/skills/       # or .claude/skills/, .github/skills/, etc.
-    └── chuck/
-        └── SKILL.md
-```
-
-```markdown
----
-name: chuck
-description: Tells a joke about Chuck Norris.
----
-
-Tell a short, funny joke about Chuck Norris.
-```
-
-At boot time (and whenever `SKILL.md` files change) the bot reads every skill folder, parses the frontmatter, and registers the skills as Telegram slash commands via `setMyCommands`. The **folder name** is used as the command name — if the frontmatter `name` field differs from the folder name the bot logs a warning and uses the folder name.
-
-When a user invokes a skill command (e.g. `/chuck`) the bot:
-1. Reads the `SKILL.md` prompt body
-2. Appends any user arguments as `User input: {args}` if present
-3. Calls the AI engine with that prompt via the engine-agnostic `agent.call()` interface
-4. Sends the response back to the user
-
-Skills can be **overridden per-project**: create a `.hal/commands/{name}.mjs` file with the same name as the skill and the `.mjs` handler takes full precedence.
-
-**Command precedence** (highest wins):
-
-```
-project .hal/commands/{name}.mjs  >  global .hal/commands/{name}.mjs  >  engine skills (see table above)
-```
-
-See [`examples/obsidian/.claude/skills/chuck/`](examples/obsidian/.claude/skills/chuck/SKILL.md) and [`examples/obsidian/.claude/skills/weather/`](examples/obsidian/.claude/skills/weather/SKILL.md) for example skills.
-
-
-### Hot-reload
-
-Commands and skills are **hot-reloaded** — drop a new `.mjs` file or `SKILL.md` into the relevant directory and the bot registers it with Telegram automatically, with no restart. This means the AI engine can write new command or skill files as part of a task and users see them in the `/` menu immediately.
-
-## Creating a Telegram Bot
-
-1. Message [@BotFather](https://t.me/BotFather) on Telegram
-2. Send `/newbot`
-3. Choose a display name (e.g. "My Backend Assistant")
-4. Choose a username ending in `bot` (e.g. `my_backend_assistant_bot`)
-5. Add the token to `.env.local` and reference it via `${VAR_NAME}` in `hal.config.json`
-
-For each project you need a separate bot and token.
-
-## Finding Your Telegram User ID
-
-1. Message [@userinfobot](https://t.me/userinfobot) on Telegram
-2. It will reply with your numeric user ID
-3. Add it to `allowedUserIds`
-
-## Voice Messages
-
-Voice messages are transcribed locally using [Whisper](https://github.com/openai/whisper) via the `nodejs-whisper` package. No audio is sent to external services.
-
-### Setup
-
-1. **ffmpeg** — for audio conversion
-   ```bash
-   brew install ffmpeg         # macOS
-   sudo apt install ffmpeg     # Ubuntu/Debian
-   ```
-
-2. **CMake** — for building the Whisper executable
-   ```bash
-   brew install cmake          # macOS
-   sudo apt install cmake      # Ubuntu/Debian
-   ```
-
-3. **Download and build Whisper** — run once after installation:
-   ```bash
-   npx nodejs-whisper download
-   ```
-
-### Whisper Models
-
-| Model | Size | Speed | Quality |
-|-------|------|-------|---------|
-| `tiny` | ~75 MB | Fastest | Basic |
-| `tiny.en` | ~75 MB | Fastest | English-only |
-| `base` | ~142 MB | Fast | Good |
-| `base.en` | ~142 MB | Fast | English-only (default) |
-| `small` | ~466 MB | Medium | Good multilingual |
-| `medium` | ~1.5 GB | Slower | Very good multilingual |
-| `large-v3-turbo` | ~1.5 GB | Fast | Near-large quality |
+Voice messages are transcribed locally with [Whisper](https://github.com/openai/whisper) (no audio sent to external services). **[Voice messages](docs/voice/README.md)** — setup (ffmpeg, CMake, nodejs-whisper), model options.
 
 ## Sending Files to Users
 
@@ -1136,39 +164,6 @@ The engine can send files back through Telegram. Each user has a `downloads/` fo
 2. The bot detects it after the engine's response completes
 3. The file is sent via Telegram (as a document)
 4. The file is deleted from the server after delivery
-
-## Migration from v1 (Single-Project Config)
-
-The old single-project config format is no longer supported. Migrate by wrapping your config:
-
-**Before:**
-```json
-{
-  "telegram": { "botToken": "..." },
-  "access": { "allowedUserIds": [123] },
-  "claude": { "command": "claude" },
-  "logging": { "level": "info" }
-}
-```
-
-**After:**
-```json
-{
-  "globals": {
-    "engine": { "name": "claude" },
-    "logging": { "level": "info" }
-  },
-  "projects": [
-    {
-      "cwd": ".",
-      "telegram": { "botToken": "..." },
-      "access": { "allowedUserIds": [123] }
-    }
-  ]
-}
-```
-
-> **Note:** Named environment variable overrides from v1 (`TELEGRAM_BOT_TOKEN`, `ALLOWED_USER_IDS`, etc.) are no longer supported. Use `${VAR_NAME}` substitution in `hal.config.json` instead — see [Environment variable substitution](#environment-variable-substitution).
 
 ## Security Notice
 
@@ -1183,4 +178,8 @@ This bot is intended for development assistance only. Treat all conversations as
 
 ## License
 
-ISC
+MIT
+
+---
+
+This project is forked by the CCP at Telegram.

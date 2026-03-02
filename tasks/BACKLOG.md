@@ -10,21 +10,22 @@ The commands in the menu should be sorted:
 ## In Progress
 
 ## Ready Tasks
+- [035 — Access list safe defaults and overrides](./ready/035.access-list-safe-defaults-and-overrides.md) | [plan](./ready/035.access-list-safe-defaults-and-overrides.plan.md)
 - [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
+- [036 — Allowed user IDs: env substitution and numeric validation](./ready/036.allowed-user-ids-env-substitution-and-validation.md) | [plan](./ready/036.allowed-user-ids-env-substitution-and-validation.plan.md)
+- [027 — YAML config support](./ready/027.yaml-config-support.md) | [plan](./ready/027.yaml-config-support.plan.md) ← before 028
+- [028 — JSONC config support](./ready/028.json-plusplus-config-comments.md) | [plan](./ready/028.json-plusplus-config-comments.plan.md) ← after 027
 
 ## Drafts
 
 - [007 — Python commands + venv support](./drafts/007.python.md)
 - [014 — Multi-thread project isolation](./drafts/014.multi-thread.md)
-- [027 — YAML config support](./drafts/027.yaml-config-support.md)
-- [028 — JSON++ config: comments and tolerant parsing research](./drafts/028.json-plusplus-config-comments.md)
 - [029 — Default models: providers config and /model validation behavior](./drafts/029.default-models-providers-and-model-validation.md)
 - [030 — Codex provider default model propagation](./drafts/030.codex-provider-default-model-propagation.md)
 - [031 — Reset model with duration and cron scheduling](./drafts/031.reset-model-with-duration-and-cron.md)
 - [032 — Cron jobs and scheduled actions](./drafts/032.cron-jobs-and-scheduled-actions.md)
 - [033 — Expose project as MCP server](./drafts/033.expose-project-as-mcp-server.md)
 - [034 — Codex session ID investigation and user isolation](./drafts/034.codex-session-id-investigation-and-user-isolation.md)
-
 ## Completed
 
 - [001 — Multi Project Setup](./completed/001.multi.md) | [plan](./completed/001.multi.plan.md)
