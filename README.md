@@ -113,22 +113,20 @@ Create a `hal.config.json` in your workspace. Use `${VAR_NAME}` for secrets and 
     "engine": { "name": "claude" },
     "logging": { "level": "info", "flow": true, "persist": false },
     "rateLimit": { "max": 10, "windowMs": 60000 },
-    "access": { "allowedUserIds": [] }
+    "access": { "allowedUserIds": [123456789] }
   },
   "projects": [
     {
       "name": "backend",
       "cwd": "./backend",
       "telegram": { "botToken": "${BACKEND_BOT_TOKEN}" },
-      "access": { "allowedUserIds": [123456789] },
       "logging": { "persist": true }
     },
     {
       "name": "frontend",
       "cwd": "./frontend",
       "engine": { "name": "copilot", "model": "gpt-5-mini" },
-      "telegram": { "botToken": "${FRONTEND_BOT_TOKEN}" },
-      "access": { "allowedUserIds": [123456789] }
+      "telegram": { "botToken": "${FRONTEND_BOT_TOKEN}" }
     }
   ]
 }

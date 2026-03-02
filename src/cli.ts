@@ -10,6 +10,7 @@ import {
   loadMultiConfig,
   resolveProjectConfig,
   tryLoadMultiConfig,
+  validateAccessPolicies,
   validateProjects,
 } from "./config.js";
 import { startConfigWatcher } from "./config-watcher.js";
@@ -38,7 +39,7 @@ function buildConfigTemplate(engineName: EngineName): string {
       "windowMs": 60000
     },
     "access": {
-      "allowedUserIds": []
+      "allowedUserIds": [0]
     }
   },
   "projects": [
@@ -47,9 +48,6 @@ function buildConfigTemplate(engineName: EngineName): string {
       "cwd": ".",
       "telegram": {
         "botToken": "YOUR_BOT_TOKEN_HERE"
-      },
-      "access": {
-        "allowedUserIds": []
       }
     }
   ]
@@ -198,7 +196,9 @@ async function runInit(cwd: string, engineName: EngineName): Promise<void> {
     `1. Edit hal.config.json and set your Telegram bot token in projects[0].telegram.botToken`,
   );
   console.log(`2. Set the project cwd to the folder the engine should work in`);
-  console.log(`3. Add allowed user IDs to the "allowedUserIds" array`);
+  console.log(
+    `3. Replace 0 in access.allowedUserIds with your Telegram user ID (required)`,
+  );
   console.log(`4. Run: npx @marcopeg/hal --cwd ${cwd}`);
   process.exit(0);
 }
@@ -240,6 +240,7 @@ async function runBotsForConfig(
   });
 
   validateProjects(resolvedProjects);
+  validateAccessPolicies(resolvedProjects);
 
   const sourceLines = loadedFiles.map((f, i) => {
     const isLocal = f.endsWith("hal.config.local.json");

@@ -133,12 +133,17 @@ const ProvidersConfigSchema = z
   })
   .optional();
 
+const AccessSchema = z
+  .object({
+    allowedUserIds: z.array(z.number()),
+    dangerouslyAllowUnrestrictedAccess: z.boolean(),
+  })
+  .partial()
+  .optional();
+
 const GlobalsFileSchema = z
   .object({
-    access: z
-      .object({ allowedUserIds: z.array(z.number()) })
-      .partial()
-      .optional(),
+    access: AccessSchema,
     engine: EngineConfigSchema,
     providers: ProvidersConfigSchema,
     logging: z
@@ -174,10 +179,7 @@ const ProjectFileSchema = z.object({
   telegram: z.object({
     botToken: z.string().min(1, "project.telegram.botToken is required"),
   }),
-  access: z
-    .object({ allowedUserIds: z.array(z.number()) })
-    .partial()
-    .optional(),
+  access: AccessSchema,
   engine: EngineConfigSchema,
   providers: ProvidersConfigSchema,
   logging: z
@@ -251,7 +253,10 @@ export interface ResolvedProjectConfig {
   dataDir: string;
   logDir: string;
   telegram: { botToken: string };
-  access: { allowedUserIds: number[] };
+  access: {
+    allowedUserIds: number[];
+    dangerouslyAllowUnrestrictedAccess: boolean;
+  };
   engine: EngineName;
   engineCommand: string | undefined;
   engineModel: string | undefined;
@@ -465,7 +470,13 @@ export function resolveProjectConfig(
     telegram: { botToken: project.telegram.botToken },
     access: {
       allowedUserIds:
-        project.access?.allowedUserIds ?? globals.access?.allowedUserIds ?? [],
+        (project.access !== undefined
+          ? project.access.allowedUserIds
+          : globals.access?.allowedUserIds) ?? [],
+      dangerouslyAllowUnrestrictedAccess:
+        (project.access !== undefined
+          ? project.access.dangerouslyAllowUnrestrictedAccess
+          : globals.access?.dangerouslyAllowUnrestrictedAccess) ?? false,
     },
     engine: engineName,
     engineCommand: project.engine?.command ?? globals.engine?.command,
@@ -555,6 +566,34 @@ export function validateProjects(projects: ResolvedProjectConfig[]): void {
       }
       names.add(project.name);
     }
+  }
+}
+
+// ─── Boot-time access policy validation ───────────────────────────────────────
+
+export function validateAccessPolicies(
+  projects: ResolvedProjectConfig[],
+): void {
+  const errors: string[] = [];
+
+  for (const project of projects) {
+    const { allowedUserIds, dangerouslyAllowUnrestrictedAccess } =
+      project.access;
+    const hasUsers = allowedUserIds.length > 0;
+    const hasUnsafe = dangerouslyAllowUnrestrictedAccess === true;
+
+    if (!hasUsers && !hasUnsafe) {
+      errors.push(
+        `Project "${project.slug}": no access policy configured. ` +
+          "Set access.allowedUserIds or access.dangerouslyAllowUnrestrictedAccess.",
+      );
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new ConfigLoadError(
+      `Configuration error: invalid access policy\n${errors.map((e) => `  - ${e}`).join("\n")}`,
+    );
   }
 }
 

@@ -14,22 +14,20 @@ Create a `hal.config.json` in your workspace directory (where you run the CLI fr
     "engine": { "name": "claude" },
     "logging": { "level": "info", "flow": true, "persist": false },
     "rateLimit": { "max": 10, "windowMs": 60000 },
-    "access": { "allowedUserIds": [] }
+    "access": { "allowedUserIds": [123456789] }
   },
   "projects": [
     {
       "name": "backend",
       "cwd": "./backend",
       "telegram": { "botToken": "${BACKEND_BOT_TOKEN}" },
-      "access": { "allowedUserIds": [123456789] },
       "logging": { "persist": true }
     },
     {
       "name": "frontend",
       "cwd": "./frontend",
       "engine": { "name": "copilot", "model": "gpt-5-mini" },
-      "telegram": { "botToken": "${FRONTEND_BOT_TOKEN}" },
-      "access": { "allowedUserIds": [123456789] }
+      "telegram": { "botToken": "${FRONTEND_BOT_TOKEN}" }
     }
   ]
 }
@@ -94,12 +92,26 @@ Default settings applied to all projects. Any setting defined in a project overr
 | `globals.rateLimit` | Max messages per user per time window | See [Rate limit](rate-limit/README.md) |
 | `globals.providers` | Per-engine model lists for `/model` (see [Engines](../engines/README.md#model-list-providers-key)) | `{}` |
 | `globals.access.allowedUserIds` | Telegram user IDs allowed by default | `[]` |
+| `globals.access.dangerouslyAllowUnrestrictedAccess` | Allow all users without a whitelist (must be explicitly `true`) | `false` |
 | `globals.dataDir` | Default user data directory | _(see [dataDir](#datadir-values) below)_ |
 | `globals.transcription.model` | Whisper model for voice | `"base.en"` |
 | `globals.transcription.showTranscription` | Show transcribed text | `true` |
 | `globals.commands` | Toggle and configure built-in commands | See [Commands](commands/README.md) |
 
 Per-engine options (Codex, Antigravity) are documented in [Engines](../engines/README.md).
+
+## Access control
+
+Every project must have a valid access policy or the bot refuses to start. A valid policy is one of:
+
+- `access.allowedUserIds` contains at least one Telegram user ID, **or**
+- `access.dangerouslyAllowUnrestrictedAccess` is explicitly `true`.
+
+When `allowedUserIds` is non-empty it takes precedence — only listed users are allowed, even if `dangerouslyAllowUnrestrictedAccess` is also `true`.
+
+**Project-level replacement:** if a project defines `access` (even as `"access": {}`), it fully replaces the global `access` — the two are not merged. If a project omits `access` entirely, the global value is inherited. An empty `"access": {}` at project level is a validation error because it has neither user IDs nor the dangerous flag.
+
+This validation runs at both initial boot and after config hot-reload. A reload that introduces an invalid access config is rejected and the previous config stays active.
 
 ## projects[]
 
@@ -111,7 +123,8 @@ Each project entry creates one Telegram bot connected to one directory.
 | `active` | No | Set to `false` to skip this project at boot (default: `true`) |
 | `cwd` | **Yes** | Path to the project directory (relative to config file, or absolute) |
 | `telegram.botToken` | **Yes** | Telegram bot token from BotFather |
-| `access.allowedUserIds` | No | Override the global user whitelist for this bot |
+| `access.allowedUserIds` | No | User whitelist for this bot (replaces global `access` entirely when set) |
+| `access.dangerouslyAllowUnrestrictedAccess` | No | Allow all users for this bot (replaces global `access` entirely when set) |
 | `engine.name` | No | Override the engine for this project |
 | `engine.command` | No | Override the CLI command path |
 | `engine.model` | No | Override the AI model (see [Engines](../engines/README.md#model-defaults)) |
