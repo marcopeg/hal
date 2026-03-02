@@ -1,17 +1,114 @@
 # Telegram
 
+HAL runs one Telegram bot per project. You need two things before starting:
+
+1. **A bot token** — so Telegram knows which bot your config is running.
+2. **Your user ID** — so the bot can restrict access (optional but recommended) and associate your messages with your session.
+
+Follow the two sections below. Both are required for a typical setup.
+
+---
+
 ## Creating a Telegram Bot
 
-1. Message [@BotFather](https://t.me/BotFather) on Telegram
-2. Send `/newbot`
-3. Choose a display name (e.g. "My Backend Assistant")
-4. Choose a username ending in `bot` (e.g. `my_backend_assistant_bot`)
-5. Add the token to `.env.local` and reference it via `${VAR_NAME}` in `hal.config.json`
+You get a bot token from **BotFather**, Telegram’s official bot for creating and managing bots.
 
-For each project you need a separate bot and token.
+### Step 1: Open a chat with BotFather
+
+- In Telegram (app or desktop), search for **@BotFather** or open: [https://t.me/BotFather](https://t.me/BotFather).
+- Start a chat and send any message if prompted.
+
+### Step 2: Create a new bot
+
+1. Send the command: **`/newbot`**
+2. **Display name** — BotFather will ask for a name that users see (e.g. “My Backend Assistant”). This can be changed later.
+3. **Username** — Next, choose a **username** that must end in `bot` (e.g. `my_backend_assistant_bot`). It must be unique across Telegram and cannot be changed later.
+
+### Step 3: Copy the token
+
+- BotFather will reply with a **token** that looks like:  
+  `7123456789:AAHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+- **Copy this token** and keep it secret. Anyone with the token can control your bot.
+- You can get the token again later by sending `/mybots` to BotFather, selecting your bot, then **API Token**.
+
+### Step 4: Add the token to HAL
+
+- **Do not** put the token directly in `hal.config.json` if the file is committed to git.
+- Put it in a **`.env.local`** file in the same directory as your config (or in the project `cwd`). Example:
+
+  ```bash
+  # .env.local  (create this file next to hal.config.json)
+  BACKEND_BOT_TOKEN=7123456789:AAHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  ```
+
+- In `hal.config.json`, reference it with a placeholder:
+
+  ```json
+  {
+    "projects": [
+      {
+        "name": "backend",
+        "cwd": "./backend",
+        "telegram": { "botToken": "${BACKEND_BOT_TOKEN}" }
+      }
+    ]
+  }
+  ```
+
+- HAL resolves `${BACKEND_BOT_TOKEN}` at startup from `.env.local` (or `.env` or the shell environment). See [Configuration — Environment variable substitution](../config/README.md#environment-variable-substitution).
+
+### One bot per project
+
+Each HAL project uses a **separate** bot and token. If you have two projects (e.g. backend and frontend), create two bots with BotFather and use two different env vars and tokens in your config.
+
+---
 
 ## Finding Your Telegram User ID
 
-1. Message [@userinfobot](https://t.me/userinfobot) on Telegram
-2. It will reply with your numeric user ID
-3. Add it to `allowedUserIds` in your project config (or globals) so the bot accepts your messages.
+HAL uses your **Telegram user ID** (a numeric ID) for access control and per-user sessions. You need this number to add yourself to `allowedUserIds` so the bot accepts your messages (when you use the allowlist).
+
+### Step 1: Get your user ID
+
+1. In Telegram, open a chat with **@userinfobot**: [https://t.me/userinfobot](https://t.me/userinfobot).
+2. Send any message (e.g. “Hi”).
+3. The bot replies with your profile info, including **Id:** followed by a number (e.g. `123456789`). That number is your **Telegram user ID**.
+
+### Step 2: Add it to HAL config
+
+- In `hal.config.json`, set **`allowedUserIds`** so that only you (and any other allowed users) can use the bot. If the list is empty, the bot may accept all users (depending on your config).
+
+  **Globally (all projects):**
+
+  ```json
+  {
+    "globals": {
+      "access": { "allowedUserIds": [123456789] }
+    }
+  }
+  ```
+
+  **Per project:**
+
+  ```json
+  {
+    "projects": [
+      {
+        "name": "backend",
+        "cwd": "./backend",
+        "telegram": { "botToken": "${BACKEND_BOT_TOKEN}" },
+        "access": { "allowedUserIds": [123456789] }
+      }
+    ]
+  }
+  ```
+
+- Use your **numeric** ID (no quotes). You can add multiple IDs: `[123456789, 987654321]`.
+- Users whose ID is not in the list will not be able to use that bot when the allowlist is enabled.
+
+### Why use allowedUserIds?
+
+- Restricts who can talk to your bot.
+- Keeps your bot private for development or team use.
+- Required if you want to rely on HAL’s access control; leave the list empty only if you intend to allow everyone (not recommended for tokens you care about).
+
+[← Back to documentation index](../README.md)

@@ -8,28 +8,27 @@ A Telegram bot that provides access to AI coding agents as a personal assistant.
 
 ## Features
 
-- **Multi-engine support** — use Claude Code, GitHub Copilot, Codex, OpenCode, or Antigravity per project
-- **Multi-project support** — run multiple bots from a single config, each connected to a different directory
 - Chat with your AI coding agent via Telegram
 - Send images and documents for analysis
 - **Voice message support** with local Whisper transcription
 - **File sending** — the engine can send files back to you
-- **Context injection** — every message includes metadata (timestamps, user info, custom values) and supports hot-reloaded hooks
+- **Multi-engine support** — use Claude Code, GitHub Copilot, Codex, OpenCode, or Antigravity per project
+- **Multi-project support** — run multiple bots from a single config, each connected to a different independent directory
+- **Context injection** — every message includes system metadata (timestamps, user info, custom values) and supports custom injections via config and per-project hooks (`.mjs`) with hot-reload
 - **Custom slash commands** — add `.mjs` command files per-project or globally; hot-reloaded so the engine can create new commands at runtime
-- **Skills** — `.claude/skills/` entries are automatically exposed as Telegram slash commands; no extra setup needed
-- Persistent conversation sessions per user
+- **Skills** — `.agents/skills/` entries are automatically exposed as Telegram slash commands; no extra setup needed
+- Persistent conversation sessions per user (availability based on engine)
 - Per-project access control, rate limiting, and logging
-- Log persistence to file with daily rotation support
 
 ## How It Works
 
-This tool runs one AI coding agent subprocess per project, each in its configured working directory. The default engine is Claude Code, but each project can use a different engine.
+This tool runs one AI coding agent subprocess per project, each in its configured working directory. You can choose your [favourite engine](./docs/engines/README.md) globally, or each project can use a different engine.
 
 The engine reads its standard config files from the project directory:
 
-- `CLAUDE.md` / `AGENTS.md` — Project-specific instructions and context (filename depends on engine)
+- `AGENTS.md` — Project-specific instructions and context (filename may depend on engine)
+- `.agents/skills/` — Custom skills and slash commands (pattern may depend on engine)
 - `.claude/settings.json` — Permissions and tool settings (Claude Code)
-- `.claude/commands/` — Custom slash commands
 - `.mcp.json` — MCP server configurations
 
 You get the full power of your chosen AI coding agent — file access, code execution, configured MCP tools — all accessible through Telegram.
@@ -84,6 +83,13 @@ npx @marcopeg/hal init --cwd ./workspace --engine copilot
 npx @marcopeg/hal
 npx @marcopeg/hal --cwd ./workspace
 ```
+
+## Telegram
+
+Before running HAL you need a Telegram bot token and your own Telegram user ID. Both are required to set up your first project.
+
+- **[Register a bot](docs/telegram/README.md#creating-a-telegram-bot)** — Get a bot token from BotFather and add it to your config.
+- **[Find your user ID](docs/telegram/README.md#finding-your-telegram-user-id)** — Get your numeric user ID and add it to `allowedUserIds`.
 
 ## Configuration
 
@@ -145,10 +151,6 @@ Add your own slash commands as `.mjs` files (project or global), or use engine s
 
 - **[Custom commands](docs/custom-commands/README.md)** — file locations, handler arguments (`args`, `ctx`, `gram`, `agent`, `projectCtx`), examples.
 - **[Skills](docs/skills/README.md)** — SKILL.md format, per-engine directories, precedence.
-
-## Telegram
-
-- **[Creating a bot and finding your user ID](docs/telegram/README.md)** — BotFather, token, `allowedUserIds`.
 
 ## Voice messages
 

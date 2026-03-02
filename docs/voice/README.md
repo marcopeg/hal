@@ -2,6 +2,48 @@
 
 Voice messages are transcribed locally using [Whisper](https://github.com/openai/whisper) via the `nodejs-whisper` package. No audio is sent to external services.
 
+## Configuration
+
+Transcription is configured under `globals.transcription` and can be overridden per project with `projects[].transcription`. Set these in `hal.config.json` (or `hal.config.local.json`).
+
+| Key | Description | Default |
+|-----|-------------|---------|
+| `model` | Whisper model name (see [Whisper models](#whisper-models) below). | `"base.en"` |
+| `showTranscription` | If `true`, the bot sends the transcribed text as a message before the engine reply. | `true` |
+
+Example — global defaults:
+
+```json
+{
+  "globals": {
+    "transcription": {
+      "model": "base.en",
+      "showTranscription": true
+    }
+  }
+}
+```
+
+Example — override for one project (e.g. use a larger model and hide transcription):
+
+```json
+{
+  "projects": [
+    {
+      "name": "backend",
+      "cwd": "./backend",
+      "telegram": { "botToken": "${BACKEND_BOT_TOKEN}" },
+      "transcription": {
+        "model": "small",
+        "showTranscription": false
+      }
+    }
+  ]
+}
+```
+
+For where these keys sit in the full config (globals table, projects table), see [Configuration](../config/README.md).
+
 ## Setup
 
 1. **ffmpeg** — for audio conversion

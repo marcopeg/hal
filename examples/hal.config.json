@@ -24,7 +24,7 @@
       "persist": true
     },
     "transcription": {
-      "model": "medium",
+      "model": "base.en",
       "showTranscription": true
     }
   },
@@ -38,12 +38,12 @@
       "active": true,
       "engine": {
         "name": "codex",
+        "model": "gpt-5.2",
         "codex": {
           "networkAccess": true,
           "fullDiskAccess": true,
           "__dangerouslyEnableYolo": true
-        },
-        "model": "gpt-5.2"
+        }
       },
       "telegram": {
         "botToken": "${OBSIDIAN_TELEGRAM_TOKEN}"
