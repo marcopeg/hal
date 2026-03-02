@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
-import { isAbsolute, join, resolve } from "node:path";
+import { basename, isAbsolute, join, resolve } from "node:path";
 import { parse as parseEnv } from "dotenv";
+import { parse as parseYaml } from "yaml";
 import { z } from "zod";
 
 // ─── Zod helpers ──────────────────────────────────────────────────────────────
@@ -765,19 +766,89 @@ function deepMerge<T extends object>(base: T, override: Partial<T>): T {
   return result as T;
 }
 
+// ─── Multi-format config file detection ──────────────────────────────────────
+
+export type ConfigFormat = "json" | "yaml";
+
+interface ResolvedConfigFile {
+  path: string;
+  format: ConfigFormat;
+}
+
+const CONFIG_EXTENSIONS: readonly { ext: string; format: ConfigFormat }[] = [
+  { ext: ".json", format: "json" },
+  { ext: ".yaml", format: "yaml" },
+  { ext: ".yml", format: "yaml" },
+];
+
+/**
+ * Scan configDir for a config file matching the given slot basename
+ * (e.g. "hal.config" or "hal.config.local") in any supported format.
+ * Returns null when no file is found.
+ * Throws ConfigLoadError when multiple formats exist for the same slot.
+ */
+export function resolveConfigFile(
+  configDir: string,
+  slotBasename: string,
+): ResolvedConfigFile | null {
+  const found: ResolvedConfigFile[] = [];
+
+  for (const { ext, format } of CONFIG_EXTENSIONS) {
+    const filePath = join(configDir, `${slotBasename}${ext}`);
+    if (existsSync(filePath)) {
+      found.push({ path: filePath, format });
+    }
+  }
+
+  if (found.length === 0) return null;
+  if (found.length === 1) return found[0];
+
+  const names = found.map((f) => basename(f.path)).join(", ");
+  throw new ConfigLoadError(
+    `Configuration error: multiple config files found for "${slotBasename}": ${names}\n` +
+      "  Only one format per config file is allowed. Remove the extras.",
+  );
+}
+
+/**
+ * Parse raw config file content using the appropriate parser for the format.
+ */
+export function parseConfigContent(
+  content: string,
+  format: ConfigFormat,
+  filePath: string,
+): unknown {
+  try {
+    if (format === "yaml") {
+      return parseYaml(content);
+    }
+    return JSON.parse(content);
+  } catch (err) {
+    throw new ConfigLoadError(
+      `Configuration error: failed to parse ${basename(filePath)} — ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+}
+
 // ─── Phase 3: Local config loading ───────────────────────────────────────────
 
-function loadLocalConfig(configDir: string): LocalConfigFile | null {
-  const localPath = join(configDir, "hal.config.local.json");
-  if (!existsSync(localPath)) return null;
+interface LocalConfigLoadResult {
+  config: LocalConfigFile;
+  path: string;
+}
+
+function loadLocalConfig(configDir: string): LocalConfigLoadResult | null {
+  const resolved = resolveConfigFile(configDir, "hal.config.local");
+  if (!resolved) return null;
 
   let raw: unknown;
   try {
-    const content = readFileSync(localPath, "utf-8");
-    raw = JSON.parse(content);
+    const content = readFileSync(resolved.path, "utf-8");
+    raw = parseConfigContent(content, resolved.format, resolved.path);
   } catch (err) {
+    if (err instanceof ConfigLoadError) throw err;
     throw new ConfigLoadError(
-      `Configuration error: failed to read hal.config.local.json — ${err instanceof Error ? err.message : String(err)}`,
+      `Configuration error: failed to read ${basename(resolved.path)} — ${err instanceof Error ? err.message : String(err)}`,
     );
   }
 
@@ -787,11 +858,11 @@ function loadLocalConfig(configDir: string): LocalConfigFile | null {
       .map((i) => `  - ${i.path.join(".")}: ${i.message}`)
       .join("\n");
     throw new ConfigLoadError(
-      `Configuration error in hal.config.local.json:\n${issues}`,
+      `Configuration error in ${basename(resolved.path)}:\n${issues}`,
     );
   }
 
-  return result.data ?? null;
+  return result.data ? { config: result.data, path: resolved.path } : null;
 }
 
 // ─── Phase 3: Merge local into base ──────────────────────────────────────────
@@ -799,6 +870,8 @@ function loadLocalConfig(configDir: string): LocalConfigFile | null {
 function mergeLocalIntoBase(
   base: MultiConfigFile,
   local: LocalConfigFile,
+  baseFileName: string,
+  localFileName: string,
 ): MultiConfigFile {
   const mergedGlobals =
     local.globals !== undefined
@@ -829,8 +902,8 @@ function mergeLocalIntoBase(
 
     if (idx === -1) {
       throw new ConfigLoadError(
-        `Configuration error: local project "${matchKey}" not found in hal.config.json.\n` +
-          `  Every entry in hal.config.local.json projects must match a base project by name or cwd.`,
+        `Configuration error: local project "${matchKey}" not found in ${baseFileName}.\n` +
+          `  Every entry in ${localFileName} projects must match a base project by name or cwd.`,
       );
     }
 
@@ -850,29 +923,37 @@ function mergeLocalIntoBase(
 // ─── Phase 4: Config file loading (internal: throws on error) ──────────────────
 
 function loadMultiConfigInternal(configDir: string): LoadedConfigResult {
-  const configPath = join(configDir, "hal.config.json");
-  const localPath = join(configDir, "hal.config.local.json");
   const loadedFiles: string[] = [];
 
-  // 1. Load base config
-  if (!existsSync(configPath)) {
+  // 1. Detect and load base config
+  const baseResolved = resolveConfigFile(configDir, "hal.config");
+  const supportedExts = CONFIG_EXTENSIONS.map((e) => e.ext).join(", ");
+
+  if (!baseResolved) {
     throw new ConfigLoadError(
-      `Configuration error: hal.config.json not found in ${configDir}\n` +
-        `Run "npx @marcopeg/hal init" to create one.`,
+      `Configuration error: no config file found in ${configDir}\n` +
+        `  Looked for: hal.config{${supportedExts}}\n` +
+        `  Run "npx @marcopeg/hal init" to create one.`,
     );
   }
 
+  const baseFileName = basename(baseResolved.path);
   let rawBase: unknown;
   try {
-    const content = readFileSync(configPath, "utf-8");
-    rawBase = JSON.parse(content);
+    const content = readFileSync(baseResolved.path, "utf-8");
+    rawBase = parseConfigContent(
+      content,
+      baseResolved.format,
+      baseResolved.path,
+    );
   } catch (err) {
+    if (err instanceof ConfigLoadError) throw err;
     throw new ConfigLoadError(
-      `Configuration error: failed to read hal.config.json — ${err instanceof Error ? err.message : String(err)}`,
+      `Configuration error: failed to read ${baseFileName} — ${err instanceof Error ? err.message : String(err)}`,
     );
   }
 
-  loadedFiles.push(configPath);
+  loadedFiles.push(baseResolved.path);
 
   // 2. Validate base config schema
   const baseResult = MultiConfigFileSchema.safeParse(rawBase);
@@ -881,17 +962,23 @@ function loadMultiConfigInternal(configDir: string): LoadedConfigResult {
       .map((i) => `  - ${i.path.join(".")}: ${i.message}`)
       .join("\n");
     throw new ConfigLoadError(
-      `Configuration error in hal.config.json:\n${issues}`,
+      `Configuration error in ${baseFileName}:\n${issues}`,
     );
   }
 
   let merged = baseResult.data;
 
   // 3. Load and merge local config
-  const localConfig = loadLocalConfig(configDir);
-  if (localConfig !== null) {
-    loadedFiles.push(localPath);
-    merged = mergeLocalIntoBase(merged, localConfig);
+  const localResult = loadLocalConfig(configDir);
+  if (localResult !== null) {
+    const localFileName = basename(localResult.path);
+    loadedFiles.push(localResult.path);
+    merged = mergeLocalIntoBase(
+      merged,
+      localResult.config,
+      baseFileName,
+      localFileName,
+    );
   }
 
   // 4. Load .env files (using raw cwds from merged config for path resolution)

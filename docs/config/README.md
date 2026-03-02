@@ -1,12 +1,21 @@
 # Configuration
 
-HAL is configured via `hal.config.json` (and optional `hal.config.local.json`) in the directory where you run the CLI. This section is the index for all configuration options; detailed subsections are split into focused docs.
+HAL is configured via a config file in the directory where you run the CLI. JSON and YAML are both supported — only one format per file is allowed.
+
+| File | Purpose |
+|------|---------|
+| `hal.config.json` or `hal.config.yaml` | Main config (required) |
+| `hal.config.local.json` or `hal.config.local.yaml` | Local overrides (optional, gitignored) |
+
+Base and local configs can use different formats (e.g. `hal.config.yaml` + `hal.config.local.json`). If multiple formats exist for the same file (e.g. both `.json` and `.yaml`), the loader exits with an error.
+
+This section is the index for all configuration options; detailed subsections are split into focused docs.
 
 ## Config files
 
-### hal.config.json
+### hal.config.json / hal.config.yaml
 
-Create a `hal.config.json` in your workspace directory (where you run the CLI from). Secrets like bot tokens should be kept out of this file — use `${VAR_NAME}` placeholders and store the values in `.env.local` or the shell environment instead.
+Create a config file in your workspace directory (where you run the CLI from). Secrets like bot tokens should be kept out of this file — use `${VAR_NAME}` placeholders and store the values in `.env.local` or the shell environment instead.
 
 ```json
 {
@@ -33,9 +42,9 @@ Create a `hal.config.json` in your workspace directory (where you run the CLI fr
 }
 ```
 
-### hal.config.local.json
+### hal.config.local.json / hal.config.local.yaml
 
-An optional `hal.config.local.json` placed next to `hal.config.json` is deep-merged on top of the base config at boot time. It is gitignored and is the recommended place for machine-specific values or secrets that you don't want committed.
+An optional local config file placed next to the main config is deep-merged on top of the base config at boot time. It is gitignored and is the recommended place for machine-specific values or secrets that you don't want committed.
 
 Every field is optional. Project entries are matched to base projects by `name` (preferred) or `cwd` — they cannot introduce new projects.
 
@@ -53,7 +62,7 @@ Every field is optional. Project entries are matched to base projects by `name` 
 
 ## Environment variable substitution
 
-Any string value in `hal.config.json` or `hal.config.local.json` (except inside `context` blocks — see [Context](context/README.md)) can reference an environment variable with `${VAR_NAME}` syntax. Variables are resolved at boot time from the following sources in priority order (first match wins):
+Any string value in the config files (except inside `context` blocks — see [Context](context/README.md)) can reference an environment variable with `${VAR_NAME}` syntax. This works identically for JSON and YAML configs. Variables are resolved at boot time from the following sources in priority order (first match wins):
 
 1. `{config-dir}/.env.local` _(gitignored)_
 2. `{config-dir}/.env`
@@ -162,12 +171,12 @@ Log file paths and options are documented in [Logging](logging/README.md).
 
 ## Directory structure
 
-With a config at `~/workspace/hal.config.json`:
+With a config at `~/workspace/hal.config.json` (or `.yaml`):
 
 ```
 ~/workspace/
-├── hal.config.json
-├── hal.config.local.json    (gitignored — local overrides / secrets)
+├── hal.config.json          (or hal.config.yaml)
+├── hal.config.local.json    (or .yaml — gitignored, local overrides / secrets)
 ├── .hal/
 │   ├── hooks/
 │   │   └── context.mjs            (global context hook, optional)

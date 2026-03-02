@@ -93,7 +93,7 @@ Before running HAL you need a Telegram bot token and your own Telegram user ID. 
 
 ## Configuration
 
-HAL is configured via `hal.config.json` (and optional `hal.config.local.json`) in the directory where you run the CLI. Full reference:
+HAL is configured via `hal.config.json` (and optional `hal.config.local.json`) in the directory where you run the CLI. YAML is also supported (`hal.config.yaml` / `hal.config.local.yaml`). Full reference:
 
 - **[Configuration](docs/config/README.md)** — config files, env vars, `globals`, `projects[]`, dataDir, log files, directory structure
 - **[Context](docs/config/context/README.md)** — context injection (implicit keys, custom context, hooks)

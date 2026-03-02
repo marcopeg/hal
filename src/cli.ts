@@ -78,7 +78,7 @@ Commands:
   start           Start the bots (default)
 
 Options:
-  --cwd <path>      Directory containing hal.config.json (default: current directory)
+  --cwd <path>      Directory containing hal.config.{json,yaml} (default: current directory)
   --engine <name>   Engine to use: claude, copilot, codex, opencode, cursor (default: claude)
   --help, -h        Show this help message
 
@@ -243,7 +243,7 @@ async function runBotsForConfig(
   validateAccessPolicies(resolvedProjects);
 
   const sourceLines = loadedFiles.map((f, i) => {
-    const isLocal = f.endsWith("hal.config.local.json");
+    const isLocal = /hal\.config\.local\.\w+$/.test(f);
     const suffix = isLocal ? "  [local override]" : "";
     return `  ${i + 1}. ${f}${suffix}`;
   });
