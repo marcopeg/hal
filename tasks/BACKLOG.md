@@ -11,13 +11,13 @@ The commands in the menu should be sorted:
 
 ## Ready Tasks
 - [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
+- [030 — Codex provider default model propagation](./ready/030.codex-provider-default-model-propagation.md) | [plan](./ready/030.codex-provider-default-model-propagation.plan.md)
 
 ## Drafts
 
 - [007 — Python commands + venv support](./drafts/007.python.md)
 - [014 — Multi-thread project isolation](./drafts/014.multi-thread.md)
 - [029 — Default models: providers config and /model validation behavior](./drafts/029.default-models-providers-and-model-validation.md)
-- [030 — Codex provider default model propagation](./drafts/030.codex-provider-default-model-propagation.md)
 - [031 — Reset model with duration and cron scheduling](./drafts/031.reset-model-with-duration-and-cron.md)
 - [032 — Cron jobs and scheduled actions](./drafts/032.cron-jobs-and-scheduled-actions.md) (parent)
   - [032a — Core scheduler + system-level crons](./drafts/032a.core-scheduler-and-system-crons.md)
@@ -25,6 +25,7 @@ The commands in the menu should be sorted:
   - [032c — User-level crons + slash commands](./drafts/032c.user-crons-and-slash-commands.md)
 - [033 — Expose project as MCP server](./drafts/033.expose-project-as-mcp-server.md)
 - [034 — Codex session ID investigation and user isolation](./drafts/034.codex-session-id-investigation-and-user-isolation.md)
+
 ## Completed
 
 - [001 — Multi Project Setup](./completed/001.multi.md) | [plan](./completed/001.multi.plan.md)
