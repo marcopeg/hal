@@ -122,6 +122,7 @@ const CommandsConfigSchema = z
 const ProviderModelSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
+  default: z.boolean().optional(),
 });
 
 const ProvidersConfigSchema = z
@@ -262,6 +263,7 @@ export type EngineName = z.infer<typeof EngineNameSchema>;
 export interface ProviderModel {
   name: string;
   description?: string;
+  default?: boolean;
 }
 
 export interface ResolvedProjectConfig {
@@ -295,6 +297,7 @@ export interface ResolvedProjectConfig {
   transcription: { model: string; showTranscription: boolean } | undefined;
   context: Record<string, string> | undefined;
   providerModels: ProviderModel[];
+  providerDefaultModel: string | undefined;
   commands: {
     start: { enabled: boolean; sessionReset: boolean; message?: string };
     help: { enabled: boolean; message?: string };
@@ -528,9 +531,14 @@ export function resolveProjectConfig(
     },
   };
 
-  const engineName = (project.engine?.name ??
-    globals.engine?.name ??
-    "claude") as EngineName;
+  const rawEngineName = project.engine?.name ?? globals.engine?.name;
+  if (!rawEngineName) {
+    throw new ConfigLoadError(
+      `Configuration error: project "${key}" has no engine configured. ` +
+        "Set engine.name in the project or in globals.",
+    );
+  }
+  const engineName = rawEngineName as EngineName;
 
   const rawProviderModels =
     project.providers?.[engineName] ?? globals.providers?.[engineName] ?? [];
@@ -538,7 +546,12 @@ export function resolveProjectConfig(
   const providerModels: ProviderModel[] = rawProviderModels.map((m) => ({
     name: m.name,
     description: m.description,
+    default: m.default,
   }));
+
+  const defaultEntries = providerModels.filter((m) => m.default === true);
+  const providerDefaultModel =
+    defaultEntries.length === 1 ? defaultEntries[0].name : undefined;
 
   return {
     slug,
@@ -610,6 +623,7 @@ export function resolveProjectConfig(
         }
       : undefined,
     providerModels,
+    providerDefaultModel,
     context: hasContext ? { ...rootContext, ...project.context } : undefined,
     commands: resolvedCommands,
   };
@@ -673,6 +687,60 @@ export function validateAccessPolicies(
     throw new ConfigLoadError(
       `Configuration error: invalid access policy\n${errors.map((e) => `  - ${e}`).join("\n")}`,
     );
+  }
+}
+
+// ─── Boot-time provider default uniqueness ────────────────────────────────────
+
+const PROVIDER_ENGINE_KEYS = [
+  "claude",
+  "copilot",
+  "codex",
+  "opencode",
+  "cursor",
+  "antigravity",
+] as const;
+
+function countProviderDefaults(
+  list: Array<{ default?: boolean }> | undefined,
+): number {
+  if (!Array.isArray(list)) return 0;
+  return list.filter((m) => m.default === true).length;
+}
+
+/**
+ * Validates that at most one model per providers.<engine> list has default: true.
+ * Call after config load and env substitution, before resolving project configs.
+ */
+export function validateProviderDefaultUniqueness(
+  config: MultiConfigFile,
+): void {
+  const globalsProviders = config.globals?.providers;
+  if (globalsProviders) {
+    for (const engine of PROVIDER_ENGINE_KEYS) {
+      const list = globalsProviders[engine];
+      const n = countProviderDefaults(list);
+      if (n > 1) {
+        throw new ConfigLoadError(
+          `Configuration error: at most one model in globals.providers.${engine} may have default: true (found ${n}).`,
+        );
+      }
+    }
+  }
+
+  for (const [key, project] of Object.entries(config.projects)) {
+    const projectProviders = project.providers;
+    if (!projectProviders) continue;
+    const projectLabel = project.name ?? key;
+    for (const engine of PROVIDER_ENGINE_KEYS) {
+      const list = projectProviders[engine];
+      const n = countProviderDefaults(list);
+      if (n > 1) {
+        throw new ConfigLoadError(
+          `Configuration error: at most one model in projects["${key}"].providers.${engine} may have default: true (found ${n}). Project: ${projectLabel}.`,
+        );
+      }
+    }
   }
 }
 

@@ -4,13 +4,12 @@
     "access": {
       "allowedUserIds": ["${USER_MARCO_IPHONE_ID}"]
     },
-    /*
     "engine": {
       // Supported: claude, copilot, codex, opencode, cursor, antigravity
+      // Required: must be set in globals or per-project (no default)
       "name": "claude",
       "session": true
     },
-    */
     "providers": {
       "codex": [
         { "name": "gpt-5.3-codex", "description": "Most capable Codex model" },
@@ -19,6 +18,11 @@
         { "name": "gpt-5-codex-mini", "description": "Cost-effective Codex model", "default": true },
       ],
       "claude": [
+        { "name": "claude-sonnet-4-6", "description": "Balanced performance and speed" },
+        { "name": "claude-opus-4-6", "description": "Most capable, best for complex reasoning" },
+        { "name": "claude-haiku-4-5", "description": "Fast and cost-effective", "default": true },
+      ],
+      "cursor": [
         { "name": "claude-sonnet-4-6", "description": "Balanced performance and speed" },
         { "name": "claude-opus-4-6", "description": "Most capable, best for complex reasoning" },
         { "name": "claude-haiku-4-5", "description": "Fast and cost-effective", "default": true },
@@ -86,6 +90,9 @@
       "cwd": "./timetracker",
       "telegram": {
         "botToken": "${TIMETRACKER_TELEGRAM_TOKEN}"
+      },
+      "engine": {
+        "name": "cursor"
       },
     },
   },

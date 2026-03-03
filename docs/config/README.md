@@ -99,7 +99,7 @@ Default settings applied to all projects. Any setting defined in a project overr
 
 | Key | Description | Default |
 |-----|-------------|---------|
-| `globals.engine.name` | Engine: `claude`, `copilot`, `codex`, `opencode`, `cursor`, `antigravity` | `"claude"` |
+| `globals.engine.name` | **Required** (unless every project sets its own). Engine: `claude`, `copilot`, `codex`, `opencode`, `cursor`, `antigravity` | — |
 | `globals.engine.command` | Override the CLI command path | _(engine name)_ |
 | `globals.engine.model` | Override the AI model (see [Engines](../engines/README.md#model-defaults)) | _(per engine)_ |
 | `globals.engine.session` | Use persistent sessions (`--resume` / `--continue`) | `true` |
@@ -108,7 +108,7 @@ Default settings applied to all projects. Any setting defined in a project overr
 | `globals.engine.antigravity.*` | Antigravity flags | See [Antigravity](../engines/antigravity/README.md) |
 | `globals.logging` | Log level, flow, persist | See [Logging](logging/README.md) |
 | `globals.rateLimit` | Max messages per user per time window | See [Rate limit](rate-limit/README.md) |
-| `globals.providers` | Per-engine model lists for `/model` (see [Engines](../engines/README.md#model-list-providers-key)) | `{}` |
+| `globals.providers` | Per-engine model lists for `/model`; entries may include `default: true` (at most one per list) to set the model when `engine.model` is omitted (see [Engines](../engines/README.md#model-list-providers-key)). Explicit `engine.model` overrides the provider default. | `{}` |
 | `globals.access.allowedUserIds` | Telegram user IDs allowed by default (entries may be numbers or strings for env substitution; after substitution they are validated and normalized to numeric IDs) | `[]` |
 | `globals.access.dangerouslyAllowUnrestrictedAccess` | Allow all users without a whitelist (must be explicitly `true`) | `false` |
 | `globals.dataDir` | Default user data directory | _(see [dataDir](#datadir-values) below)_ |
@@ -149,14 +149,14 @@ This validation runs at both initial boot and after config hot-reload. A reload 
 | `telegram.botToken` | **Yes** | Telegram bot token from BotFather |
 | `access.allowedUserIds` | No | User whitelist for this bot — numbers or strings (env substitution supported); validated and normalized to numeric IDs (replaces global `access` when set) |
 | `access.dangerouslyAllowUnrestrictedAccess` | No | Allow all users for this bot (replaces global `access` entirely when set) |
-| `engine.name` | No | Override the engine for this project |
+| `engine.name` | No | Override the engine for this project (required if globals does not set one) |
 | `engine.command` | No | Override the CLI command path |
 | `engine.model` | No | Override the AI model (see [Engines](../engines/README.md#model-defaults)) |
 | `engine.session` | No | Use persistent sessions for this project |
 | `engine.sessionMsg` | No | Message used when renewing session |
 | `engine.codex.*` | No | Codex permission flags (see [Codex](../engines/codex/README.md)) |
 | `engine.antigravity.*` | No | Antigravity flags (see [Antigravity](../engines/antigravity/README.md)) |
-| `providers` | No | Override the global model list (see [Engines](../engines/README.md#model-list-providers-key)) |
+| `providers` | No | Override the global model list; entries may include `default: true` (at most one per list). See [Engines](../engines/README.md#model-list-providers-key). |
 | `logging` | No | Override logging (see [Logging](logging/README.md)) |
 | `rateLimit` | No | Override rate limit (see [Rate limit](rate-limit/README.md)) |
 | `transcription.showTranscription` | No | Override transcription display |

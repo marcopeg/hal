@@ -78,7 +78,7 @@ The `engine` object supports the fields below. Engine-specific options (e.g. Cod
 
 | Field | Description | Default |
 |-------|-------------|---------|
-| `name` | Engine: `claude`, `copilot`, `codex`, `opencode`, `cursor`, `antigravity` | `"claude"` |
+| `name` | **Required.** Engine: `claude`, `copilot`, `codex`, `opencode`, `cursor`, `antigravity`. Must be set in globals or per-project; no default. | — |
 | `command` | Custom path to the CLI binary | _(engine name)_ |
 | `model` | AI model override (omit for engine or HAL default; see [Model defaults](#model-defaults)) | _(per engine)_ |
 | `session` | Use persistent sessions (`--resume` / `--continue`) | `true` |
@@ -97,7 +97,7 @@ The `providers` config lets you define which models are available for each engin
       "codex": [
         { "name": "gpt-5.3-codex", "description": "Most capable Codex model" },
         { "name": "gpt-5.2-codex", "description": "Advanced coding model" },
-        { "name": "gpt-5.2", "description": "General agentic model" }
+        { "name": "gpt-5.2", "description": "General agentic model", "default": true }
       ],
       "claude": [
         { "name": "claude-sonnet-4-6", "description": "Balanced performance and speed" },
@@ -114,6 +114,7 @@ Each entry has:
 |-------|----------|-------------|
 | `name` | **Yes** | The model identifier passed to the engine CLI (e.g. `gpt-5.3-codex`) |
 | `description` | No | Short description shown in the Telegram model picker |
+| `default` | No | If `true`, this model is used when `engine.model` is not set (see [Model defaults](#model-defaults)). At most one model per `providers.<engine>` list may have `default: true`; otherwise HAL fails at boot with a `ConfigLoadError`. |
 
 **Behavior of `/model`:**
 
@@ -133,12 +134,20 @@ Each entry has:
 
 ### Model defaults
 
-When `engine.model` is omitted (neither in globals nor project config), behavior depends on the engine:
+The model used at runtime is chosen in this order:
+
+1. **Explicit `engine.model`** — If set in project or globals, it always wins.
+2. **Provider default** — If the resolved `providers.<engine>` list for the active engine has exactly one entry with `default: true`, that model’s `name` is used.
+3. **HAL or engine default** — Otherwise HAL either passes a built-in default (see below) or omits the model so the CLI uses its own default.
+
+When `engine.model` is omitted and no provider default is set, behavior depends on the engine:
 
 - **Engine default** — Codex, Copilot, Cursor, and Antigravity: HAL does not pass a model flag, so the CLI picks its own default (Cursor passes `--model auto`; Antigravity defaults to `auto`).
 - **HAL default** — Claude Code and OpenCode: HAL passes a built-in default so the engine always receives a model. Defaults are defined in `src/default-models.ts`:
   - Claude Code: `default` (account-recommended model)
   - OpenCode: `opencode/gpt-5-nano` (free Zen model)
+
+**Provider default validation:** At most one model per `providers.<engine>` list (in globals or in any project) may have `default: true`. If two or more entries in the same list have `default: true`, HAL fails at boot with a clear `ConfigLoadError` naming the engine and list (e.g. `globals.providers.codex` or `projects["my-project"].providers.claude`).
 
 To change HAL defaults, edit `src/default-models.ts`.
 

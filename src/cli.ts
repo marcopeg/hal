@@ -12,6 +12,7 @@ import {
   tryLoadMultiConfig,
   validateAccessPolicies,
   validateProjects,
+  validateProviderDefaultUniqueness,
 } from "./config.js";
 import { startConfigWatcher } from "./config-watcher.js";
 import { evaluateBootTimeShells } from "./context/resolver.js";
@@ -218,6 +219,8 @@ async function runBotsForConfig(
   startupLogger: pino.Logger,
 ): Promise<RunResult> {
   const { config: multiConfig, loadedFiles } = loaded;
+  validateProviderDefaultUniqueness(multiConfig);
+
   const globals = multiConfig.globals ?? {};
 
   // Resolve all project configs, skip inactive ones (stable order: sorted keys)
@@ -265,7 +268,9 @@ async function runBotsForConfig(
       ? evaluateBootTimeShells(config.context, logger)
       : {};
     const effectiveModel =
-      config.engineModel ?? getDefaultEngineModel(config.engine);
+      config.engineModel ??
+      config.providerDefaultModel ??
+      getDefaultEngineModel(config.engine);
     const engine = getEngine(
       config.engine,
       config.engineCommand,
