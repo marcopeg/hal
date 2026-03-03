@@ -28,12 +28,7 @@ export function createModelCallbackHandler(
     const modelId = parts.slice(2).join(":");
 
     try {
-      updateProjectModel(
-        config.configDir,
-        { name: config.name, cwd: config.cwd },
-        config.engine,
-        modelId,
-      );
+      updateProjectModel(config.configDir, config.slug, config.engine, modelId);
       logger.info({ engine: config.engine, model: modelId }, "Model switched");
     } catch (err) {
       logger.error(

@@ -1,6 +1,6 @@
 # Rate limit
 
-Rate limiting caps how many messages a user can send to the bot in a given time window. It is set globally in `globals.rateLimit` and can be overridden per project in `projects[].rateLimit`. Each project (bot) has its own limit and its own per-user counters — limits are **per user per bot**.
+Rate limiting caps how many messages a user can send to the bot in a given time window. It is set globally in `globals.rateLimit` and can be overridden per project in the `projects` map (e.g. `projects.<key>.rateLimit`). Each project (bot) has its own limit and its own per-user counters — limits are **per user per bot**.
 
 ## Options
 

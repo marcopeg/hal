@@ -2,7 +2,7 @@
 
 Customize built-in command behavior and toggle individual commands on/off. The `commands` key can be set under `globals` (shared default for all projects) or per project (overrides globals). Project-level settings take precedence.
 
-Configure this in [Configuration](../README.md) via `globals.commands` or `projects[].commands`.
+Configure this in [Configuration](../README.md) via `globals.commands` or per-project in the `projects` map (e.g. `projects.<key>.commands`).
 
 ## Enabling commands
 

@@ -173,12 +173,24 @@ const GlobalsFileSchema = z
   })
   .optional();
 
+// ─── Project map key (slug-like: safe for default cwd path segment) ─────────────
+
+const PROJECT_KEY_REGEX = /^[a-zA-Z0-9_-]+$/;
+
+/** Project map keys must be slug-like so default cwd is a safe path segment. */
+const ProjectKeySchema = z
+  .string()
+  .regex(
+    PROJECT_KEY_REGEX,
+    "project key must be slug-like (letters, numbers, dashes, underscores only)",
+  );
+
 // ─── Per-project schema ────────────────────────────────────────────────────────
 
 const ProjectFileSchema = z.object({
   name: z.string().optional(),
   active: z.boolean().optional(),
-  cwd: z.string().min(1, "project.cwd is required"),
+  cwd: z.string().min(1, "project.cwd must be non-empty when set").optional(),
   telegram: z.object({
     botToken: z.string().min(1, "project.telegram.botToken is required"),
   }),
@@ -211,12 +223,16 @@ const ProjectFileSchema = z.object({
 
 // ─── Multi-project config file schema ─────────────────────────────────────────
 
+const ProjectsMapSchema = z
+  .record(ProjectKeySchema, ProjectFileSchema)
+  .refine((rec) => Object.keys(rec).length >= 1, {
+    message: "At least one project is required",
+  });
+
 const MultiConfigFileSchema = z.object({
   globals: GlobalsFileSchema,
   context: z.record(z.string(), z.string()).optional(),
-  projects: z
-    .array(ProjectFileSchema)
-    .min(1, "At least one project is required"),
+  projects: ProjectsMapSchema,
 });
 
 // ─── Local config partial schema ──────────────────────────────────────────────
@@ -230,7 +246,7 @@ const LocalConfigFileSchema = z
   .object({
     globals: GlobalsFileSchema,
     context: z.record(z.string(), z.string()).optional(),
-    projects: z.array(LocalProjectSchema).optional(),
+    projects: z.record(ProjectKeySchema, LocalProjectSchema).optional(),
   })
   .optional();
 
@@ -332,6 +348,14 @@ function parseTelegramUserId(value: string | number, path: string): number {
   return num;
 }
 
+/** Set name/cwd from map key when omitted. Mutates entries in place. */
+function normalizeProjectMap(projects: Record<string, ProjectFileEntry>): void {
+  for (const [key, entry] of Object.entries(projects)) {
+    (entry as { name: string | undefined }).name = entry.name ?? key;
+    (entry as { cwd: string }).cwd = entry.cwd ?? key;
+  }
+}
+
 function normalizeAllowedUserIdsInConfig(config: MultiConfigFile): void {
   const globalsAccess = config.globals?.access;
   if (globalsAccess?.allowedUserIds != null) {
@@ -344,8 +368,7 @@ function normalizeAllowedUserIdsInConfig(config: MultiConfigFile): void {
     }
     (globalsAccess as { allowedUserIds: number[] }).allowedUserIds = normalized;
   }
-  for (let j = 0; j < config.projects.length; j++) {
-    const project = config.projects[j];
+  for (const [key, project] of Object.entries(config.projects)) {
     const access = project.access;
     if (access?.allowedUserIds == null) continue;
     const raw = access.allowedUserIds;
@@ -354,7 +377,7 @@ function normalizeAllowedUserIdsInConfig(config: MultiConfigFile): void {
       normalized.push(
         parseTelegramUserId(
           raw[i],
-          `projects[${j}].access.allowedUserIds[${i}]`,
+          `projects.${key}.access.allowedUserIds[${i}]`,
         ),
       );
     }
@@ -398,16 +421,16 @@ function resolveDataDir(
 // ─── Merge: project over globals over defaults ─────────────────────────────────
 
 export function resolveProjectConfig(
+  key: string,
   project: ProjectFileEntry,
   globals: GlobalsFile,
   configDir: string,
   rootContext?: Record<string, string>,
 ): ResolvedProjectConfig {
-  const resolvedCwd = isAbsolute(project.cwd)
-    ? project.cwd
-    : resolve(configDir, project.cwd);
-
-  const slug = deriveSlug(project.name, project.cwd);
+  const slug = key;
+  const name = project.name ?? key;
+  const cwd = project.cwd ?? key;
+  const resolvedCwd = isAbsolute(cwd) ? cwd : resolve(configDir, cwd);
   const logDir = resolve(configDir, ".hal", "logs", slug);
 
   const dataDir = resolveDataDir(
@@ -519,7 +542,7 @@ export function resolveProjectConfig(
 
   return {
     slug,
-    name: project.name,
+    name,
     cwd: resolvedCwd,
     configDir,
     dataDir,
@@ -890,33 +913,29 @@ function mergeLocalIntoBase(
         : local.context
       : base.context;
 
-  if (!local.projects || local.projects.length === 0) {
+  if (!local.projects || Object.keys(local.projects).length === 0) {
     return { ...base, globals: mergedGlobals, context: mergedContext };
   }
 
-  const mergedProjects = [...base.projects] as ProjectFileEntry[];
+  const mergedProjects = { ...base.projects } as Record<
+    string,
+    ProjectFileEntry
+  >;
 
-  for (const localProject of local.projects) {
-    const matchKey = localProject.name ?? localProject.cwd;
-
-    const idx = mergedProjects.findIndex((bp) => {
-      if (localProject.name) return bp.name === localProject.name;
-      if (localProject.cwd) return bp.cwd === localProject.cwd;
-      return false;
-    });
-
-    if (idx === -1) {
+  for (const [localKey, localProject] of Object.entries(local.projects)) {
+    if (!(localKey in mergedProjects)) {
       throw new ConfigLoadError(
-        `Configuration error: local project "${matchKey}" not found in ${baseFileName}.\n` +
-          `  Every entry in ${localFileName} projects must match a base project by name or cwd.`,
+        `Configuration error: local project key "${localKey}" not found in ${baseFileName}.\n` +
+          `  Every key in ${localFileName} projects must exist in the base config.`,
       );
     }
-
-    mergedProjects[idx] = deepMerge(
-      mergedProjects[idx],
+    mergedProjects[localKey] = deepMerge(
+      mergedProjects[localKey],
       localProject as Partial<ProjectFileEntry>,
-    );
+    ) as ProjectFileEntry;
   }
+
+  normalizeProjectMap(mergedProjects);
 
   return {
     globals: mergedGlobals,
@@ -972,6 +991,7 @@ function loadMultiConfigInternal(configDir: string): LoadedConfigResult {
   }
 
   let merged = baseResult.data;
+  normalizeProjectMap(merged.projects);
 
   // 3. Load and merge local config
   const localResult = loadLocalConfig(configDir);
@@ -987,9 +1007,13 @@ function loadMultiConfigInternal(configDir: string): LoadedConfigResult {
   }
 
   // 4. Load .env files (using raw cwds from merged config for path resolution)
-  const rawCwds = merged.projects.map((p) =>
-    isAbsolute(p.cwd) ? p.cwd : resolve(configDir, p.cwd),
-  );
+  // Stable order: sort project keys so iteration is deterministic.
+  const projectKeys = Object.keys(merged.projects).sort();
+  const rawCwds = projectKeys.map((key) => {
+    const p = merged.projects[key];
+    const cwd = p.cwd ?? key;
+    return isAbsolute(cwd) ? cwd : resolve(configDir, cwd);
+  });
   const envSources = loadEnvFiles(configDir, rawCwds);
 
   // 5. Substitute env vars in the merged raw object (before final Zod pass)
@@ -1008,6 +1032,8 @@ function loadMultiConfigInternal(configDir: string): LoadedConfigResult {
       `Configuration error after environment variable substitution:\n${issues}`,
     );
   }
+
+  normalizeProjectMap(finalResult.data.projects);
 
   // 7. Normalize allowedUserIds (string | number)[] → number[] with validation
   normalizeAllowedUserIdsInConfig(finalResult.data);

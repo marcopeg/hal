@@ -42,15 +42,14 @@ function buildConfigTemplate(engineName: EngineName): string {
       "allowedUserIds": [0]
     }
   },
-  "projects": [
-    {
-      "name": "my-project",
+  "projects": {
+    "my-project": {
       "cwd": ".",
       "telegram": {
         "botToken": "YOUR_BOT_TOKEN_HERE"
       }
     }
-  ]
+  }
 }
 `;
 }
@@ -96,14 +95,13 @@ Configuration (hal.config.json):
       "logging": { "level": "info", "flow": true, "persist": false },
       "rateLimit": { "max": 10, "windowMs": 60000 }
     },
-    "projects": [
-      {
-        "name": "my-project",
+    "projects": {
+      "my-project": {
         "cwd": "./path/to/project",
         "telegram": { "botToken": "your-bot-token" },
         "access": { "allowedUserIds": [123456789] }
       }
-    ]
+    }
   }
 `);
 }
@@ -193,7 +191,7 @@ async function runInit(cwd: string, engineName: EngineName): Promise<void> {
 
   console.log(`\nNext steps:`);
   console.log(
-    `1. Edit hal.config.json and set your Telegram bot token in projects[0].telegram.botToken`,
+    `1. Edit hal.config.json and set your Telegram bot token in projects.my-project.telegram.botToken`,
   );
   console.log(`2. Set the project cwd to the folder the engine should work in`);
   console.log(
@@ -222,18 +220,24 @@ async function runBotsForConfig(
   const { config: multiConfig, loadedFiles } = loaded;
   const globals = multiConfig.globals ?? {};
 
-  // Resolve all project configs, skip inactive ones
+  // Resolve all project configs, skip inactive ones (stable order: sorted keys)
   const rootContext = multiConfig.context;
-  const allProjects = multiConfig.projects.map((project) =>
-    resolveProjectConfig(project, globals, configDir, rootContext),
+  const projectKeys = Object.keys(multiConfig.projects).sort();
+  const allProjects = projectKeys.map((key) =>
+    resolveProjectConfig(
+      key,
+      multiConfig.projects[key],
+      globals,
+      configDir,
+      rootContext,
+    ),
   );
 
   const resolvedProjects = allProjects.filter((_, i) => {
-    const project = multiConfig.projects[i];
+    const key = projectKeys[i];
+    const project = multiConfig.projects[key];
     if (project.active === false) {
-      startupLogger.info(
-        `Skipping inactive project "${project.name ?? project.cwd}"`,
-      );
+      startupLogger.info(`Skipping inactive project "${project.name ?? key}"`);
       return false;
     }
     return true;

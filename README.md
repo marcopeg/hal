@@ -95,7 +95,7 @@ Before running HAL you need a Telegram bot token and your own Telegram user ID. 
 
 HAL is configured via a config file in the directory where you run the CLI. Three formats are supported — JSON, [JSONC](https://code.visualstudio.com/docs/languages/json#_json-with-comments) (JSON with comments and trailing commas), and YAML. Only one format per file is allowed. Full reference:
 
-- **[Configuration](docs/config/README.md)** — config files, env vars, `globals`, `projects[]`, dataDir, log files, directory structure
+- **[Configuration](docs/config/README.md)** — config files, env vars, `globals`, `projects` (map keyed by project key), dataDir, log files, directory structure
 - **[Context](docs/config/context/README.md)** — context injection (implicit keys, custom context, hooks)
 - **[Commands](docs/config/commands/README.md)** — built-in command config (`/start`, `/help`, `/reset`, `/clean`, `/model`, `/git`)
 - **[Engines](docs/engines/README.md)** — supported engines, engine config, model list, model defaults, per-engine setup
@@ -115,20 +115,18 @@ Create a `hal.config.json` in your workspace. Use `${VAR_NAME}` for secrets and 
     "rateLimit": { "max": 10, "windowMs": 60000 },
     "access": { "allowedUserIds": [123456789] }
   },
-  "projects": [
-    {
-      "name": "backend",
+  "projects": {
+    "backend": {
       "cwd": "./backend",
       "telegram": { "botToken": "${BACKEND_BOT_TOKEN}" },
       "logging": { "persist": true }
     },
-    {
-      "name": "frontend",
+    "frontend": {
       "cwd": "./frontend",
       "engine": { "name": "copilot", "model": "gpt-5-mini" },
       "telegram": { "botToken": "${FRONTEND_BOT_TOKEN}" }
     }
-  ]
+  }
 }
 ```
 
@@ -152,13 +150,12 @@ Use `hal.config.jsonc` to add inline comments and trailing commas. See [`example
     "rateLimit": { "max": 10, "windowMs": 60000 },
     */
   },
-  "projects": [
-    {
-      "name": "my-project",
+  "projects": {
+    "my-project": {
       "cwd": "./my-project",
       "telegram": { "botToken": "${MY_BOT_TOKEN}" },
     },
-  ],
+  },
 }
 ```
 

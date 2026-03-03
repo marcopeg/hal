@@ -45,13 +45,12 @@ You get a bot token from **BotFather**, Telegram’s official bot for creating a
 
   ```json
   {
-    "projects": [
-      {
-        "name": "backend",
+    "projects": {
+      "backend": {
         "cwd": "./backend",
         "telegram": { "botToken": "${BACKEND_BOT_TOKEN}" }
       }
-    ]
+    }
   }
   ```
 
@@ -91,14 +90,13 @@ HAL uses your **Telegram user ID** (a numeric ID) for access control and per-use
 
   ```json
   {
-    "projects": [
-      {
-        "name": "backend",
+    "projects": {
+      "backend": {
         "cwd": "./backend",
         "telegram": { "botToken": "${BACKEND_BOT_TOKEN}" },
         "access": { "allowedUserIds": [123456789] }
       }
-    ]
+    }
   }
   ```
 

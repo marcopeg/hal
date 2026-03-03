@@ -46,9 +46,8 @@
     "custom": "-- global custom context --"
   },
 
-  "projects": [
-    {
-      "name": "obsidian",
+  "projects": {
+    "obsidian": {
       "cwd": "./obsidian",
       "active": true,
       "engine": {
@@ -83,12 +82,11 @@
       },
     },
 
-    {
-      "name": "timetracker",
+    "timetracker": {
       "cwd": "./timetracker",
       "telegram": {
         "botToken": "${TIMETRACKER_TELEGRAM_TOKEN}"
       },
     },
-  ],
+  },
 }

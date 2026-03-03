@@ -39,7 +39,7 @@ export function createModelHandler(
       try {
         updateProjectModel(
           config.configDir,
-          { name: config.name, cwd: config.cwd },
+          config.slug,
           config.engine,
           directModel,
         );

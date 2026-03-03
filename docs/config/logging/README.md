@@ -1,6 +1,6 @@
 # Logging
 
-Logging can be set globally in `globals.logging` and overridden per project in `projects[].logging`.
+Logging can be set globally in `globals.logging` and overridden per project in the `projects` map (e.g. `projects.<key>.logging`).
 
 ## Options
 

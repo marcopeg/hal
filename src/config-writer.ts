@@ -7,11 +7,6 @@ import {
 } from "./config.js";
 import type { EngineName } from "./engine/types.js";
 
-interface ProjectIdentifier {
-  name?: string;
-  cwd: string;
-}
-
 function serializeConfig(
   data: Record<string, unknown>,
   format: ConfigFormat,
@@ -25,7 +20,7 @@ function serializeConfig(
 
 export function updateProjectModel(
   configDir: string,
-  project: ProjectIdentifier,
+  projectSlug: string,
   engine: EngineName,
   model: string,
 ): void {
@@ -46,33 +41,23 @@ export function updateProjectModel(
     data = {};
   }
 
-  const projects = data.projects as Record<string, unknown>[] | undefined;
+  const projects = data.projects;
 
-  if (projects && Array.isArray(projects)) {
-    const idx = projects.findIndex((p) => {
-      if (project.name && p.name === project.name) return true;
-      return p.cwd === project.cwd;
-    });
-
-    if (idx >= 0) {
-      const entry = projects[idx] as Record<string, unknown>;
+  if (
+    projects !== null &&
+    typeof projects === "object" &&
+    !Array.isArray(projects)
+  ) {
+    const entry = (projects as Record<string, unknown>)[projectSlug] as
+      | Record<string, unknown>
+      | undefined;
+    if (entry) {
       const engineConfig = (entry.engine as Record<string, unknown>) ?? {};
       engineConfig.name = engine;
       engineConfig.model = model;
       entry.engine = engineConfig;
-    } else {
-      const newEntry: Record<string, unknown> = {
-        cwd: project.cwd,
-        engine: { name: engine, model },
-      };
-      if (project.name) newEntry.name = project.name;
-      projects.push(newEntry);
     }
-  } else {
-    const engineConfig = (data.engine as Record<string, unknown>) ?? {};
-    engineConfig.name = engine;
-    engineConfig.model = model;
-    data.engine = engineConfig;
+    // If project key not found, do not add new projects (per task: local keys must exist in base)
   }
 
   writeFileSync(target.path, serializeConfig(data, target.format), "utf-8");

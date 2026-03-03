@@ -9,10 +9,12 @@ The commands in the menu should be sorted:
 
 ## In Progress
 
+- [037 — Projects map with key-derived defaults](./037.projects-map-key-derived-defaults.md) | [plan](./037.projects-map-key-derived-defaults.plan.md)
+
 ## Ready Tasks
 - [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
 - [030 — Codex provider default model propagation](./ready/030.codex-provider-default-model-propagation.md) | [plan](./ready/030.codex-provider-default-model-propagation.plan.md)
-- [037 — Projects map with key-derived defaults](./ready/037.projects-map-key-derived-defaults.md) | [plan](./ready/037.projects-map-key-derived-defaults.plan.md)
+- [038 — Telegram skill exposure via telegram flag](./ready/038.telegram-skill-exposure-via-telegram-flag.md) | [plan](./ready/038.telegram-skill-exposure-via-telegram-flag.plan.md)
 
 ## Drafts
 
@@ -26,7 +28,6 @@ The commands in the menu should be sorted:
   - [032c — User-level crons + slash commands](./drafts/032c.user-crons-and-slash-commands.md)
 - [033 — Expose project as MCP server](./drafts/033.expose-project-as-mcp-server.md)
 - [034 — Codex session ID investigation and user isolation](./drafts/034.codex-session-id-investigation-and-user-isolation.md)
-- [038 — Telegram skill exposure via telegram flag](./drafts/038.telegram-skill-exposure-via-telegram-flag.md)
 - [039 — Move docs to YAML](./drafts/039.move-docs-to-yaml.md)
 
 ## Completed

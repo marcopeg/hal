@@ -37,20 +37,18 @@ All three formats produce identical resolved configs. Use whichever suits your w
     "rateLimit": { "max": 10, "windowMs": 60000 },
     "access": { "allowedUserIds": [123456789] }
   },
-  "projects": [
-    {
-      "name": "backend",
+  "projects": {
+    "backend": {
       "cwd": "./backend",
       "telegram": { "botToken": "${BACKEND_BOT_TOKEN}" },
       "logging": { "persist": true }
     },
-    {
-      "name": "frontend",
+    "frontend": {
       "cwd": "./frontend",
       "engine": { "name": "copilot", "model": "gpt-5-mini" },
       "telegram": { "botToken": "${FRONTEND_BOT_TOKEN}" }
     }
-  ]
+  }
 }
 ```
 
@@ -58,17 +56,16 @@ All three formats produce identical resolved configs. Use whichever suits your w
 
 An optional local config file placed next to the main config is deep-merged on top of the base config at boot time. It is gitignored and is the recommended place for machine-specific values or secrets that you don't want committed.
 
-Every field is optional. Project entries are matched to base projects by `name` (preferred) or `cwd` — they cannot introduce new projects.
+Every field is optional. `projects` is a map with the same keys as the base config; each local entry is deep-merged into the base project with the same key. Keys that do not exist in the base config are invalid and cause a load error — you cannot introduce new projects from local config.
 
 ```json
 {
-  "projects": [
-    {
-      "name": "backend",
+  "projects": {
+    "backend": {
       "telegram": { "botToken": "7123456789:AAHActual-token-here" },
       "logging": { "persist": true }
     }
-  ]
+  }
 }
 ```
 
@@ -136,15 +133,19 @@ When `allowedUserIds` is non-empty it takes precedence — only listed users are
 
 This validation runs at both initial boot and after config hot-reload. A reload that introduces an invalid access config is rejected and the previous config stays active.
 
-## projects[]
+## projects (map)
 
-Each project entry creates one Telegram bot connected to one directory.
+`projects` is an object (map) keyed by **project key**. Each key identifies one project and one Telegram bot connected to one directory. The key is the project’s **slug** (used in logs, data paths, and errors).
+
+**Key format:** Only letters, numbers, dashes, and underscores (`[a-zA-Z0-9_-]+`). This keeps the default `cwd` safe as a path segment when omitted.
+
+**Defaults from key:** If you omit `name`, it defaults to the map key. If you omit `cwd`, it defaults to the map key (so a key `backend` implies `cwd: "backend"` unless overridden). You can still set `name` and `cwd` explicitly to override these defaults.
 
 | Key | Required | Description |
 |-----|----------|-------------|
-| `name` | No | Unique identifier used as a slug for logs/data paths |
+| `name` | No | Display name; defaults to the project key (map key) |
 | `active` | No | Set to `false` to skip this project at boot (default: `true`) |
-| `cwd` | **Yes** | Path to the project directory (relative to config file, or absolute) |
+| `cwd` | No | Path to the project directory (relative to config file, or absolute); defaults to the project key |
 | `telegram.botToken` | **Yes** | Telegram bot token from BotFather |
 | `access.allowedUserIds` | No | User whitelist for this bot — numbers or strings (env substitution supported); validated and normalized to numeric IDs (replaces global `access` when set) |
 | `access.dangerouslyAllowUnrestrictedAccess` | No | Allow all users for this bot (replaces global `access` entirely when set) |
@@ -165,10 +166,7 @@ Each project entry creates one Telegram bot connected to one directory.
 
 ## Project slug
 
-The slug is used as a folder name for log and data paths. It is derived from:
-
-1. The `name` field, if provided
-2. Otherwise, the `cwd` value slugified (e.g. `./foo/bar` → `foo-bar`)
+The slug is used as a folder name for log and data paths. It is always the **project key** (the key in the `projects` map). It is not derived from `name` or `cwd`; the map key is the single source of identity.
 
 ## dataDir values
 

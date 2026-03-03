@@ -32,7 +32,7 @@ pnpm run lint:fix  # Fix linting and formatting
 
 ## Key Patterns
 
-- Config loaded from `hal.config.{json,yaml}` with env var overrides
+- Config loaded from `hal.config.{json,yaml}` with env var overrides; `projects` is a map keyed by project key (slug), with key-derived defaults for `name` and `cwd`
 - User data stored in `.hal/users/{userId}/`
 - Claude runs as subprocess reading config from working directory
 - Streaming JSON output parsed for progress updates

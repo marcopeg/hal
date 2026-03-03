@@ -4,7 +4,7 @@ Voice messages are transcribed locally using [Whisper](https://github.com/openai
 
 ## Configuration
 
-Transcription is configured under `globals.transcription` and can be overridden per project with `projects[].transcription`. Set these in `hal.config.json` (or `hal.config.local.json`).
+Transcription is configured under `globals.transcription` and can be overridden per project in the `projects` map (e.g. `projects.my-bot.transcription`). Set these in `hal.config.json` (or `hal.config.local.json`).
 
 | Key | Description | Default |
 |-----|-------------|---------|

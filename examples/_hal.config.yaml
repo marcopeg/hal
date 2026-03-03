@@ -39,7 +39,7 @@ context:
   custom: "-- global custom context --"
 
 projects:
-  - name: obsidian
+  obsidian:
     cwd: ./obsidian
     active: true
     engine:
@@ -70,7 +70,7 @@ projects:
       model:
         enabled: true
 
-  - name: timetracker
+  timetracker:
     cwd: ./timetracker
     telegram:
       botToken: "${TIMETRACKER_TELEGRAM_TOKEN}"
