@@ -8,7 +8,6 @@ The commands in the menu should be sorted:
 - Hal commands
 
 ## In Progress
-- [029 — Top-level providers config and /model validation](./drafts/029.default-models-providers-and-model-validation.md)
 
 ## Ready Tasks
 - [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
@@ -56,3 +55,4 @@ The commands in the menu should be sorted:
 - [037 — Projects map with key-derived defaults](./completed/037.projects-map-key-derived-defaults.md) | [plan](./completed/037.projects-map-key-derived-defaults.plan.md)
 - [038 — Telegram skill exposure via telegram flag](./completed/038.telegram-skill-exposure-via-telegram-flag.md) | [plan](./completed/038.telegram-skill-exposure-via-telegram-flag.plan.md)
 - [030 — Codex provider default model propagation](./completed/030.codex-provider-default-model-propagation.md) | [plan](./completed/030.codex-provider-default-model-propagation.plan.md)
+- [029 — Top-level providers config and /model validation](./completed/029.default-models-providers-and-model-validation.md)
