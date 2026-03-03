@@ -120,6 +120,17 @@ Each entry has:
 
 - **With `providers` configured:** `/model` (no argument) shows a list of inline buttons for the configured models. `/model <name>` validates against the list before accepting.
 - **Without `providers`:** `/model` (no argument) shows a helper message prompting the user to type `/model <name>`. `/model <name>` accepts any value.
+- **Auto-disable:** When the active engine's `providers` list has zero or one entries, `/model` is automatically hidden from the bot.
+
+**Behavior of `/engine`:**
+
+The `/engine` command lets users switch the AI engine for a project. Available engines are derived from the keys of the `providers` config (only engines with at least one model listed).
+
+- `/engine` (no argument) shows the current engine and model, plus inline buttons for all available engines.
+- `/engine <name>` validates against the list and writes the change. Switching engines also **clears the model selection** (since models are engine-specific).
+- **Auto-disable:** When zero or one engines have model lists in `providers`, `/engine` is automatically hidden from the bot.
+
+See [Commands](../config/commands/README.md) for full `/model` and `/engine` configuration details.
 
 **Available models per engine:** Refer to each engine's official documentation:
 

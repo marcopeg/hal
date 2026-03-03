@@ -12,6 +12,7 @@ Each command supports an `enabled` flag (default `true` for most, `false` for `/
 {
   "commands": {
     "model": { "enabled": true },
+    "engine": { "enabled": true },
     "git": { "enabled": true },
     "start": { "enabled": true },
     "help": { "enabled": true },
@@ -80,6 +81,25 @@ The `/reset` command asks for confirmation before deleting user data. It sends a
 
 The `/clean` command always resets the LLM session regardless of configuration — user files (uploads, downloads) are preserved. The custom message only changes what the user sees afterward.
 
+## /model
+
+The `/model` command lets users switch the AI model for the current engine.
+
+- `/model` (no argument) — shows the current model, the default (if configured), and an inline keyboard with all available models from the `providers` config.
+- `/model <name>` — validates the name against the configured model list and writes the change to the config file.
+- When no `providers` list is configured for the active engine, `/model` shows only the current value and accepts any model name.
+
+**Auto-disable:** `/model` is **automatically hidden** from the bot when the active engine's `providers` list has zero or one entries. The `enabled` flag in config can still explicitly disable it regardless of the list size.
+
+## /engine
+
+The `/engine` command lets users switch the AI engine for the current project. Switching engines also clears the model selection (since models are engine-specific).
+
+- `/engine` (no argument) — shows the current engine (and model), and an inline keyboard with all available engines derived from the `providers` config keys.
+- `/engine <name>` — validates the name against the configured engines and writes the change to the config file.
+
+**Auto-disable:** `/engine` is **automatically hidden** from the bot when only zero or one engines have model lists defined in `providers`. The `enabled` flag in config can still explicitly disable it regardless.
+
 ## Default messages
 
 When no `commands` config is set:
@@ -107,7 +127,7 @@ The special **`${HAL_COMMANDS}`** placeholder expands to a formatted list of all
 - **Project Commands** — `.mjs` commands from the project's `.hal/commands/` directory
 - **Project Skills** — engine skills marked with `telegram: true` in their `SKILL.md` frontmatter
 - **System Commands** — `.mjs` commands from the global `.hal/commands/` directory (shared across projects)
-- **Hal Commands** — built-in commands (`/start`, `/help`, `/reset`, `/clean`, `/model`)
+- **Hal Commands** — built-in commands (`/start`, `/help`, `/reset`, `/clean`, `/model`, `/engine`)
 - **Versioning** — git built-in commands (`/git_init`, `/git_status`, `/git_commit`, `/git_clean`) — only when `commands.git.enabled: true`
 
 Example `WELCOME.md`:

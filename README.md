@@ -97,7 +97,7 @@ HAL is configured via a config file in the directory where you run the CLI. Thre
 
 - **[Configuration](docs/config/README.md)** — config files, env vars, `globals`, `projects` (map keyed by project key), dataDir, log files, directory structure
 - **[Context](docs/config/context/README.md)** — context injection (implicit keys, custom context, hooks)
-- **[Commands](docs/config/commands/README.md)** — built-in command config (`/start`, `/help`, `/reset`, `/clean`, `/model`, `/git`)
+- **[Commands](docs/config/commands/README.md)** — built-in command config (`/start`, `/help`, `/reset`, `/clean`, `/model`, `/engine`, `/git`)
 - **[Engines](docs/engines/README.md)** — supported engines, engine config, model list, model defaults, per-engine setup
 - **[Logging](docs/config/logging/README.md)** — log level, flow, persist, log file paths
 - **[Rate limit](docs/config/rate-limit/README.md)** — max messages per user per time window

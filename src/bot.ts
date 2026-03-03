@@ -1,4 +1,6 @@
 import { Bot } from "grammy";
+import { createEngineHandler } from "./bot/commands/engine.js";
+import { createEngineCallbackHandler } from "./bot/commands/engine-callback.js";
 import {
   createGitCallbackHandler,
   createGitCleanHandler,
@@ -89,6 +91,11 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
     bot.on("callback_query:data", createModelCallbackHandler(projectCtx));
   }
 
+  if (cmd.engine.enabled) {
+    bot.command("engine", createEngineHandler(projectCtx));
+    bot.on("callback_query:data", createEngineCallbackHandler(projectCtx));
+  }
+
   // Wire handlers
   bot.on("message:text", createTextHandler(projectCtx));
   bot.on("message:photo", createPhotoHandler(projectCtx));
@@ -134,6 +141,7 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
     clean: cmd.clean.enabled,
     git: cmd.git.enabled,
     model: cmd.model.enabled,
+    engine: cmd.engine.enabled,
   };
 
   // Register project-specific commands and skills with Telegram on startup

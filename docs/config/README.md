@@ -232,7 +232,7 @@ With a config at `~/workspace/hal.config.json` (or `.jsonc` / `.yaml`):
 | Topic | Description |
 |-------|-------------|
 | [Context](context/README.md) | Context injection — implicit keys, custom context, variable patterns, hooks |
-| [Commands](commands/README.md) | Built-in command config — `/start`, `/help`, `/reset`, `/clean`, `/model`, `/git` |
+| [Commands](commands/README.md) | Built-in command config — `/start`, `/help`, `/reset`, `/clean`, `/model`, `/engine`, `/git` |
 | [Logging](logging/README.md) | Log level, flow, persist, log file paths |
 | [Rate limit](rate-limit/README.md) | Max messages per user per window (`max`, `windowMs`) |
 | [Engines](../engines/README.md) | Supported engines, engine config, model list, model defaults, per-engine setup |

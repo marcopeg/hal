@@ -116,6 +116,7 @@ const CommandsConfigSchema = z
     clean: SimpleCommandConfigSchema,
     git: GitConfigSchema,
     model: GitConfigSchema,
+    engine: GitConfigSchema,
   })
   .optional();
 
@@ -299,6 +300,7 @@ export interface ResolvedProjectConfig {
   context: Record<string, string> | undefined;
   providerModels: ProviderModel[];
   providerDefaultModel: string | undefined;
+  availableEngines: EngineName[];
   commands: {
     start: { enabled: boolean; sessionReset: boolean; message?: string };
     help: { enabled: boolean; message?: string };
@@ -311,6 +313,7 @@ export interface ResolvedProjectConfig {
     clean: { enabled: boolean; message?: string };
     git: { enabled: boolean };
     model: { enabled: boolean };
+    engine: { enabled: boolean };
   };
 }
 
@@ -472,11 +475,57 @@ export function resolveProjectConfig(
     return msg.text!;
   }
 
+  // Resolve engine and provider models early (needed for command enabled flags)
+  const rawEngineName = project.engine?.name ?? globals.engine?.name;
+  if (!rawEngineName) {
+    throw new ConfigLoadError(
+      `Configuration error: project "${key}" has no engine configured. ` +
+        "Set engine.name in the project or in globals.",
+    );
+  }
+  const engineName = rawEngineName as EngineName;
+
+  const mergedProviders = {
+    ...(providers ?? {}),
+    ...(project.providers ?? {}),
+  };
+  const availableEngines = (
+    Object.keys(mergedProviders) as EngineName[]
+  ).filter((k) => {
+    const list = mergedProviders[k];
+    return Array.isArray(list) && list.length > 0;
+  });
+
+  const rawProviderModels =
+    project.providers?.[engineName] ?? providers?.[engineName] ?? [];
+
+  const providerModels: ProviderModel[] = rawProviderModels.map((m) => ({
+    name: m.name,
+    description: m.description,
+    default: m.default,
+  }));
+
+  const defaultEntries = providerModels.filter((m) => m.default === true);
+  const providerDefaultModel =
+    defaultEntries.length === 1 ? defaultEntries[0].name : undefined;
+
   // Resolve command enabled flags (project > globals > default)
   const rawStart = project.commands?.start ?? globals.commands?.start;
   const rawHelp = project.commands?.help ?? globals.commands?.help;
   const rawReset = project.commands?.reset ?? globals.commands?.reset;
   const rawClean = project.commands?.clean ?? globals.commands?.clean;
+
+  const modelEnabled =
+    (project.commands?.model?.enabled ??
+      globals.commands?.model?.enabled ??
+      true) &&
+    providerModels.length > 1;
+
+  const engineEnabled =
+    (project.commands?.engine?.enabled ??
+      globals.commands?.engine?.enabled ??
+      true) &&
+    availableEngines.length > 1;
 
   const resolvedCommands: ResolvedProjectConfig["commands"] = {
     start: {
@@ -525,35 +574,9 @@ export function resolveProjectConfig(
         globals.commands?.git?.enabled ??
         false,
     },
-    model: {
-      enabled:
-        project.commands?.model?.enabled ??
-        globals.commands?.model?.enabled ??
-        true,
-    },
+    model: { enabled: modelEnabled },
+    engine: { enabled: engineEnabled },
   };
-
-  const rawEngineName = project.engine?.name ?? globals.engine?.name;
-  if (!rawEngineName) {
-    throw new ConfigLoadError(
-      `Configuration error: project "${key}" has no engine configured. ` +
-        "Set engine.name in the project or in globals.",
-    );
-  }
-  const engineName = rawEngineName as EngineName;
-
-  const rawProviderModels =
-    project.providers?.[engineName] ?? providers?.[engineName] ?? [];
-
-  const providerModels: ProviderModel[] = rawProviderModels.map((m) => ({
-    name: m.name,
-    description: m.description,
-    default: m.default,
-  }));
-
-  const defaultEntries = providerModels.filter((m) => m.default === true);
-  const providerDefaultModel =
-    defaultEntries.length === 1 ? defaultEntries[0].name : undefined;
 
   return {
     slug,
@@ -626,6 +649,7 @@ export function resolveProjectConfig(
       : undefined,
     providerModels,
     providerDefaultModel,
+    availableEngines,
     context: hasContext ? { ...rootContext, ...project.context } : undefined,
     commands: resolvedCommands,
   };

@@ -429,12 +429,11 @@
       "cwd": "./obsidian",
       "active": true,
       "engine": {
-        "name": "codex",
+        "name": "copilot",
         "codex": {
           "networkAccess": true,
           "fullDiskAccess": true
-        },
-        "model": "gpt-5.1-codex-mini"
+        }
       },
       "telegram": {
         "botToken": "${OBSIDIAN_TELEGRAM_TOKEN}"
