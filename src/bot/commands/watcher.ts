@@ -4,6 +4,7 @@ import type { Bot } from "grammy";
 import type pino from "pino";
 import {
   type CommandEnabledFlags,
+  commandsForTelegramMenu,
   getCommandsWithDescriptionTooLong,
   loadCommands,
 } from "./loader.js";
@@ -42,7 +43,11 @@ export function startCommandWatcher(
         skillsDirs,
         enabled,
       );
-      const tooLong = getCommandsWithDescriptionTooLong(commands, configDir);
+      const commandsForMenu = commandsForTelegramMenu(commands);
+      const tooLong = getCommandsWithDescriptionTooLong(
+        commandsForMenu,
+        configDir,
+      );
       if (tooLong.length > 0) {
         const details = tooLong
           .map(
@@ -57,15 +62,15 @@ export function startCommandWatcher(
         return;
       }
       await bot.api.setMyCommands(
-        commands.map((c) => ({
+        commandsForMenu.map((c) => ({
           command: c.command,
           description: c.description,
         })),
       );
       logger.info(
         {
-          count: commands.length,
-          commands: commands.map((c) => c.command),
+          count: commandsForMenu.length,
+          commands: commandsForMenu.map((c) => c.command),
         },
         "Commands re-registered with Telegram",
       );

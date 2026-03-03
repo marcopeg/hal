@@ -105,7 +105,7 @@ All `message.text` values and file contents from `message.from` support:
 The special **`${HAL_COMMANDS}`** placeholder expands to a formatted list of all available commands, divided into five sections (empty sections are omitted):
 
 - **Project Commands** — `.mjs` commands from the project's `.hal/commands/` directory
-- **Project Skills** — engine skills marked with `public: true` in their `SKILL.md` frontmatter
+- **Project Skills** — engine skills marked with `telegram: true` in their `SKILL.md` frontmatter
 - **System Commands** — `.mjs` commands from the global `.hal/commands/` directory (shared across projects)
 - **Hal Commands** — built-in commands (`/start`, `/help`, `/reset`, `/clean`, `/model`)
 - **Versioning** — git built-in commands (`/git_init`, `/git_status`, `/git_commit`, `/git_clean`) — only when `commands.git.enabled: true`
@@ -120,14 +120,16 @@ ${HAL_COMMANDS}
 
 ## Making skills visible in the command list
 
-By default, skills are not listed in `${HAL_COMMANDS}`. Add `public: true` to a skill's frontmatter to include it:
+By default, skills are not listed in `${HAL_COMMANDS}` or in the Telegram slash command menu. Add `telegram: true` to a skill's frontmatter to include it in both:
 
 ```yaml
 ---
 name: crm
 description: Manage your contacts
-public: true
+telegram: true
 ---
 ```
+
+The previous `public` frontmatter key is no longer used; only `telegram: true` controls Telegram exposure (no backward compatibility).
 
 [← Back to Configuration](../README.md)

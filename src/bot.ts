@@ -9,6 +9,7 @@ import {
 import { createHelpHandler } from "./bot/commands/help.js";
 import {
   type CommandEnabledFlags,
+  commandsForTelegramMenu,
   getCommandsWithDescriptionTooLong,
   loadCommands,
 } from "./bot/commands/loader.js";
@@ -144,9 +145,10 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
     skillsDirs,
     enabledFlags,
   );
-  if (commands.length > 0) {
+  const commandsForMenu = commandsForTelegramMenu(commands);
+  if (commandsForMenu.length > 0) {
     const tooLong = getCommandsWithDescriptionTooLong(
-      commands,
+      commandsForMenu,
       config.configDir,
     );
     if (tooLong.length > 0) {
@@ -161,10 +163,13 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
       );
     }
     await bot.api.setMyCommands(
-      commands.map((c) => ({ command: c.command, description: c.description })),
+      commandsForMenu.map((c) => ({
+        command: c.command,
+        description: c.description,
+      })),
     );
     logger.info(
-      { count: commands.length },
+      { count: commandsForMenu.length },
       "Commands registered with Telegram",
     );
   }

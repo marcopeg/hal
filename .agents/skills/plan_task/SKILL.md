@@ -3,6 +3,10 @@ name: plan_task
 description: Analyses a given task and creates a detailed development plan with phases and steps
 ---
 
+Task ID resolution (mandatory):
+- If the user provides only a number (e.g. `38`) or a number plus optional text (e.g. `38` or `38 with focus on X`), treat that number as the task ID.
+- Resolve the task ID to the task file: zero-pad the ID to 3 digits (e.g. 38 → 038), then find the task file under `tasks/` that matches `**/038.*.md` and is not a plan file (exclude `*.plan.md`). The task may live in `tasks/drafts/`, `tasks/ready/`, or `tasks/` (in progress). Use that task file as the task to plan.
+
 Focus on the task provided by the user. Read the task description and any related files (code, config, prompts, etc.) to fully understand the context and the requirements.
 
 Analyze the task and break it down into clear development phases, each with specific steps. The goal is to create a comprehensive and actionable plan that can guide the implementation of the task.

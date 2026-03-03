@@ -9,12 +9,9 @@ The commands in the menu should be sorted:
 
 ## In Progress
 
-- [037 — Projects map with key-derived defaults](./037.projects-map-key-derived-defaults.md) | [plan](./037.projects-map-key-derived-defaults.plan.md)
-
 ## Ready Tasks
 - [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
 - [030 — Codex provider default model propagation](./ready/030.codex-provider-default-model-propagation.md) | [plan](./ready/030.codex-provider-default-model-propagation.plan.md)
-- [038 — Telegram skill exposure via telegram flag](./ready/038.telegram-skill-exposure-via-telegram-flag.md) | [plan](./ready/038.telegram-skill-exposure-via-telegram-flag.plan.md)
 
 ## Drafts
 
@@ -56,3 +53,5 @@ The commands in the menu should be sorted:
 - [036 — Allowed user IDs: env substitution and numeric validation](./completed/036.allowed-user-ids-env-substitution-and-validation.md) | [plan](./completed/036.allowed-user-ids-env-substitution-and-validation.plan.md)
 - [027 — YAML config support](./completed/027.yaml-config-support.md) | [plan](./completed/027.yaml-config-support.plan.md)
 - [028 — JSONC config support](./completed/028.json-plusplus-config-comments.md) | [plan](./completed/028.json-plusplus-config-comments.plan.md)
+- [037 — Projects map with key-derived defaults](./completed/037.projects-map-key-derived-defaults.md) | [plan](./completed/037.projects-map-key-derived-defaults.plan.md)
+- [038 — Telegram skill exposure via telegram flag](./completed/038.telegram-skill-exposure-via-telegram-flag.md) | [plan](./completed/038.telegram-skill-exposure-via-telegram-flag.plan.md)

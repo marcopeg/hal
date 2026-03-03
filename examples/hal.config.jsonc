@@ -4,24 +4,24 @@
     "access": {
       "allowedUserIds": ["${USER_MARCO_IPHONE_ID}"]
     },
-
+    /*
     "engine": {
       // Supported: claude, copilot, codex, opencode, cursor, antigravity
       "name": "claude",
       "session": true
     },
-
+    */
     "providers": {
       "codex": [
         { "name": "gpt-5.3-codex", "description": "Most capable Codex model" },
         { "name": "gpt-5.2-codex", "description": "Advanced coding model" },
         { "name": "gpt-5.2", "description": "General agentic model" },
-        { "name": "gpt-5-codex-mini", "description": "Cost-effective Codex model" },
+        { "name": "gpt-5-codex-mini", "description": "Cost-effective Codex model", "default": true },
       ],
       "claude": [
         { "name": "claude-sonnet-4-6", "description": "Balanced performance and speed" },
         { "name": "claude-opus-4-6", "description": "Most capable, best for complex reasoning" },
-        { "name": "claude-haiku-4-5", "description": "Fast and cost-effective" },
+        { "name": "claude-haiku-4-5", "description": "Fast and cost-effective", "default": true },
       ],
     },
 
@@ -52,7 +52,7 @@
       "active": true,
       "engine": {
         "name": "codex",
-        "model": "gpt-5.2",
+        //"model": "gpt-5.2",
         "codex": {
           "networkAccess": true,
           "fullDiskAccess": true

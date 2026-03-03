@@ -15,7 +15,7 @@ export interface CommandEntry {
   description: string; // from file's `description` export
   filePath: string; // absolute path to .mjs or SKILL.md, or "" for built-ins
   skillPrompt?: string; // prompt body from SKILL.md (skills only)
-  public?: boolean; // from SKILL.md frontmatter `public: true`
+  telegram?: boolean; // from SKILL.md frontmatter `telegram: true`
   source: CommandSource; // where the command comes from
 }
 
@@ -178,7 +178,7 @@ async function parseSkillMd(
   name: string;
   description: string;
   prompt: string;
-  public: boolean;
+  telegram: boolean;
 } | null> {
   let content: string;
   try {
@@ -203,7 +203,7 @@ async function parseSkillMd(
 
   const nameMatch = frontmatter.match(/^name:\s*(.+)$/m);
   const descMatch = frontmatter.match(/^description:\s*(.+)$/m);
-  const publicMatch = frontmatter.match(/^public:\s*(.+)$/m);
+  const telegramMatch = frontmatter.match(/^telegram:\s*(.+)$/m);
 
   if (!nameMatch || !descMatch) {
     logger.warn(
@@ -217,7 +217,7 @@ async function parseSkillMd(
     name: nameMatch[1].trim(),
     description: descMatch[1].trim(),
     prompt,
-    public: publicMatch?.[1].trim().toLowerCase() === "true",
+    telegram: telegramMatch?.[1].trim().toLowerCase() === "true",
   };
 }
 
@@ -281,7 +281,7 @@ async function scanSkillsDir(
       description: parsed.description,
       filePath: skillMdPath,
       skillPrompt: parsed.prompt,
-      public: parsed.public,
+      telegram: parsed.telegram,
       source: "skill",
     });
   }
@@ -429,6 +429,16 @@ export async function loadCommands(
 }
 
 /**
+ * Return the subset of commands that should be shown in the Telegram slash menu and in /help.
+ * Non-skill commands are always included; skills are included only when `telegram: true`.
+ */
+export function commandsForTelegramMenu(
+  commands: CommandEntry[],
+): CommandEntry[] {
+  return commands.filter((c) => c.source !== "skill" || c.telegram === true);
+}
+
+/**
  * Resolve a skill entry by command name from the engine's skills directory.
  * Returns null if the skill doesn't exist or its SKILL.md can't be parsed.
  */
@@ -464,6 +474,7 @@ export async function resolveSkillEntry(
       description: parsed.description,
       filePath: skillMdPath,
       skillPrompt: parsed.prompt,
+      telegram: parsed.telegram,
       source: "skill",
     };
   }
