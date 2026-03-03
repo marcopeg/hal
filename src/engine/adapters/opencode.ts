@@ -40,13 +40,14 @@ export function createOpencodeAdapter(
       options: EngineExecuteOptions,
       ctx: ProjectContext,
     ): Promise<EngineResult> {
-      const { onProgress, continueSession } = options;
+      const { onProgress, continueSession, sessionId } = options;
       const { config, logger } = ctx;
 
       const fullPrompt = await buildContextualPrompt(options, ctx);
 
+      const hasActiveSession = sessionId != null;
       const continueSessionRequested =
-        config.engineSession && continueSession !== false;
+        config.engineSession && hasActiveSession && continueSession !== false;
 
       const args: string[] = ["run"];
       if (model) {
@@ -106,6 +107,7 @@ export function createOpencodeAdapter(
             resolve({
               success: true,
               output: stdout.trim() || "No response received",
+              sessionId: config.engineSession ? "active" : undefined,
             });
           } else {
             resolve({

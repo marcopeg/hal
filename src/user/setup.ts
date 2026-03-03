@@ -4,6 +4,8 @@ import { join } from "node:path";
 
 interface SessionData {
   currentSessionId: string | null;
+  active?: boolean;
+  lastMessageAt?: string;
 }
 
 /**
@@ -79,7 +81,11 @@ export async function saveSessionId(
   sessionId: string,
 ): Promise<void> {
   const sessionFile = join(userDir, "session.json");
-  const sessionData: SessionData = { currentSessionId: sessionId };
+  const sessionData: SessionData = {
+    currentSessionId: sessionId,
+    active: true,
+    lastMessageAt: new Date().toISOString(),
+  };
   await writeFile(sessionFile, JSON.stringify(sessionData, null, 2), "utf-8");
 }
 

@@ -36,7 +36,7 @@ export function createCopilotAdapter(
       options: EngineExecuteOptions,
       ctx: ProjectContext,
     ): Promise<EngineResult> {
-      const { onProgress, continueSession } = options;
+      const { onProgress, continueSession, sessionId } = options;
       const { config, logger } = ctx;
 
       const fullPrompt = await buildContextualPrompt(options, ctx);
@@ -49,18 +49,25 @@ export function createCopilotAdapter(
       //   --continue      Continue the most recent session
       const args: string[] = ["-p", fullPrompt, "--allow-all"];
 
-      // Set model if specified
       if (model) {
         args.push("--model", model);
       }
 
-      // Continue session only when persistence is enabled and not explicitly disabled (e.g. /clean)
-      if (config.engineSession && continueSession !== false) {
+      const hasActiveSession = sessionId != null;
+      if (
+        config.engineSession &&
+        hasActiveSession &&
+        continueSession !== false
+      ) {
         args.push("--continue");
       }
 
       const cwd = config.cwd;
-      logger.info({ command: cmd, cwd }, "Executing Copilot CLI");
+      const willContinue = args.includes("--continue");
+      logger.info(
+        { command: cmd, cwd, continue: willContinue },
+        "Executing Copilot CLI",
+      );
 
       return new Promise((resolve) => {
         const proc = spawn(cmd, args, {
@@ -98,6 +105,7 @@ export function createCopilotAdapter(
             resolve({
               success: true,
               output: stdout.trim() || "No response received",
+              sessionId: config.engineSession ? "active" : undefined,
             });
           } else {
             const errorMsg =

@@ -25,6 +25,7 @@ The commands in the menu should be sorted:
 - [033 — Expose project as MCP server](./drafts/033.expose-project-as-mcp-server.md)
 - [034 — Codex session ID investigation and user isolation](./drafts/034.codex-session-id-investigation-and-user-isolation.md)
 - [039 — Move docs to YAML](./drafts/039.move-docs-to-yaml.md)
+- [040 — Opt-in session configuration](./drafts/040.opt-in-session-configuration.md)
 
 ## Completed
 

@@ -15,7 +15,9 @@ As a cache mechanic, edit the `CLAUDE.md` file so to keep updated a section with
 
 ## Users Map
 
-Use this section to store the users map
+| telegramID | Name  | folder            |
+|------------|-------|-------------------|
+| 7974709349 | Marco | marco_7974709349  |
 
 ## File System Database
 

@@ -36,7 +36,7 @@ export function createCursorAdapter(
       options: EngineExecuteOptions,
       ctx: ProjectContext,
     ): Promise<EngineResult> {
-      const { onProgress, continueSession } = options;
+      const { onProgress, continueSession, sessionId } = options;
       const { config, logger } = ctx;
 
       const fullPrompt = await buildContextualPrompt(options, ctx);
@@ -51,14 +51,23 @@ export function createCursorAdapter(
 
       args.push("--model", model || "auto");
 
-      if (config.engineSession && continueSession !== false) {
+      const hasActiveSession = sessionId != null;
+      if (
+        config.engineSession &&
+        hasActiveSession &&
+        continueSession !== false
+      ) {
         args.push("--continue");
       }
 
       args.push(fullPrompt);
 
       const cwd = config.cwd;
-      logger.info({ command: cmd, cwd }, "Executing Cursor Agent CLI");
+      const willContinue = args.includes("--continue");
+      logger.info(
+        { command: cmd, cwd, continue: willContinue },
+        "Executing Cursor Agent CLI",
+      );
 
       return new Promise((resolve) => {
         const proc = spawn(cmd, args, {
@@ -94,6 +103,7 @@ export function createCursorAdapter(
             resolve({
               success: true,
               output: stdout.trim() || "No response received",
+              sessionId: config.engineSession ? "active" : undefined,
             });
           } else {
             const errorMsg =

@@ -42,13 +42,14 @@ export function createCodexAdapter(
       options: EngineExecuteOptions,
       ctx: ProjectContext,
     ): Promise<EngineResult> {
-      const { continueSession } = options;
+      const { continueSession, sessionId } = options;
       const { config, logger } = ctx;
       const fullPrompt = await buildContextualPrompt(options, ctx);
       const cwd = config.cwd;
 
+      const hasActiveSession = sessionId != null;
       const continueSessionRequested =
-        config.engineSession && continueSession !== false;
+        config.engineSession && hasActiveSession && continueSession !== false;
 
       // Non-interactive: `codex exec` for fresh; `codex exec resume --last` for continue.
       // Permission flags must come right after "exec" (before "resume"/"-C") or Codex rejects them.
@@ -130,6 +131,7 @@ export function createCodexAdapter(
             resolve({
               success: true,
               output: stdout.trim() || "No response received",
+              sessionId: config.engineSession ? "active" : undefined,
             });
           } else {
             resolve({
