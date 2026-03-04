@@ -213,6 +213,42 @@ interface RunResult {
   botHandles: BotHandle[];
 }
 
+function supportsAnsiColor(
+  out: NodeJS.WriteStream = process.stdout,
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  if (!out.isTTY) return false;
+  if ("NO_COLOR" in env) return false;
+  if ((env.TERM ?? "").toLowerCase() === "dumb") return false;
+  return true;
+}
+
+function renderStartupBanner(useColor: boolean): string {
+  const subtitle = "MULTI-ENGINE TELEGRAM COMMAND DECK FOR AI CODING AGENTS";
+  const frame =
+    "================================================================";
+  const accentStart = useColor ? "\u001b[31;1m" : "";
+  const accentEnd = useColor ? "\u001b[0m" : "";
+  return [
+    frame,
+    "",
+    " _   _      _      _     ",
+    "| | | |    / \\    | |    ",
+    "| |_| |   / _ \\   | |    ",
+    "|  _  |  / ___ \\  | |___ ",
+    "|_| |_| /_/   \\_\\ |_____|",
+    "",
+    `${accentStart}${subtitle}${accentEnd}`,
+    "",
+    frame,
+  ].join("\n");
+}
+
+function printStartupBanner(out: NodeJS.WriteStream = process.stdout): void {
+  const banner = renderStartupBanner(supportsAnsiColor(out));
+  out.write(`${banner}\n\n`);
+}
+
 async function runBotsForConfig(
   configDir: string,
   loaded: LoadedConfigResult,
@@ -294,6 +330,7 @@ async function runBotsForConfig(
 }
 
 async function runStart(configDir: string): Promise<void> {
+  printStartupBanner();
   const startupLogger = createStartupLogger();
 
   startupLogger.info({ configDir }, "Loading configuration");

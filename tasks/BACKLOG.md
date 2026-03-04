@@ -28,7 +28,6 @@ The commands in the menu should be sorted:
 - [041 — Custom env file](./drafts/041.custom-env-file.md)
 - [042 — Users map](./drafts/042.users-map.md)
 - [043 — Fix OpenCode engine (default free services)](./drafts/043.fix-opencode.md)
-- [044 — ASCII art HAL 9000 banner on startup](./drafts/044.ascii-art.md)
 - [045 — Interactive setup wizard](./drafts/045.setup-wizard.md)
 - [046 — Codex log streaming](./drafts/046.codex-log-streaming.md)
 - [047 — OpenCode log streaming](./drafts/047.opencode-log-streaming.md)
@@ -67,3 +66,4 @@ The commands in the menu should be sorted:
 - [038 — Telegram skill exposure via telegram flag](./completed/038.telegram-skill-exposure-via-telegram-flag.md) | [plan](./completed/038.telegram-skill-exposure-via-telegram-flag.plan.md)
 - [030 — Codex provider default model propagation](./completed/030.codex-provider-default-model-propagation.md) | [plan](./completed/030.codex-provider-default-model-propagation.plan.md)
 - [029 — Top-level providers config and /model validation](./completed/029.default-models-providers-and-model-validation.md)
+- [044 — ASCII art HAL 9000 banner on startup](./completed/044.ascii-art.md) | [plan](./completed/044.ascii-art.plan.md)
