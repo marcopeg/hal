@@ -11,6 +11,7 @@ The commands in the menu should be sorted:
 
 ## Ready Tasks
 - [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
+- [040 — Opt-in session configuration](./ready/040.opt-in-session-configuration.md) | [plan](./ready/040.opt-in-session-configuration.plan.md)
 
 ## Drafts
 
@@ -24,7 +25,17 @@ The commands in the menu should be sorted:
 - [033 — Expose project as MCP server](./drafts/033.expose-project-as-mcp-server.md)
 - [034 — Codex session ID investigation and user isolation](./drafts/034.codex-session-id-investigation-and-user-isolation.md)
 - [039 — Move docs to YAML](./drafts/039.move-docs-to-yaml.md)
-- [040 — Opt-in session configuration](./drafts/040.opt-in-session-configuration.md)
+- [041 — Custom env file](./drafts/041.custom-env-file.md)
+- [042 — Users map](./drafts/042.users-map.md)
+- [043 — Fix OpenCode engine (default free services)](./drafts/043.fix-opencode.md)
+- [044 — ASCII art HAL 9000 banner on startup](./drafts/044.ascii-art.md)
+- [045 — Interactive setup wizard](./drafts/045.setup-wizard.md)
+- [046 — Codex log streaming](./drafts/046.codex-log-streaming.md)
+- [047 — OpenCode log streaming](./drafts/047.opencode-log-streaming.md)
+- [048 — Cursor log streaming](./drafts/048.cursor-log-streaming.md)
+- [049 — Antigravity log streaming](./drafts/049.antigravity-log-streaming.md)
+- [050 — Copilot log streaming](./drafts/050.copilot-log-streaming.md)
+- [051 — Telegram skill frontmatter properties](./drafts/051.telegram-skills.md)
 
 ## Completed
 
