@@ -127,16 +127,37 @@ const ProviderModelSchema = z.object({
   default: z.boolean().optional(),
 });
 
+// Allow null/empty keys (e.g. "providers:\n  opencode:\n  codex:") so /engine can list those engines; coerce to [].
+// Accept any value per key (array, null, undefined, or junk from merge) so "key not there" = engine disabled, no validation error.
+const ProviderListValueSchema = z
+  .unknown()
+  .transform((v) => (Array.isArray(v) ? v : []));
+
+// Only keys present in the input are kept; invalid engine names are dropped.
+// Accept null (e.g. YAML "providers:" with no sub-keys) and coerce to {} so engine/model are disabled.
 const ProvidersConfigSchema = z
-  .object({
-    claude: z.array(ProviderModelSchema).optional(),
-    copilot: z.array(ProviderModelSchema).optional(),
-    codex: z.array(ProviderModelSchema).optional(),
-    opencode: z.array(ProviderModelSchema).optional(),
-    cursor: z.array(ProviderModelSchema).optional(),
-    antigravity: z.array(ProviderModelSchema).optional(),
-  })
-  .optional();
+  .union([z.record(z.string(), ProviderListValueSchema), z.null()])
+  .optional()
+  .transform((v) => {
+    if (v === undefined) return undefined;
+    if (v === null)
+      return {} as Partial<
+        Record<
+          z.infer<typeof EngineNameSchema>,
+          z.infer<typeof ProviderListValueSchema>
+        >
+      >;
+    const out: Record<string, z.infer<typeof ProviderListValueSchema>> = {};
+    for (const k of Object.keys(v)) {
+      if (EngineNameSchema.safeParse(k).success) out[k] = v[k];
+    }
+    return out as Partial<
+      Record<
+        z.infer<typeof EngineNameSchema>,
+        z.infer<typeof ProviderListValueSchema>
+      >
+    >;
+  });
 
 const AllowedUserIdSchema = z.union([z.number(), z.string()]);
 const AccessSchema = z
@@ -435,6 +456,8 @@ export function resolveProjectConfig(
   configDir: string,
   rootContext?: Record<string, string>,
   providers?: z.infer<typeof ProvidersConfigSchema>,
+  /** When no providers key in config, use this list (e.g. from getAvailableEnginesFromCli()). */
+  enginesWhenNoProviders?: EngineName[],
 ): ResolvedProjectConfig {
   const slug = key;
   const name = project.name ?? key;
@@ -490,12 +513,11 @@ export function resolveProjectConfig(
     ...(providers ?? {}),
     ...(project.providers ?? {}),
   };
-  const availableEngines = (
-    Object.keys(mergedProviders) as EngineName[]
-  ).filter((k) => {
-    const list = mergedProviders[k];
-    return Array.isArray(list) && list.length > 0;
-  });
+  // When no providers key: use discovered engines from CLI (if provided). Otherwise use providers keys.
+  const availableEngines =
+    Object.keys(mergedProviders).length > 0
+      ? (Object.keys(mergedProviders) as EngineName[])
+      : (enginesWhenNoProviders ?? []);
 
   const rawProviderModels =
     project.providers?.[engineName] ?? providers?.[engineName] ?? [];
@@ -535,6 +557,7 @@ export function resolveProjectConfig(
     (project.commands?.model?.enabled ??
       globals.commands?.model?.enabled ??
       true) &&
+    availableEngines.length > 0 &&
     (providerModels.length > 1 || selfDiscoveryEnabled);
 
   const engineEnabled =
@@ -700,6 +723,18 @@ export function validateProjects(projects: ResolvedProjectConfig[]): void {
         );
       }
       names.add(project.name);
+    }
+
+    // When providers defines the allowed engines, each project's engine must be in that list.
+    if (
+      project.availableEngines.length > 0 &&
+      !project.availableEngines.includes(project.engine)
+    ) {
+      const list = project.availableEngines.join(", ");
+      throw new ConfigLoadError(
+        `Configuration error: project "${project.slug}" uses engine "${project.engine}", but \`providers\` only allows: ${list}. ` +
+          "Set `engine.name` to one of these, or add the engine to `providers`.",
+      );
     }
   }
 }
@@ -1016,12 +1051,22 @@ function mergeLocalIntoBase(
       ? deepMerge(base.globals ?? {}, local.globals)
       : base.globals;
 
+  // Merge providers: only override base keys with local; never add engine keys from local (base defines which engines are enabled).
   const mergedProviders =
     local.providers !== undefined
       ? base.providers
-        ? (deepMerge(base.providers, local.providers) as NonNullable<
-            typeof base.providers
-          >)
+        ? (() => {
+            const baseProv = base.providers as Record<string, unknown>;
+            const out: Record<string, unknown> = { ...baseProv };
+            const localProv = (local.providers ?? {}) as Record<
+              string,
+              unknown
+            >;
+            for (const k of Object.keys(localProv)) {
+              if (k in out) out[k] = localProv[k];
+            }
+            return out as NonNullable<typeof base.providers>;
+          })()
         : local.providers
       : base.providers;
 

@@ -17,6 +17,7 @@ import {
 import { startConfigWatcher } from "./config-watcher.js";
 import { evaluateBootTimeShells } from "./context/resolver.js";
 import { getDefaultEngineModel } from "./default-models.js";
+import { getAvailableEnginesFromCli } from "./engine/cli-available.js";
 import { getEngine } from "./engine/index.js";
 import type { EngineName } from "./engine/types.js";
 import { createProjectLogger, createStartupLogger } from "./logger.js";
@@ -55,7 +56,11 @@ function buildYamlInitConfig(
   modelOverride?: string,
 ): string {
   const model = getDefaultProviderModel(engineName, modelOverride);
-  const template = readFileSync(INIT_TEMPLATE_PATH, "utf-8");
+  let template = readFileSync(INIT_TEMPLATE_PATH, "utf-8");
+  // OpenCode: no hardcoded default; omit engine.model so the CLI uses its own default
+  if (engineName === "opencode" && modelOverride === undefined) {
+    template = template.replace(/\n\s+model: \{\{ENGINE_MODEL\}\}\n/, "\n");
+  }
   return template
     .replace(/\{\{ENGINE_NAME\}\}/g, engineName)
     .replace(/\{\{ENGINE_MODEL\}\}/g, model)
@@ -357,6 +362,19 @@ async function runBotsForConfig(
 
   const globals = multiConfig.globals ?? {};
 
+  // Only run CLI discovery when the config has no `providers` key at all.
+  // `providers: {}` (empty) means engine/model switching disabled — do not discover.
+  const hasProvidersKey = multiConfig.providers !== undefined;
+  const enginesWhenNoProviders = !hasProvidersKey
+    ? getAvailableEnginesFromCli()
+    : undefined;
+  if (!hasProvidersKey && enginesWhenNoProviders?.length) {
+    startupLogger.info(
+      { engines: enginesWhenNoProviders },
+      "No providers in config; /engine list from CLI discovery",
+    );
+  }
+
   // Resolve all project configs, skip inactive ones (stable order: sorted keys)
   const rootContext = multiConfig.context;
   const projectKeys = Object.keys(multiConfig.projects).sort();
@@ -368,6 +386,7 @@ async function runBotsForConfig(
       configDir,
       rootContext,
       multiConfig.providers,
+      enginesWhenNoProviders,
     ),
   );
 

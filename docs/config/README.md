@@ -168,9 +168,20 @@ Per-engine options (Codex, Antigravity) are documented in [Engines](../engines/R
 
 ## providers
 
-Per-engine model lists for the `/model` command. Top-level sibling of `globals` and `projects`. Entries may include `default: true` (at most one per engine) to set the model when `engine.model` is omitted. Explicit `engine.model` always overrides the provider default. See [Engines — Model list](../engines/README.md#model-list-providers-key) for full details, field reference, and examples.
+Per-engine model lists for the `/model` command and the set of engines available for `/engine`. Top-level sibling of `globals` and `projects`. Entries may include `default: true` (at most one per engine) to set the model when `engine.model` is omitted. Explicit `engine.model` always overrides the provider default. See [Engines — Model list](../engines/README.md#model-list-providers-key) for full details, field reference, and examples.
 
-Per-project `providers` can override the top-level list for a specific project.
+Per-project `providers` can override the top-level list for a specific project (only for engines already listed in the base config; local config cannot add new engine keys).
+
+**Configuration shapes:**
+
+| Config shape | Meaning |
+|--------------|--------|
+| No `providers` key | HAL runs a fast CLI check at boot; if more than one engine is available, `/engine` is enabled with that list. |
+| `providers: {}` or `providers:` (no sub-keys) | Engine and model switching disabled. No boot discovery. Projects cannot change engine or model via `/engine` or `/model`. |
+| `providers: { opencode:, codex: }` (empty lists) | Only opencode and codex appear in `/engine`. Default models or CLI auto-discovery (OpenCode/Cursor) for `/model`. |
+| `providers` with one or more engine keys | Every project’s `engine.name` must be one of those keys; otherwise HAL fails at boot with a clear error. |
+
+When `/engine` or `/model` is disabled, sending the command replies *"This command is disabled."* instead of forwarding to the LLM.
 
 ## Access control
 

@@ -87,15 +87,36 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
     bot.on("callback_query:data", createGitCallbackHandler(projectCtx));
   }
 
-  if (cmd.model.enabled) {
+  // When disabled, catch /model and /engine (and their callbacks) so we reply instead of sending to the LLM
+  if (!cmd.model.enabled) {
+    bot.hears(/^\/model(@\w+)?(\s|$)/i, (ctx) =>
+      ctx.reply("This command is disabled."),
+    );
+  } else {
     bot.command("model", createModelHandler(projectCtx));
     bot.on("callback_query:data", createModelCallbackHandler(projectCtx));
   }
 
-  if (cmd.engine.enabled) {
+  if (!cmd.engine.enabled) {
+    bot.hears(/^\/engine(@\w+)?(\s|$)/i, (ctx) =>
+      ctx.reply("This command is disabled."),
+    );
+  } else {
     bot.command("engine", createEngineHandler(projectCtx));
     bot.on("callback_query:data", createEngineCallbackHandler(projectCtx));
   }
+
+  // Answer old inline buttons for /model and /engine when those commands are disabled
+  bot.on("callback_query:data", async (ctx, next) => {
+    const data = ctx.callbackQuery?.data ?? "";
+    const engineDisabled = data.startsWith("en:") && !cmd.engine.enabled;
+    const modelDisabled = data.startsWith("md:") && !cmd.model.enabled;
+    if (engineDisabled || modelDisabled) {
+      await ctx.answerCallbackQuery({ text: "This command is disabled." });
+      return;
+    }
+    return next();
+  });
 
   // Generic callback dispatcher for .mjs commands that export `callbackHandler`
   bot.on("callback_query:data", createMjsCallbackDispatcher(projectCtx));

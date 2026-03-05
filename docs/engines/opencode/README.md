@@ -24,10 +24,18 @@ opencode auth login
 
 Supports 75+ LLM providers. Credentials are stored in `~/.local/share/opencode/auth.json`.
 
+### Free tier / Zen
+
+[OpenCode Zen](https://opencode.ai/docs/zen) is the curated free tier. To use it with HAL:
+
+1. Install the CLI and run `opencode auth login` (no paid API key required for Zen).
+2. In config, set `engine.name: "opencode"`. You can omit `engine.model` — HAL does not pass a model by default, so the OpenCode CLI uses its own default (e.g. Zen).
+3. To pin a free model explicitly, set e.g. `engine.model: "opencode/gpt-5-nano"` (see [Zen models](https://opencode.ai/docs/zen)).
+
 **HAL usage:**
 
-- **Config:** `engine.name: "opencode"`. Optional: `engine.command`, `engine.model` (e.g. `opencode/gpt-5-nano`), `engine.session`, `engine.sessionMsg`.
-- **Invocation:** `opencode run [-m <model>] [-c] <prompt>` with `OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=true` env var.
+- **Config:** `engine.name: "opencode"`. Optional: `engine.command`, `engine.model` (omit to use the OpenCode CLI default, or set e.g. `opencode/gpt-5-nano`), `engine.session`, `engine.sessionMsg`.
+- **Invocation:** `opencode run [-m <model>] [-c] <prompt>` with `OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=true` env var. When `engine.model` is not set, HAL does not pass `-m`, so the CLI chooses the model.
 - **Sessions:** When `engine.session` is `true`, the CLI is invoked with `-c` (continue). HAL does not pass a session ID; the session is **shared by all users** of the project. `/clean` sends `engine.sessionMsg` without `-c` to start a fresh session; the engine’s reply is sent to the user.
 - **Note:** OpenCode is a basic prompt/response adapter — no streaming progress events.
 - **Project file:** `AGENTS.md`.

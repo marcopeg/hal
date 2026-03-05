@@ -116,16 +116,25 @@ Each entry has:
 **Behavior of `/model`:**
 
 - **With `providers` configured:** `/model` (no argument) shows a list of inline buttons for the configured models. `/model <name>` validates against the list before accepting.
-- **Without `providers`:** `/model` (no argument) shows a helper message prompting the user to type `/model <name>`. `/model <name>` accepts any value.
-- **Auto-disable:** When the active engine's `providers` list has zero or one entries, `/model` is automatically hidden from the bot.
+- **Without `providers` (or empty list):** For OpenCode and Cursor, HAL can discover models from the CLI at runtime, so `/model` is still shown and the list is filled from the engine’s `models` command. For other engines, `/model` (no argument) prompts to type `/model <name>`; `/model <name>` accepts any value.
+- **Auto-disable:** `/model` is hidden when the active engine has fewer than two models in its list **and** does not support self-discovery (OpenCode, Cursor).
 
 **Behavior of `/engine`:**
 
-The `/engine` command lets users switch the AI engine for a project. Available engines are derived from the keys of the `providers` config (only engines with at least one model listed).
+The `/engine` command lets users switch the AI engine for a project. **Available engines** are exactly those that have a key under `providers` — even if the list is empty. So you can enable only specific engines for switching. This shape means: *enable only these engines, on default models; engines with auto-discovery (OpenCode, Cursor) get their model list from the CLI when the list is empty.*
 
-- `/engine` (no argument) shows the current engine and model, plus inline buttons for all available engines.
-- `/engine <name>` validates against the list and writes the change. Switching engines also **clears the model selection** (since models are engine-specific).
-- **Auto-disable:** When zero or one engines have model lists in `providers`, `/engine` is automatically hidden from the bot.
+```yaml
+providers:
+  opencode:    # empty = /engine shows opencode; /model uses CLI discovery (default models)
+  codex:       # empty = /engine shows codex; /model hidden unless you add models
+```
+
+- `/engine` (no argument) shows the current engine and model, plus inline buttons for those engines that have a `providers` key.
+- `/engine <name>` validates against that list and writes the change. Switching engines also **clears the model selection** (since models are engine-specific).
+- **Project engine must be in the list:** When `providers` defines one or more engine keys, every project’s `engine.name` must be one of them. Otherwise HAL fails at boot with a clear error (e.g. *project "X" uses engine "opencode", but `providers` only allows: codex*).
+- **Auto-disable:** When zero or one engines have a key in `providers`, `/engine` is hidden.
+- **No `providers` key:** If the config has no `providers` key at all, HAL runs a fast CLI check at boot and builds an in-memory list of available engines; if more than one is available, `/engine` is enabled.
+- **Empty `providers: {}`:** If the config has `providers:` but no engine keys listed, HAL does **not** run boot discovery. Engine and model switching are disabled (projects cannot change engine or model via `/engine` or `/model`).
 
 See [Commands](../config/commands/README.md) for full `/model` and `/engine` configuration details.
 
@@ -150,10 +159,8 @@ The model used at runtime is chosen in this order:
 
 When `engine.model` is omitted and no provider default is set, behavior depends on the engine:
 
-- **Engine default** — Codex, Copilot, Cursor, and Antigravity: HAL does not pass a model flag, so the CLI picks its own default (Cursor passes `--model auto`; Antigravity defaults to `auto`).
-- **HAL default** — Claude Code and OpenCode: HAL passes a built-in default so the engine always receives a model. Defaults are defined in `src/default-models.ts`:
-  - Claude Code: `default` (account-recommended model)
-  - OpenCode: `opencode/gpt-5-nano` (free Zen model)
+- **Engine default** — Codex, Copilot, Cursor, OpenCode, and Antigravity: HAL does not pass a model flag when `engine.model` is omitted, so the CLI picks its own default (e.g. Cursor passes `--model auto`; OpenCode uses its CLI default such as Zen).
+- **HAL default** — Claude Code only: HAL passes a built-in default so the engine always receives a model. Defaults are defined in `src/default-models.ts` (e.g. Claude Code: `default`).
 
 **Provider default validation:** At most one model per `providers.<engine>` list (top-level or in any project) may have `default: true`. If two or more entries in the same list have `default: true`, HAL fails at boot with a clear `ConfigLoadError` naming the engine and list (e.g. `providers.codex` or `projects["my-project"].providers.claude`).
 

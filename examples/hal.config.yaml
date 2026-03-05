@@ -1,29 +1,20 @@
-# Short copy-paste example. Full key reference: docs/config/reference.yaml
-
 globals:
-  engine:
-    name: claude
-  logging:
-    level: info
-    flow: true
-    persist: false
-  rateLimit:
-    max: 10
-    windowMs: 60000
   access:
-    allowedUserIds: [123456789]
-
+    allowedUserIds:
+      - ${USER_MARCO_IPHONE_ID}
+providers:
+  codex: null
+  opencode: null
 projects:
-  backend:
-    cwd: ./backend
+  obsidian:
+    cwd: ./obsidian
     telegram:
-      botToken: "${BACKEND_BOT_TOKEN}"
-    logging:
-      persist: true
+      botToken: ${OBSIDIAN_TELEGRAM_TOKEN}
+    engine:
+      name: codex
   frontend:
     cwd: ./frontend
     engine:
-      name: copilot
-      model: gpt-5-mini
+      name: codex
     telegram:
-      botToken: "${FRONTEND_BOT_TOKEN}"
+      botToken: ${TIMETRACKER_TELEGRAM_TOKEN}

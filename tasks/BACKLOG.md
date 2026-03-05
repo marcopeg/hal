@@ -12,6 +12,7 @@ The commands in the menu should be sorted:
 ## Ready Tasks
 - [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
 - [040 — Opt-in session configuration](./ready/040.opt-in-session-configuration.md) | [plan](./ready/040.opt-in-session-configuration.plan.md)
+- [045 — Interactive setup wizard](./ready/045.setup-wizard.md) | [plan](./ready/045.setup-wizard.plan.md)
 
 ## Drafts
 
@@ -26,8 +27,6 @@ The commands in the menu should be sorted:
 - [034 — Codex session ID investigation and user isolation](./drafts/034.codex-session-id-investigation-and-user-isolation.md)
 - [041 — Custom env file](./drafts/041.custom-env-file.md)
 - [042 — Users map](./drafts/042.users-map.md)
-- [043 — Fix OpenCode engine (default free services)](./drafts/043.fix-opencode.md)
-- [045 — Interactive setup wizard](./drafts/045.setup-wizard.md)
 - [046 — Codex log streaming](./drafts/046.codex-log-streaming.md)
 - [047 — OpenCode log streaming](./drafts/047.opencode-log-streaming.md)
 - [048 — Cursor log streaming](./drafts/048.cursor-log-streaming.md)
@@ -67,3 +66,4 @@ The commands in the menu should be sorted:
 - [029 — Top-level providers config and /model validation](./completed/029.default-models-providers-and-model-validation.md)
 - [044 — ASCII art HAL 9000 banner on startup](./completed/044.ascii-art.md) | [plan](./completed/044.ascii-art.plan.md)
 - [039 — Move docs to YAML](./completed/039.move-docs-to-yaml.md) | [plan](./completed/039.move-docs-to-yaml.plan.md)
+- [043 — Fix OpenCode engine (default free services)](./completed/043.fix-opencode.md)
