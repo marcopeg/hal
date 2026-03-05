@@ -33,6 +33,7 @@ The commands in the menu should be sorted:
 - [049 — Antigravity log streaming](./drafts/049.antigravity-log-streaming.md)
 - [050 — Copilot log streaming](./drafts/050.copilot-log-streaming.md)
 - [051 — Telegram skill frontmatter properties](./drafts/051.telegram-skills.md)
+- [052 — Remove doc link placeholders from config init template](./drafts/052.remove-doc-link-placeholders-from-config-init-template.md)
 
 ## Completed
 
