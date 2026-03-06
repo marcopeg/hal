@@ -175,6 +175,16 @@ The engine can send files back through Telegram. Each user has a `downloads/` fo
 3. The file is sent via Telegram (as a document)
 4. The file is deleted from the server after delivery
 
+## Releasing
+
+Releases use [conventional commits](https://www.conventionalcommits.org/) to drive `CHANGELOG.md` generation.
+
+1. **Clean tree** — Commit or stash all changes so the working tree is clean.
+2. **Auth** — Run `npm login` if you are not already logged in to the registry.
+3. **Release** — Run `pnpm run deploy` (or `npm run deploy`). This runs `npm version patch` then `npm publish --access public`. The `version` script regenerates `CHANGELOG.md` from commits since the last tag and adds it to the release commit before the version tag is created.
+
+For a minor or major bump, run `npm version minor` or `npm version major` (which also runs the changelog step), then `npm publish --access public`.
+
 ## Security Notice
 
 **Important**: Conversations with this bot are not end-to-end encrypted. Messages pass through Telegram's servers. Do not share:
