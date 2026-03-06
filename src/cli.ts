@@ -110,10 +110,14 @@ function _openFileInEditor(filePath: string, editor: string): void {
 // ─── CLI argument parsing ─────────────────────────────────────────────────────
 
 interface ParsedArgs {
-  command: "start" | "init";
+  command: "start" | "init" | "wiz";
   cwd: string;
   engine: EngineName;
   model?: string;
+  botKey?: string;
+  userId?: string;
+  session?: string;
+  reset?: boolean;
 }
 
 function showHelp(): void {
@@ -124,16 +128,24 @@ Usage:
   npx @marcopeg/hal [command] [options]
 
 Commands:
-  init            Create hal.config.yaml in the working directory (with confirmation)
+  wiz             Interactive setup wizard (recommended for new users)
+  init            Create hal.config.yaml non-interactively (deprecated — use wiz)
   start           Start the bots (default)
 
 Options:
-  --cwd <path>      Directory for config file and project cwd (default: current directory)
-  --engine <name>   Engine: claude, copilot, codex, opencode, cursor, antigravity (default: codex)
-  --model <name>    Default model for the chosen engine (default: engine default)
-  --help, -h        Show this help message
+  --cwd <path>       Directory for config file and project cwd (default: current directory)
+  --engine <name>    Engine: claude, copilot, codex, opencode, cursor, antigravity (default: codex)
+  --model <name>     Default model for the chosen engine (default: engine default)
+  --bot-key <value>  Pre-fill bot token in wizard (skips that step)
+  --user-id <value>  Pre-fill Telegram user ID in wizard (skips that step)
+  --session <mode>   Pre-fill session mode in wizard: true, false, shared, user
+  --reset            Re-ask all wizard questions even if values already exist
+  --help, -h         Show this help message
 
 Examples:
+  npx @marcopeg/hal wiz
+  npx @marcopeg/hal wiz --engine cursor
+  npx @marcopeg/hal wiz --engine codex --model gpt-5.2-codex
   npx @marcopeg/hal init
   npx @marcopeg/hal init --engine opencode --model opencode/gpt-5-nano
   npx @marcopeg/hal init --cwd ./workspace
@@ -170,9 +182,13 @@ const VALID_ENGINES: readonly EngineName[] = [
 function parseArgs(): ParsedArgs {
   const args = process.argv.slice(2);
   let cwd = process.cwd();
-  let command: "start" | "init" = "start";
+  let command: "start" | "init" | "wiz" = "start";
   let engine: EngineName = "codex";
   let model: string | undefined;
+  let botKey: string | undefined;
+  let userId: string | undefined;
+  let session: string | undefined;
+  let reset = false;
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -206,9 +222,28 @@ function parseArgs(): ParsedArgs {
       i++;
     } else if (arg.startsWith("--model=")) {
       model = arg.slice(8);
+    } else if (arg === "--bot-key" && args[i + 1]) {
+      botKey = args[i + 1];
+      i++;
+    } else if (arg.startsWith("--bot-key=")) {
+      botKey = arg.slice(10);
+    } else if (arg === "--user-id" && args[i + 1]) {
+      userId = args[i + 1];
+      i++;
+    } else if (arg.startsWith("--user-id=")) {
+      userId = arg.slice(10);
+    } else if (arg === "--session" && args[i + 1]) {
+      session = args[i + 1];
+      i++;
+    } else if (arg.startsWith("--session=")) {
+      session = arg.slice(10);
+    } else if (arg === "--reset") {
+      reset = true;
     } else if (arg === "--help" || arg === "-h") {
       showHelp();
       process.exit(0);
+    } else if (arg === "wiz") {
+      command = "wiz";
     } else if (arg === "init") {
       command = "init";
     } else if (arg === "start") {
@@ -216,7 +251,7 @@ function parseArgs(): ParsedArgs {
     }
   }
 
-  return { command, cwd, engine, model };
+  return { command, cwd, engine, model, botKey, userId, session, reset };
 }
 
 // ─── init command ─────────────────────────────────────────────────────────────
@@ -233,6 +268,9 @@ async function runInit(
   engineName: EngineName,
   modelOverride?: string,
 ): Promise<void> {
+  console.log(
+    "\u001b[33mNote: `init` is deprecated. Use `npx @marcopeg/hal wiz` for an interactive setup experience.\u001b[0m\n",
+  );
   for (const name of INIT_CONFIG_BASENAMES) {
     if (existsSync(join(cwd, name))) {
       console.error(`Error: ${name} already exists in ${cwd}`);
@@ -451,6 +489,16 @@ function printConfigError(err: unknown): never {
 }
 
 async function runStart(configDir: string): Promise<void> {
+  // Auto-trigger wizard when config is missing or incomplete (TTY only)
+  if (process.stdin.isTTY) {
+    const { needsWizard } = await import("./wizard/analyzer.js");
+    if (needsWizard(configDir)) {
+      const { startWizard } = await import("./wizard/index.js");
+      const shouldContinue = await startWizard(configDir, {}, false);
+      if (!shouldContinue) return;
+    }
+  }
+
   printStartupBanner();
   await new Promise((resolve) => setTimeout(resolve, STARTUP_BANNER_DELAY_MS));
   const startupLogger = createStartupLogger();
@@ -554,7 +602,21 @@ async function runStart(configDir: string): Promise<void> {
 // ─── Entry point ──────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
-  const { command, cwd, engine, model } = parseArgs();
+  const { command, cwd, engine, model, botKey, userId, session, reset } =
+    parseArgs();
+
+  if (command === "wiz") {
+    const { startWizard } = await import("./wizard/index.js");
+    const shouldStart = await startWizard(
+      cwd,
+      { engine, model, botKey, userId, session },
+      reset ?? false,
+    );
+    if (shouldStart) {
+      await runStart(cwd);
+    }
+    return;
+  }
 
   if (command === "init") {
     await runInit(cwd, engine, model);

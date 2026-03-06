@@ -1227,7 +1227,7 @@ function loadMultiConfigInternal(configDir: string): LoadedConfigResult {
     throw new ConfigLoadError(
       `Configuration error: no config file found in ${configDir}\n` +
         `  Looked for: hal.config{${supportedExts}}\n` +
-        `  Run "npx @marcopeg/hal init" to create one.`,
+        `  Run "npx @marcopeg/hal wiz" to set up interactively, or "npx @marcopeg/hal init" to create a config file.`,
     );
   }
 

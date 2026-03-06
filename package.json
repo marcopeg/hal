@@ -13,6 +13,8 @@
   "packageManager": "pnpm@10.13.1",
   "scripts": {
     "start": "tsx watch src/cli.ts start --cwd examples",
+    "start:test": "tsx watch src/cli.ts start --cwd manual-tests",
+    "wiz:test": "tsx src/cli.ts wiz --cwd manual-tests",
     "build": "tsc && cp src/init-template.yaml dist/ && chmod +x dist/cli.js",
     "typecheck": "tsc --noEmit",
     "lint": "biome check src",
@@ -48,6 +50,7 @@
     "url": "git+https://github.com/marcopeg/hal.git"
   },
   "dependencies": {
+    "@clack/prompts": "^1.1.0",
     "chokidar": "^5.0.0",
     "dotenv": "^17.2.3",
     "grammy": "^1.39.2",

@@ -9,9 +9,10 @@ The commands in the menu should be sorted:
 
 ## In Progress
 
+- [045 — Interactive setup wizard](./045.setup-wizard.md) | [plan](./045.setup-wizard.plan.md)
+
 ## Ready Tasks
 - [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
-- [045 — Interactive setup wizard](./ready/045.setup-wizard.md) | [plan](./ready/045.setup-wizard.plan.md)
 - [046 — Codex log streaming](./ready/046.codex-log-streaming.md) | [plan](./ready/046.codex-log-streaming.plan.md)
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 
