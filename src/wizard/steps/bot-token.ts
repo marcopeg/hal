@@ -68,7 +68,10 @@ export const botTokenStep: WizardStep = {
   isConfigured(ctx: WizardContext): boolean {
     const env = loadEnvFromConfigDir(ctx.cwd);
     const projects = ctx.existingConfig?.projects ?? {};
-    return Object.values(projects).some((p) => {
+    const key = ctx.currentProjectKey ?? ctx.results.projectKey;
+    const candidates =
+      key && projects[key] ? [projects[key]] : Object.values(projects);
+    return candidates.some((p) => {
       const token = p.telegram?.botToken;
       if (!token) return false;
       if (!isPlaceholder(token)) return true;
@@ -81,13 +84,24 @@ export const botTokenStep: WizardStep = {
   shouldSkip(ctx: WizardContext): boolean {
     const key = ctx.prefill.apiKey ?? ctx.prefill.botKey;
     if (!key) return false;
-    return BOT_TOKEN_RE.test(key);
+    const oneProject = (ctx.targetProjectKeys?.length ?? 1) <= 1;
+    return oneProject && BOT_TOKEN_RE.test(key);
   },
 
   run: async (ctx: WizardContext) => {
+    const projectKey = ctx.currentProjectKey ?? ctx.results.projectKey;
+    if (!ctx.results.projectEdits) ctx.results.projectEdits = {};
+    const edits = ctx.results.projectEdits;
+    if (projectKey) edits[projectKey] ??= {};
+
     // Pre-fill: apply silently
     const key = ctx.prefill.apiKey ?? ctx.prefill.botKey;
-    if (key && BOT_TOKEN_RE.test(key)) {
+    if (
+      (ctx.targetProjectKeys?.length ?? 1) <= 1 &&
+      key &&
+      BOT_TOKEN_RE.test(key)
+    ) {
+      if (projectKey) edits[projectKey].botToken = key;
       ctx.results.botToken = key;
       return;
     }
@@ -115,6 +129,8 @@ export const botTokenStep: WizardStep = {
     });
     guardCancel(answer);
 
-    ctx.results.botToken = (answer as string).trim();
+    const v = (answer as string).trim();
+    if (projectKey) edits[projectKey].botToken = v;
+    ctx.results.botToken = v;
   },
 };

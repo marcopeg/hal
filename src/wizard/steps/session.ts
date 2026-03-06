@@ -15,6 +15,9 @@ export const sessionStep: WizardStep = {
   label: "Session behavior",
 
   isConfigured(ctx: WizardContext): boolean {
+    // Session does not block boot: default behavior is used when unset.
+    // Only prompt when explicitly resetting.
+    if (!ctx.reset) return true;
     const globalSession = ctx.existingConfig?.globals?.engine?.session;
     const projects = ctx.existingConfig?.projects ?? {};
     const projectSession = Object.values(projects).some(

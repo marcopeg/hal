@@ -141,35 +141,47 @@ export function analyzeConfig(cwd: string): AnalyzeResult {
 
   const missing: string[] = [];
 
-  // Inspect the first project key (wizard manages a single project)
   const projects = raw.projects ?? {};
   const projectKeys = Object.keys(projects);
-  const firstProject =
-    projectKeys.length > 0 ? projects[projectKeys[0]] : undefined;
+
+  // Only consider active projects (active !== false). If none are active, fall back to all.
+  const activeKeys = projectKeys.filter((k) => projects[k]?.active !== false);
+  const keysToCheck = activeKeys.length > 0 ? activeKeys : projectKeys;
 
   // project-name: skip if a project key already exists (gap-fill mode)
   if (projectKeys.length === 0) {
     missing.push("project-name");
   }
 
-  // cwd: must be present and non-placeholder
-  const projectCwd = firstProject?.cwd;
-  if (!projectCwd || isPlaceholder(projectCwd) || projectCwd === "") {
+  // cwd: every active project must have cwd present and non-placeholder
+  if (
+    keysToCheck.some((k) => {
+      const projectCwd = projects[k]?.cwd;
+      return !projectCwd || isPlaceholder(projectCwd) || projectCwd === "";
+    })
+  ) {
     missing.push("cwd");
   }
 
-  // bot-token: check first project's telegram.botToken
-  const botToken = firstProject?.telegram?.botToken;
-  const varName = placeholderVar(botToken);
-  const placeholderResolved =
-    varName != null && ((process.env[varName] ?? env[varName]) || "") !== "";
-  if (!botToken || (isPlaceholder(botToken) && !placeholderResolved)) {
+  // bot-token: every active project must have a resolvable telegram.botToken
+  if (
+    keysToCheck.some((k) => {
+      const botToken = projects[k]?.telegram?.botToken;
+      const varName = placeholderVar(botToken);
+      const placeholderResolved =
+        varName != null &&
+        ((process.env[varName] ?? env[varName]) || "") !== "";
+      return !botToken || (isPlaceholder(botToken) && !placeholderResolved);
+    })
+  ) {
     missing.push("bot-token");
   }
 
-  // user-id: check globals or first project
+  // user-id: check globals or any project
   const globalIds = raw.globals?.access?.allowedUserIds;
-  const projectIds = firstProject?.access?.allowedUserIds;
+  const projectIds = keysToCheck.flatMap(
+    (k) => projects[k]?.access?.allowedUserIds ?? [],
+  );
   if (
     !hasResolvableUserId(globalIds, env) &&
     !hasResolvableUserId(projectIds, env)
@@ -177,10 +189,13 @@ export function analyzeConfig(cwd: string): AnalyzeResult {
     missing.push("user-id");
   }
 
-  // engine: check globals or first project
+  // engine: check globals or per-project; engine is considered missing if any active
+  // project lacks an engine AND there is no global engine default.
   const globalEngine = raw.globals?.engine?.name;
-  const projectEngine = firstProject?.engine?.name;
-  if (!globalEngine && !projectEngine) {
+  const anyProjectMissingEngine = keysToCheck.some(
+    (k) => !projects[k]?.engine?.name,
+  );
+  if (!globalEngine && anyProjectMissingEngine) {
     missing.push("engine");
   }
 

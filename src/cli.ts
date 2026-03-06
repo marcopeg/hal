@@ -116,7 +116,8 @@ interface ParsedArgs {
   cwd?: string;
   /** Project name for wizard config. */
   name?: string;
-  engine: EngineName;
+  /** Wizard prefill: only set when user passes --engine. */
+  engine?: EngineName;
   model?: string;
   apiKey?: string;
   /** Back-compat alias for apiKey. */
@@ -142,7 +143,7 @@ Options:
   --config-dir <path> Directory to read/write hal.config.* (default: current directory)
   --cwd <path>        Project cwd to write into config (wizard prefill)
   --name <value>      Project name to write into config (wizard prefill)
-  --engine <name>    Engine: claude, copilot, codex, opencode, cursor, antigravity (default: codex)
+  --engine <name>    Engine: claude, copilot, codex, opencode, cursor, antigravity
   --model <name>     Default model for the chosen engine (default: engine default)
   --api-key <value>  Telegram bot token to use for the project (wizard prefill)
   --bot-key <value>  (deprecated) alias for --api-key
@@ -194,7 +195,7 @@ function parseArgs(): ParsedArgs {
   let projectCwd: string | undefined;
   let name: string | undefined;
   let command: "start" | "init" | "wiz" = "start";
-  let engine: EngineName = "codex";
+  let engine: EngineName | undefined;
   let model: string | undefined;
   let apiKey: string | undefined;
   let botKey: string | undefined;
@@ -701,7 +702,7 @@ async function main(): Promise<void> {
   }
 
   if (command === "init") {
-    await runInit(configDir, engine, model);
+    await runInit(configDir, engine ?? "codex", model);
   } else {
     await runStart(configDir, {
       name,

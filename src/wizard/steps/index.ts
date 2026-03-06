@@ -8,14 +8,13 @@ import { sessionStep } from "./session.js";
 import { userIdStep } from "./user-id.js";
 
 // Execution order matters — steps run top to bottom.
-const steps: WizardStep[] = [
-  projectNameStep,
-  cwdStep,
-  botTokenStep,
+export const globalSteps: WizardStep[] = [
   userIdStep,
   additionalUsersStep,
   engineStep,
   sessionStep,
 ];
 
-export default steps;
+export const projectSteps: WizardStep[] = [cwdStep, botTokenStep];
+
+export const bootstrapSteps: WizardStep[] = [projectNameStep];

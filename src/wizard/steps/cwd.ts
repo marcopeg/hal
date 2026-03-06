@@ -33,19 +33,40 @@ export const cwdStep: WizardStep = {
 
   isConfigured(ctx: WizardContext): boolean {
     const projects = ctx.existingConfig?.projects ?? {};
+    const key = ctx.currentProjectKey ?? ctx.results.projectKey;
+    if (key && projects[key]) {
+      const p = projects[key];
+      return !!(p.cwd && !isPlaceholder(p.cwd) && p.cwd !== "");
+    }
     return Object.values(projects).some(
       (p) => p.cwd && !isPlaceholder(p.cwd) && p.cwd !== "",
     );
   },
 
   shouldSkip(ctx: WizardContext): boolean {
-    return typeof ctx.prefill.cwd === "string" && ctx.prefill.cwd.trim() !== "";
+    const oneProject = (ctx.targetProjectKeys?.length ?? 1) <= 1;
+    return (
+      oneProject &&
+      typeof ctx.prefill.cwd === "string" &&
+      ctx.prefill.cwd.trim() !== ""
+    );
   },
 
   run: async (ctx: WizardContext) => {
+    const key = ctx.currentProjectKey ?? ctx.results.projectKey;
+    if (!ctx.results.projectEdits) ctx.results.projectEdits = {};
+    const edits = ctx.results.projectEdits;
+    if (key) edits[key] ??= {};
+
     // Pre-fill: apply silently
-    if (ctx.prefill.cwd && ctx.prefill.cwd.trim() !== "") {
-      ctx.results.cwd = ctx.prefill.cwd.trim();
+    if (
+      (ctx.targetProjectKeys?.length ?? 1) <= 1 &&
+      ctx.prefill.cwd &&
+      ctx.prefill.cwd.trim() !== ""
+    ) {
+      const v = ctx.prefill.cwd.trim();
+      if (key) edits[key].cwd = v;
+      ctx.results.cwd = v;
       return;
     }
 
@@ -62,6 +83,8 @@ export const cwdStep: WizardStep = {
     });
     guardCancel(answer);
 
-    ctx.results.cwd = answer as string;
+    const v = answer as string;
+    if (key) edits[key].cwd = v;
+    ctx.results.cwd = v;
   },
 };

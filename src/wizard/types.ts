@@ -16,6 +16,7 @@ export interface PartialConfig {
   projects?: Record<
     string,
     {
+      active?: boolean;
       name?: string;
       cwd?: string;
       telegram?: { botToken?: string };
@@ -24,6 +25,14 @@ export interface PartialConfig {
     }
   >;
 }
+
+export type ProjectEdits = Record<
+  string,
+  {
+    cwd?: string;
+    botToken?: string;
+  }
+>;
 
 export interface PrefillFlags {
   /** Project display name (wizard step 1). */
@@ -53,6 +62,10 @@ export interface WizardContext {
   prefill: PrefillFlags;
   /** When true, skip isConfigured checks and re-prompt all steps. */
   reset: boolean;
+  /** Active projects the wizard should validate/fill (existing config only). */
+  targetProjectKeys?: string[];
+  /** Project currently being filled (project-scoped steps). */
+  currentProjectKey?: string | null;
   /** Background engine discovery; started at wizard boot. */
   availableEnginesPromise?: Promise<string[]>;
   /** Accumulates outputs from each step. */
@@ -63,6 +76,8 @@ export interface WizardContext {
     /** Engines enabled in config providers (for /engine switching). */
     enabledEngines?: string[];
     botToken?: string;
+    /** Multi-project edits (project-scoped). */
+    projectEdits?: ProjectEdits;
     userId?: number;
     additionalUserIds?: number[];
     /** Default engine (stored in globals.engine.*). */

@@ -23,6 +23,8 @@ export function buildConfigFromResults(ctx: WizardContext): BuildResult {
   const secretsMode =
     (results.secretsMode as "env" | "inline" | undefined) ?? "env";
 
+  const projectEdits = ctx.results.projectEdits ?? {};
+
   // Determine project key and name
   const projectKey =
     (results.projectKey as string | undefined) ??
@@ -52,8 +54,17 @@ export function buildConfigFromResults(ctx: WizardContext): BuildResult {
   }
 
   // Apply cwd
-  if (results.cwd) {
+  if (projectEdits[projectKey]?.cwd) {
+    project.cwd = projectEdits[projectKey].cwd;
+  } else if (results.cwd) {
     project.cwd = results.cwd as string;
+  }
+
+  // Apply cwd edits for any other projects
+  for (const [k, edit] of Object.entries(projectEdits)) {
+    if (!edit.cwd) continue;
+    if (!base.projects[k]) base.projects[k] = {};
+    base.projects[k].cwd = edit.cwd;
   }
 
   // Engines enabled (providers) + default engine (globals)
@@ -82,32 +93,64 @@ export function buildConfigFromResults(ctx: WizardContext): BuildResult {
     }
 
     // Keep project config lean: remove project.engine when it only duplicates globals
-    if (project.engine && results.engine) {
-      const pe = project.engine;
-      const sameName = pe.name === globalsEngine.name;
-      const sameModel =
-        (pe as { model?: string }).model === globalsEngine.model;
-      const sameSession =
-        (pe as { session?: unknown }).session === globalsEngine.session ||
-        (pe as { session?: unknown }).session === undefined;
-      if (sameName && sameModel && sameSession) {
-        delete project.engine;
+    if (results.engine) {
+      const projects = base.projects ?? {};
+      for (const p of Object.values(projects)) {
+        if (!p.engine) continue;
+        const pe = p.engine;
+        const sameName = pe.name === globalsEngine.name;
+        const sameModel =
+          (pe as { model?: string }).model === globalsEngine.model;
+        const sameSession =
+          (pe as { session?: unknown }).session === globalsEngine.session ||
+          (pe as { session?: unknown }).session === undefined;
+        if (sameName && sameModel && sameSession) {
+          delete p.engine;
+        }
       }
     }
   }
 
   // Secrets: bot token + user IDs can be inline or via .env placeholders
   let envEntries: Record<string, string> | undefined;
-  if (results.botToken) {
-    const token = results.botToken as string;
-    if (!project.telegram) project.telegram = {};
+  const editedProjectKeys = Object.keys(projectEdits);
+  const tokenTargets =
+    editedProjectKeys.length > 0
+      ? editedProjectKeys
+      : results.botToken
+        ? [projectKey]
+        : [];
+
+  for (const k of tokenTargets) {
+    if (!base.projects[k]) base.projects[k] = {};
+    const p = base.projects[k];
+
+    const token =
+      projectEdits[k]?.botToken ??
+      (k === projectKey ? (results.botToken as string | undefined) : undefined);
+    if (!token) continue;
+
+    if (!p.telegram) p.telegram = {};
+
     if (secretsMode === "inline") {
-      project.telegram.botToken = token;
-    } else {
-      // Intentional config placeholder — not a template literal
-      project.telegram.botToken = "$" + "{TELEGRAM_BOT_TOKEN}";
-      envEntries = { ...(envEntries ?? {}), TELEGRAM_BOT_TOKEN: token };
+      p.telegram.botToken = token;
+      continue;
     }
+
+    // Prefer keeping an existing placeholder var name when present.
+    const existing = p.telegram.botToken;
+    let varName: string | null = null;
+    if (typeof existing === "string") {
+      const m = /^\$\{([^}]+)\}$/.exec(existing.trim());
+      if (m) varName = m[1]?.trim() || null;
+    }
+    if (!varName) {
+      varName = `${k.replace(/[^A-Za-z0-9]+/g, "_").toUpperCase()}_TELEGRAM_TOKEN`;
+    }
+
+    // Intentional placeholder — not a template literal
+    p.telegram.botToken = String.raw`\${${varName}}`;
+    envEntries = { ...(envEntries ?? {}), [varName]: token };
   }
 
   // Apply user IDs to globals.access

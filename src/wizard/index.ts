@@ -3,7 +3,7 @@ import { parseConfigContent, resolveConfigFile } from "../config.js";
 import { runConfirmAndWrite } from "./confirm-and-write.js";
 import { discoverAvailableEngines } from "./engine-discovery.js";
 import { runWizard } from "./runner.js";
-import steps from "./steps/index.js";
+import { bootstrapSteps, globalSteps, projectSteps } from "./steps/index.js";
 import type { PartialConfig, PrefillFlags, WizardContext } from "./types.js";
 
 export type { PrefillFlags };
@@ -90,10 +90,45 @@ export async function startWizard(
     prefill,
     reset,
     availableEnginesPromise: discoverAvailableEngines(),
+    targetProjectKeys: undefined,
+    currentProjectKey: null,
     results: {},
   };
 
-  await runWizard(ctx, steps);
+  // Identify projects to fill.
+  const existingKeys = Object.keys(existingConfig?.projects ?? {});
+  if (existingKeys.length === 0) {
+    // Fresh setup: ask for project key/name first, then proceed with single-project steps.
+    await runWizard(ctx, bootstrapSteps);
+    const k = ctx.results.projectKey ?? "prj1";
+    ctx.targetProjectKeys = [k];
+  } else {
+    // Existing config: fill only active projects (active !== false).
+    const keys = existingKeys.filter((k) => {
+      const p = existingConfig?.projects?.[k];
+      return p?.active !== false;
+    });
+    ctx.targetProjectKeys = keys.length > 0 ? keys : existingKeys;
+    // Primary project key drives which project is considered for "engine is configured" checks.
+    ctx.results.projectKey = ctx.targetProjectKeys[0];
+  }
+
+  // Global missing info (access list, enabled providers/default engine, etc.)
+  await runWizard(ctx, globalSteps);
+
+  // Project-scoped missing info (cwd, bot token, etc.)
+  const targets = ctx.targetProjectKeys ?? [];
+  if (targets.length > 1) {
+    process.stdout.write("\nFilling missing project settings...\n");
+  }
+  for (const projectKey of targets) {
+    ctx.currentProjectKey = projectKey;
+    if (targets.length > 1) {
+      process.stdout.write(`\nProject: ${projectKey}\n`);
+    }
+    await runWizard(ctx, projectSteps);
+  }
+
   await runConfirmAndWrite(ctx);
 
   // confirm-and-write stores startBot = true when user chooses to start
