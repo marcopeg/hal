@@ -55,7 +55,7 @@ function createPrettyLogStream(
           const suffix = rest.length > 0 ? ` ${rest.join(" ")}` : "";
           out.write(`${ts} ${levelName}  ${msg}${suffix}\n`);
         } catch {
-          out.write(line + "\n");
+          out.write(`${line}\n`);
         }
       }
       cb();

@@ -87,7 +87,7 @@ function promptYesNo(promptText: string): Promise<boolean> {
 }
 
 /** Returns first available editor command, or null. Tries: code, cursor, then system default. */
-function findAvailableEditor(): string | null {
+function _findAvailableEditor(): string | null {
   const toTry = ["code", "cursor"];
   for (const cmd of toTry) {
     try {
@@ -101,7 +101,7 @@ function findAvailableEditor(): string | null {
   return "xdg-open";
 }
 
-function openFileInEditor(filePath: string, editor: string): void {
+function _openFileInEditor(filePath: string, editor: string): void {
   const args = editor === "open -e" ? ["-e", filePath] : [filePath];
   const cmd = editor === "open -e" ? "open" : editor;
   spawn(cmd, args, { stdio: "inherit", detached: true }).unref();

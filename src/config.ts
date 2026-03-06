@@ -129,7 +129,7 @@ const CommandsConfigSchema = z
   })
   .optional();
 
-const ProviderModelSchema = z.object({
+const _ProviderModelSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   default: z.boolean().optional(),
