@@ -41,7 +41,7 @@
   "description": "Telegram bot for AI coding agents. Multi-project and multi-engine: run Claude Code, Copilot, Codex, or OpenCode per project, each with its own bot.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/marcopeg/hal.git"
+    "url": "git+https://github.com/marcopeg/hal.git"
   },
   "dependencies": {
     "chokidar": "^5.0.0",
