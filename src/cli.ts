@@ -464,6 +464,12 @@ async function runStart(configDir: string): Promise<void> {
     printConfigError(err);
   }
 
+  // Single source of truth for current bot handles. Reload and shutdown use this.
+  // Startup: config or bot failure still exits the process (no resilient behaviour).
+  // Reload: on failure we set botHandles to [] (degraded), keep watcher running;
+  // next config file change triggers another reload; fix and save → auto-recover.
+  const state: { botHandles: RunResult["botHandles"] } = { botHandles: [] };
+
   let runResult: RunResult;
   try {
     runResult = await runBotsForConfig(configDir, loaded, startupLogger);
@@ -474,6 +480,7 @@ async function runStart(configDir: string): Promise<void> {
     );
     process.exit(1);
   }
+  state.botHandles = runResult.botHandles;
 
   let reloading = false;
   const watcherExtraPaths =
@@ -492,20 +499,38 @@ async function runStart(configDir: string): Promise<void> {
       if (reloading) return;
       reloading = true;
       try {
-        startupLogger.info("Config change detected");
-        await Promise.all(
-          runResult.botHandles.map((h) => h.stop().catch(() => {})),
+        printStartupBanner();
+        await new Promise((resolve) =>
+          setTimeout(resolve, STARTUP_BANNER_DELAY_MS),
         );
-        startupLogger.info("All bots stopped");
+        startupLogger.info("Config change detected");
+        const hadBots = state.botHandles.length > 0;
+        await Promise.all(
+          state.botHandles.map((h) => h.stop().catch(() => {})),
+        );
+        state.botHandles = [];
+        if (hadBots) startupLogger.info("All bots stopped");
+
+        const wasDegraded = !hadBots;
         try {
-          const result = tryLoadMultiConfig(configDir);
-          runResult = await runBotsForConfig(configDir, result, startupLogger);
-        } catch (err) {
-          startupLogger.error(
-            { error: err instanceof Error ? err.message : String(err) },
-            "Reload failed",
+          const reloaded = tryLoadMultiConfig(configDir);
+          const nextResult = await runBotsForConfig(
+            configDir,
+            reloaded,
+            startupLogger,
           );
-          process.exit(1);
+          state.botHandles = nextResult.botHandles;
+          if (wasDegraded) {
+            startupLogger.info("Exiting degraded state; all bots running");
+          }
+          // runBotsForConfig already logs "All bots running" on success
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          startupLogger.error(
+            { error: message, err: err instanceof Error ? err : undefined },
+            "Reload failed; in degraded state, waiting for corrected config",
+          );
+          state.botHandles = [];
         }
       } finally {
         reloading = false;
@@ -517,10 +542,8 @@ async function runStart(configDir: string): Promise<void> {
   async function shutdown(signal: string): Promise<void> {
     startupLogger.info({ signal }, "Received shutdown signal");
     await configWatcher.stop();
-    await Promise.all(
-      runResult.botHandles.map((h) => h.stop().catch(() => {})),
-    );
-    startupLogger.info("All bots stopped");
+    await Promise.all(state.botHandles.map((h) => h.stop().catch(() => {})));
+    if (state.botHandles.length > 0) startupLogger.info("All bots stopped");
     process.exit(0);
   }
 

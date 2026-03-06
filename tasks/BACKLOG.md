@@ -14,7 +14,6 @@ The commands in the menu should be sorted:
 - [045 — Interactive setup wizard](./ready/045.setup-wizard.md) | [plan](./ready/045.setup-wizard.plan.md)
 - [046 — Codex log streaming](./ready/046.codex-log-streaming.md) | [plan](./ready/046.codex-log-streaming.plan.md)
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
-- [053 — Resilient config hot-reload](./ready/053.resilient-config-hot-reload.md) | [plan](./ready/053.resilient-config-hot-reload.plan.md)
 - [054 — Changelog generation from conventional commits](./ready/054.changelog.md) | [plan](./ready/054.changelog.plan.md)
 
 ## Drafts
@@ -69,3 +68,4 @@ The commands in the menu should be sorted:
 - [040 — Opt-in session configuration](./completed/040.opt-in-session-configuration.md) | [plan](./completed/040.opt-in-session-configuration.plan.md)
 - [041 — Custom env file](./completed/041.custom-env-file.md) | [plan](./completed/041.custom-env-file.plan.md)
 - [052 — Remove doc link placeholders from config init template](./completed/052.remove-doc-link-placeholders-from-config-init-template.md) | [plan](./completed/052.remove-doc-link-placeholders-from-config-init-template.plan.md)
+- [053 — Resilient config hot-reload](./completed/053.resilient-config-hot-reload.md) | [plan](./completed/053.resilient-config-hot-reload.plan.md)
