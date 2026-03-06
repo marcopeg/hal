@@ -12,11 +12,35 @@ export const modelStep: WizardStep = {
   label: "Default model",
 
   isConfigured(ctx: WizardContext): boolean {
+    const engine = (ctx.results.engine ??
+      ctx.existingConfig?.globals?.engine?.name) as EngineName | undefined;
+
+    // If the engine doesn't require / doesn't support an explicit model in the wizard,
+    // treat this step as configured (unless user explicitly provided --model).
+    if (
+      (engine === "codex" || engine === "copilot") &&
+      !(
+        typeof ctx.prefill.model === "string" && ctx.prefill.model.trim() !== ""
+      )
+    ) {
+      return true;
+    }
+
     const globalModel = ctx.existingConfig?.globals?.engine?.model;
     return typeof globalModel === "string" && globalModel.trim() !== "";
   },
 
   shouldSkip(ctx: WizardContext): boolean {
+    const engine = (ctx.results.engine ??
+      ctx.existingConfig?.globals?.engine?.name) as EngineName | undefined;
+
+    // Codex/Copilot: skip model question unless explicitly prefilled.
+    if (engine === "codex" || engine === "copilot") {
+      return !(
+        typeof ctx.prefill.model === "string" && ctx.prefill.model.trim() !== ""
+      );
+    }
+
     return (
       typeof ctx.prefill.model === "string" && ctx.prefill.model.trim() !== ""
     );
@@ -29,6 +53,16 @@ export const modelStep: WizardStep = {
     if (!engine) {
       // Engine not chosen (or configured) yet; leave model unset.
       ctx.results.model = undefined;
+      return;
+    }
+
+    // Codex/Copilot: no meaningful model choice in the wizard unless explicitly provided.
+    if (engine === "codex" || engine === "copilot") {
+      if (ctx.prefill.model && ctx.prefill.model.trim() !== "") {
+        ctx.results.model = ctx.prefill.model.trim();
+      } else {
+        ctx.results.model = undefined;
+      }
       return;
     }
 
