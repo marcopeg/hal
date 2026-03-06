@@ -151,7 +151,7 @@ Default settings applied to all projects. Any setting defined in a project overr
 | `globals.engine.name` | **Required** (unless every project sets its own). Engine: `claude`, `copilot`, `codex`, `opencode`, `cursor`, `antigravity` | — |
 | `globals.engine.command` | Override the CLI command path | _(engine name)_ |
 | `globals.engine.model` | Override the AI model (see [Engines](../engines/README.md#model-defaults)) | _(per engine)_ |
-| `globals.engine.session` | Use persistent sessions (`--resume` / `--continue`) | `true` |
+| `globals.engine.session` | Session mode: `false` (stateless), `true` (adapter default, omit = same), `"shared"`, or `"user"`. See [Session configuration](session/README.md). **`"user"` with OpenCode/Copilot fails at boot.** | `true` |
 | `globals.engine.sessionMsg` | Message sent when renewing session (e.g. `/clean`) | `"hi!"` |
 | `globals.engine.codex.*` | Codex permission flags | See [Codex](../engines/codex/README.md) |
 | `globals.engine.antigravity.*` | Antigravity flags | See [Antigravity](../engines/antigravity/README.md) |
@@ -165,6 +165,10 @@ Default settings applied to all projects. Any setting defined in a project overr
 | `globals.commands` | Toggle and configure built-in commands | See [Commands](commands/README.md) |
 
 Per-engine options (Codex, Antigravity) are documented in [Engines](../engines/README.md).
+
+### Session configuration
+
+`engine.session` is a single value: `false` (stateless), `true` (adapter default), `"shared"`, or `"user"`. Full reference, per-engine behaviour, and boot-error rules: [Session configuration](session/README.md).
 
 ## providers
 
@@ -217,7 +221,7 @@ This validation runs at both initial boot and after config hot-reload. A reload 
 | `engine.name` | No | Override the engine for this project (required if globals does not set one) |
 | `engine.command` | No | Override the CLI command path |
 | `engine.model` | No | Override the AI model (see [Engines](../engines/README.md#model-defaults)) |
-| `engine.session` | No | Use persistent sessions for this project |
+| `engine.session` | No | Session mode for this project: `false` \| `true` \| `"shared"` \| `"user"` (see [Session configuration](session/README.md)) |
 | `engine.sessionMsg` | No | Message used when renewing session |
 | `engine.codex.*` | No | Codex permission flags (see [Codex](../engines/codex/README.md)) |
 | `engine.antigravity.*` | No | Antigravity flags (see [Antigravity](../engines/antigravity/README.md)) |
@@ -291,6 +295,7 @@ With a config at `~/workspace/hal.config.yaml` (or `.json` / `.jsonc`):
 
 | Topic | Description |
 |-------|-------------|
+| [Session](session/README.md) | Session mode: `false` \| `true` \| `"shared"` \| `"user"`; per-engine support and boot errors |
 | [Context](context/README.md) | Context injection — implicit keys, custom context, variable patterns, hooks |
 | [Commands](commands/README.md) | Built-in command config — `/start`, `/help`, `/reset`, `/clean`, `/model`, `/engine`, `/git` |
 | [Logging](logging/README.md) | Log level, flow, persist, log file paths |

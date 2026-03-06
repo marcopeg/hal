@@ -181,9 +181,14 @@ export function createTextHandler(ctx: ProjectContext) {
         return;
       }
 
-      const sessionId = config.engineSession
-        ? await getSessionId(userDir)
-        : null;
+      const sessionEnabled = config.engineSession !== false;
+      const usePerUserSession =
+        sessionEnabled &&
+        !(config.engine === "claude" && config.engineSession === "shared") &&
+        (config.engineSession === "user" ||
+          config.engine === "claude" ||
+          config.engine === "antigravity");
+      const sessionId = usePerUserSession ? await getSessionId(userDir) : null;
       logger.debug({ sessionId: sessionId || "new" }, "Session");
 
       const statusMsg = await gramCtx.reply("_Processing..._", {
@@ -239,7 +244,7 @@ export function createTextHandler(ctx: ProjectContext) {
         // Ignore delete errors
       }
 
-      if (config.engineSession && result.sessionId) {
+      if (config.engineSession !== false && result.sessionId) {
         await saveSessionId(userDir, result.sessionId);
         logger.debug({ sessionId: result.sessionId }, "Session saved");
       }

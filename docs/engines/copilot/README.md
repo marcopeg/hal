@@ -26,9 +26,9 @@ Requires a Copilot Pro, Pro+, Business, or Enterprise plan. You can also authent
 
 **HAL usage:**
 
-- **Config:** `engine.name: "copilot"`. Optional: `engine.command`, `engine.model`, `engine.session`, `engine.sessionMsg`.
+- **Config:** `engine.name: "copilot"`. Optional: `engine.command`, `engine.model`, `engine.session` (`false` \| `true` \| `"shared"` only; see [Session configuration](../../config/session/README.md)), `engine.sessionMsg`.
 - **Invocation:** `copilot -p <prompt> --allow-all [--model <m>] [--continue]`
-- **Sessions:** When `engine.session` is `true`, the CLI is invoked with `--continue` (most recent session). HAL does not pass a session ID; the session is **shared by all users** of the project. `/clean` sends `engine.sessionMsg` to the engine without `--continue` to start a fresh session; the engine’s reply is sent to the user.
+- **Sessions:** `session: true` or `"shared"` = shared (`--continue`). **`session: "user"` is not supported:** HAL fails at **boot** with a configuration error. Use `true` or `"shared"`. `/clean` sends `engine.sessionMsg` without `--continue` to start a fresh session; the engine’s reply is sent to the user.
 - **Project file:** `AGENTS.md`.
 
 ## Available models

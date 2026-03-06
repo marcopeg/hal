@@ -56,9 +56,14 @@ export function createPhotoHandler(ctx: ProjectContext) {
       logger.debug({ path: imagePath }, "Image saved");
 
       const prompt = `Please look at the image file "./uploads/${imageName}" and ${caption}`;
-      const sessionId = config.engineSession
-        ? await getSessionId(userDir)
-        : null;
+      const sessionEnabled = config.engineSession !== false;
+      const usePerUserSession =
+        sessionEnabled &&
+        !(config.engine === "claude" && config.engineSession === "shared") &&
+        (config.engineSession === "user" ||
+          config.engine === "claude" ||
+          config.engine === "antigravity");
+      const sessionId = usePerUserSession ? await getSessionId(userDir) : null;
 
       const statusMsg = await gramCtx.reply("_Processing..._", {
         parse_mode: "Markdown",
@@ -100,7 +105,7 @@ export function createPhotoHandler(ctx: ProjectContext) {
 
       const parsed = ctx.engine.parse(result);
 
-      if (config.engineSession && parsed.sessionId) {
+      if (config.engineSession !== false && parsed.sessionId) {
         await saveSessionId(userDir, parsed.sessionId);
       }
 

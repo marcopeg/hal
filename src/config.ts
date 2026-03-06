@@ -52,12 +52,19 @@ const AntigravityEngineConfigSchema = z
   .partial()
   .optional();
 
+/** Resolved session mode: false = stateless, true = adapter default, "shared" = force shared, "user" = force per-user (rejected at boot for OpenCode/Copilot). */
+export type SessionMode = false | true | "shared" | "user";
+
+const SessionSchema = z
+  .union([z.boolean(), z.enum(["shared", "user"])])
+  .optional();
+
 const EngineConfigSchema = z
   .object({
     name: EngineNameSchema,
     command: z.string(),
     model: z.string(),
-    session: z.boolean(),
+    session: SessionSchema,
     sessionMsg: z.string(),
     codex: CodexEngineConfigSchema,
     antigravity: AntigravityEngineConfigSchema,
@@ -305,7 +312,7 @@ export interface ResolvedProjectConfig {
   engine: EngineName;
   engineCommand: string | undefined;
   engineModel: string | undefined;
-  engineSession: boolean;
+  engineSession: SessionMode;
   engineSessionMsg: string;
   codex: {
     networkAccess: boolean;
@@ -637,7 +644,19 @@ export function resolveProjectConfig(
     engine: engineName,
     engineCommand: project.engine?.command ?? globals.engine?.command,
     engineModel: project.engine?.model ?? globals.engine?.model,
-    engineSession: project.engine?.session ?? globals.engine?.session ?? true,
+    engineSession: (() => {
+      const raw = project.engine?.session ?? globals.engine?.session ?? true;
+      const mode: SessionMode = raw === undefined ? true : (raw as SessionMode);
+      if (
+        mode === "user" &&
+        (engineName === "opencode" || engineName === "copilot")
+      ) {
+        throw new ConfigLoadError(
+          `Configuration error: engine.session "user" is not supported by the ${engineName} adapter. Use true or "shared". See docs/config/session/README.md.`,
+        );
+      }
+      return mode;
+    })(),
     engineSessionMsg:
       project.engine?.sessionMsg ?? globals.engine?.sessionMsg ?? "hi!",
     codex: {

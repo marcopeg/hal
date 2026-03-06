@@ -23,9 +23,9 @@ Requires a Cursor subscription. For headless mode, set `CURSOR_API_KEY` as an en
 
 **HAL usage:**
 
-- **Config:** `engine.name: "cursor"`. Optional: `engine.command`, `engine.model` (default: `auto`), `engine.session`, `engine.sessionMsg`.
-- **Invocation:** `agent --print --workspace <cwd> --trust --force --model <m> [--continue] <prompt>`
-- **Sessions:** When `engine.session` is `true`, the CLI is invoked with `--continue` (most recent session). HAL does not pass a session ID; the session is **shared by all users** of the project. `/clean` sends `engine.sessionMsg` without `--continue` to start a fresh session; the engine’s reply is sent to the user.
+- **Config:** `engine.name: "cursor"`. Optional: `engine.command`, `engine.model` (default: `auto`), `engine.session` (`false` \| `true` \| `"shared"` \| `"user"`; see [Session configuration](../../config/session/README.md)), `engine.sessionMsg`.
+- **Invocation:** `agent --print --workspace <cwd> --trust --force --model <m> [--continue] [--resume <session_id>] <prompt>`
+- **Sessions:** `session: true` or `"shared"` = shared (`--continue`). `session: "user"` = **experimental** per-user: HAL parses `session_id` from Cursor CLI output and uses `--resume <session_id>` next time (flag stability not guaranteed by Cursor docs). `session: false` = stateless. `/clean` sends `engine.sessionMsg` without `--continue` to start fresh.
 - **Project file:** `AGENTS.md`.
 
 ## Available models

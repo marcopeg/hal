@@ -1,6 +1,7 @@
 import { execSync, spawn } from "node:child_process";
 import { join } from "node:path";
 import type { ProjectContext } from "../../types.js";
+import { findLatestCodexSessionUuidForCwd } from "../codex-sessions.js";
 import { buildContextualPrompt } from "../prompt.js";
 import type {
   EngineAdapter,
@@ -8,6 +9,8 @@ import type {
   EngineResult,
   ParsedResponse,
 } from "../types.js";
+
+const PLACEHOLDER_SESSION_ID = "active";
 
 const DEFAULT_COMMAND = "codex";
 
@@ -48,10 +51,19 @@ export function createCodexAdapter(
       const cwd = config.cwd;
 
       const hasActiveSession = sessionId != null;
-      const continueSessionRequested =
-        config.engineSession && hasActiveSession && continueSession !== false;
+      const sessionEnabled = config.engineSession !== false;
+      const useResumeByUuid =
+        sessionEnabled &&
+        config.engineSession === "user" &&
+        typeof sessionId === "string" &&
+        sessionId !== PLACEHOLDER_SESSION_ID;
+      const useResumeLast =
+        sessionEnabled &&
+        hasActiveSession &&
+        continueSession !== false &&
+        !useResumeByUuid;
 
-      // Non-interactive: `codex exec` for fresh; `codex exec resume --last` for continue.
+      // Non-interactive: `codex exec` for fresh; `codex exec resume --last` or `resume <UUID>` for continue.
       // Permission flags must come right after "exec" (before "resume"/"-C") or Codex rejects them.
       const args: string[] = ["exec"];
 
@@ -85,7 +97,9 @@ export function createCodexAdapter(
       if (model) {
         args.push("-m", model);
       }
-      if (continueSessionRequested) {
+      if (useResumeByUuid && sessionId) {
+        args.push("resume", sessionId);
+      } else if (useResumeLast) {
         args.push("resume", "--last");
       } else {
         args.push("-C", cwd);
@@ -97,7 +111,7 @@ export function createCodexAdapter(
           command: cmd,
           args: args.slice(0, -1),
           cwd,
-          continue: continueSessionRequested,
+          resume: useResumeByUuid ? "uuid" : useResumeLast ? "last" : "none",
           tier,
         },
         "Executing Codex CLI",
@@ -128,10 +142,19 @@ export function createCodexAdapter(
         proc.on("close", (code) => {
           logger.debug({ code }, "Codex process closed");
           if (code === 0) {
+            let resultSessionId: string | undefined;
+            if (config.engineSession !== false) {
+              if (config.engineSession === "user") {
+                const discovered = findLatestCodexSessionUuidForCwd(cwd);
+                resultSessionId = discovered ?? undefined;
+              } else {
+                resultSessionId = "active";
+              }
+            }
             resolve({
               success: true,
               output: stdout.trim() || "No response received",
-              sessionId: config.engineSession ? "active" : undefined,
+              sessionId: resultSessionId,
             });
           } else {
             resolve({

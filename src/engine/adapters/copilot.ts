@@ -55,7 +55,7 @@ export function createCopilotAdapter(
 
       const hasActiveSession = sessionId != null;
       if (
-        config.engineSession &&
+        config.engineSession !== false &&
         hasActiveSession &&
         continueSession !== false
       ) {
@@ -105,7 +105,7 @@ export function createCopilotAdapter(
             resolve({
               success: true,
               output: stdout.trim() || "No response received",
-              sessionId: config.engineSession ? "active" : undefined,
+              sessionId: config.engineSession !== false ? "active" : undefined,
             });
           } else {
             const errorMsg =

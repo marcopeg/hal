@@ -12,6 +12,7 @@ projects:
       botToken: ${OBSIDIAN_TELEGRAM_TOKEN}
     engine:
       name: codex
+      session: user
   frontend:
     cwd: ./frontend
     engine:

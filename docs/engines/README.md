@@ -25,7 +25,7 @@ HAL supports multiple AI coding CLIs. Each engine has its own install steps, con
 | **YOLO mode** | — | — | ✓ | — | — | ✓ |
 | **Streaming progress** | ✓ | ✗ | ✗ | ✗ | ✗ | ✓ |
 
-**Per-user session:** When HAL runs with multiple Telegram users on the same project, only **Claude** and **Antigravity** scope the conversation to each user: HAL passes a stored session ID to the CLI (`--resume <id>`) and persists the ID returned by the engine. **Copilot**, **Codex**, **OpenCode**, and **Cursor** use a single “continue last session” (e.g. `--continue`, `resume --last`, `-c`) with no session ID; the “last” session is shared by all users of that project. The Copilot, Codex, and Cursor CLIs can support resume-by-ID in other modes, but HAL’s adapters do not use it today.
+**Session configuration:** `engine.session` is one of: `false` (stateless), `true` (adapter default), `"shared"`, or `"user"`. See [Session configuration](../config/session/README.md). **Claude** default is per-user; `"shared"` forces `--continue`. **Antigravity** is per-user. **Codex** and **Cursor** default to shared; `"user"` enables experimental per-user. **OpenCode** and **Copilot** support only `true`/`"shared"`; `"user"` causes a **boot error**.
 
 **Network / full disk / YOLO:** Only **Codex** exposes configurable permission flags in HAL (`engine.codex.networkAccess`, `fullDiskAccess`, `dangerouslyEnableYolo`). **Antigravity** supports `engine.antigravity.approvalMode` (e.g. `yolo`) and `sandbox`; default is `yolo` for headless use. Other engines either allow tool use by default or do not expose these knobs in HAL.
 
@@ -77,7 +77,7 @@ The `engine` object supports the fields below. Engine-specific options (e.g. Cod
 | `name` | **Required.** Engine: `claude`, `copilot`, `codex`, `opencode`, `cursor`, `antigravity`. Must be set in globals or per-project; no default. | — |
 | `command` | Custom path to the CLI binary | _(engine name)_ |
 | `model` | AI model override (omit for engine or HAL default; see [Model defaults](#model-defaults)) | _(per engine)_ |
-| `session` | Use persistent sessions (`--resume` / `--continue`) | `true` |
+| `session` | Session mode: `false` \| `true` \| `"shared"` \| `"user"`. See [Session configuration](../config/session/README.md). `"user"` with OpenCode/Copilot fails at boot. | `true` |
 | `sessionMsg` | Message sent when renewing session (e.g. `/clean`) | `"hi!"` |
 
 **Per-engine setup and options:** [Claude](claude/README.md) · [Copilot](copilot/README.md) · [Codex](codex/README.md) · [OpenCode](opencode/README.md) · [Cursor](cursor/README.md) · [Antigravity](antigravity/README.md).

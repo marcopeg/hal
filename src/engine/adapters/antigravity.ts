@@ -65,7 +65,11 @@ export function createAntigravityAdapter(
         args.push("--model", model);
       }
 
-      if (sessionId && config.engineSession && continueSession !== false) {
+      if (
+        sessionId &&
+        config.engineSession !== false &&
+        continueSession !== false
+      ) {
         args.push("--resume", sessionId);
       }
 
@@ -193,7 +197,10 @@ export function createAntigravityAdapter(
                     text: lastAssistantText,
                     stats: event.stats,
                   }),
-                  sessionId: currentSessionId,
+                  sessionId:
+                    config.engineSession !== false
+                      ? currentSessionId
+                      : undefined,
                   error: event.error?.message,
                 };
               }
@@ -230,7 +237,8 @@ export function createAntigravityAdapter(
             resolve({
               success: true,
               output: lastAssistantText || "No response received",
-              sessionId: currentSessionId,
+              sessionId:
+                config.engineSession !== false ? currentSessionId : undefined,
             });
           } else {
             const errorMsg =

@@ -47,7 +47,9 @@ export function createOpencodeAdapter(
 
       const hasActiveSession = sessionId != null;
       const continueSessionRequested =
-        config.engineSession && hasActiveSession && continueSession !== false;
+        config.engineSession !== false &&
+        hasActiveSession &&
+        continueSession !== false;
 
       const args: string[] = ["run"];
       if (model) {
@@ -107,7 +109,7 @@ export function createOpencodeAdapter(
             resolve({
               success: true,
               output: stdout.trim() || "No response received",
-              sessionId: config.engineSession ? "active" : undefined,
+              sessionId: config.engineSession !== false ? "active" : undefined,
             });
           } else {
             resolve({

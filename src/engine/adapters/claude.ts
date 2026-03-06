@@ -54,9 +54,13 @@ export function createClaudeAdapter(
         args.push("--model", model);
       }
 
-      // Resume previous session if we have a session ID
-      if (sessionId) {
-        args.push("--resume", sessionId);
+      // Session: false = stateless; true | "user" = per-user (--resume); "shared" = --continue
+      if (config.engineSession !== false) {
+        if (config.engineSession === "shared") {
+          args.push("--continue");
+        } else if (sessionId) {
+          args.push("--resume", sessionId);
+        }
       }
 
       const cwd = config.cwd;
@@ -151,17 +155,21 @@ export function createClaudeAdapter(
                 }
               }
 
-              // Capture the final result
+              // Capture the final result (omit sessionId when shared so handlers don't persist)
               if (event.type === "result") {
                 logger.debug({ event }, "Claude result event");
                 const errorMessage = event.is_error
                   ? event.result ||
                     (event.errors?.length ? event.errors.join("; ") : undefined)
                   : undefined;
+                const rawSessionId = event.session_id || currentSessionId;
+                const omitSessionId =
+                  config.engineSession === false ||
+                  config.engineSession === "shared";
                 lastResult = {
                   success: !event.is_error,
                   output: event.result || "",
-                  sessionId: event.session_id || currentSessionId,
+                  sessionId: omitSessionId ? undefined : rawSessionId,
                   error: errorMessage,
                 };
               }
@@ -195,10 +203,13 @@ export function createClaudeAdapter(
             }
             resolve(lastResult);
           } else if (code === 0) {
+            const omitSessionId =
+              config.engineSession === false ||
+              config.engineSession === "shared";
             resolve({
               success: true,
               output: lastAssistantText || "No response received",
-              sessionId: currentSessionId,
+              sessionId: omitSessionId ? undefined : currentSessionId,
             });
           } else {
             const errorMsg =

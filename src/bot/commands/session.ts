@@ -37,12 +37,16 @@ export async function resetSession(
   await clearSessionData(userDir);
   logger.info({ userId }, "Session data cleared");
 
-  if (
-    config.engine === "copilot" ||
-    config.engine === "codex" ||
-    config.engine === "opencode" ||
-    config.engine === "cursor"
-  ) {
+  const sessionEnabled = config.engineSession !== false;
+  const needsActiveReset =
+    sessionEnabled &&
+    (config.engine === "copilot" ||
+      config.engine === "codex" ||
+      config.engine === "opencode" ||
+      config.engine === "cursor" ||
+      (config.engine === "claude" && config.engineSession === "shared"));
+
+  if (needsActiveReset) {
     const statusMsg = await gramCtx.reply("_Starting new session..._", {
       parse_mode: "Markdown",
     });

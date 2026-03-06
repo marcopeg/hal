@@ -10,6 +10,7 @@ import type {
 } from "../types.js";
 
 const DEFAULT_COMMAND = "agent";
+const PLACEHOLDER_SESSION_ID = "active";
 
 export function createCursorAdapter(
   command?: string,
@@ -52,20 +53,34 @@ export function createCursorAdapter(
       args.push("--model", model || "auto");
 
       const hasActiveSession = sessionId != null;
-      if (
-        config.engineSession &&
+      const sessionEnabled = config.engineSession !== false;
+      const useResumeByUuid =
+        sessionEnabled &&
+        config.engineSession === "user" &&
+        typeof sessionId === "string" &&
+        sessionId !== PLACEHOLDER_SESSION_ID;
+      const useContinue =
+        sessionEnabled &&
+        !useResumeByUuid &&
         hasActiveSession &&
-        continueSession !== false
-      ) {
+        continueSession !== false;
+
+      if (useResumeByUuid && sessionId) {
+        args.push("--resume", sessionId);
+      } else if (useContinue) {
         args.push("--continue");
       }
+      // When enabled=false: no --continue or --resume
 
       args.push(fullPrompt);
 
       const cwd = config.cwd;
-      const willContinue = args.includes("--continue");
       logger.info(
-        { command: cmd, cwd, continue: willContinue },
+        {
+          command: cmd,
+          cwd,
+          resume: useResumeByUuid ? "uuid" : useContinue ? "continue" : "none",
+        },
         "Executing Cursor Agent CLI",
       );
 
@@ -78,11 +93,26 @@ export function createCursorAdapter(
 
         let stdout = "";
         let stderrOutput = "";
+        let lastSessionId: string | undefined;
 
         proc.stdout.on("data", (data: Buffer) => {
           const chunk = data.toString();
           stdout += chunk;
-
+          if (
+            config.engineSession !== false &&
+            config.engineSession === "user"
+          ) {
+            const lines = chunk.split("\n").filter((l) => l.trim());
+            for (const line of lines) {
+              try {
+                const event = JSON.parse(line) as Record<string, unknown>;
+                const sid = event.session_id ?? event.sessionId;
+                if (typeof sid === "string") lastSessionId = sid;
+              } catch {
+                // Not JSON, skip
+              }
+            }
+          }
           if (onProgress && chunk.trim()) {
             onProgress("Cursor is responding...");
           }
@@ -100,10 +130,18 @@ export function createCursorAdapter(
           logger.info({ code }, "Cursor process closed");
 
           if (code === 0) {
+            let resultSessionId: string | undefined;
+            if (config.engineSession !== false) {
+              if (config.engineSession === "user" && lastSessionId) {
+                resultSessionId = lastSessionId;
+              } else if (config.engineSession !== "user") {
+                resultSessionId = PLACEHOLDER_SESSION_ID;
+              }
+            }
             resolve({
               success: true,
               output: stdout.trim() || "No response received",
-              sessionId: config.engineSession ? "active" : undefined,
+              sessionId: resultSessionId,
             });
           } else {
             const errorMsg =

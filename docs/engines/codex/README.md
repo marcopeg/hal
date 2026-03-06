@@ -25,9 +25,9 @@ Requires a ChatGPT Plus, Pro, Business, Edu, or Enterprise plan — or an OpenAI
 
 **HAL usage:**
 
-- **Config:** `engine.name: "codex"`. Optional: `engine.command`, `engine.model` (e.g. `gpt-5.1-codex-mini`), `engine.session`, `engine.sessionMsg`, and the permission flags under `engine.codex` (see table below).
-- **Invocation:** `codex exec -p <prompt> --skip-git-repo-check [permission flags] [-m <model>]` or `codex exec resume --last` for session continuation.
-- **Sessions:** When `engine.session` is `true`, the CLI is invoked with `codex exec resume --last` (most recent session). HAL does not pass a session ID; the session is **shared by all users** of the project. `/clean` sends `engine.sessionMsg` without resuming, so the engine starts a new session; the engine’s reply is sent to the user.
+- **Config:** `engine.name: "codex"`. Optional: `engine.command`, `engine.model` (e.g. `gpt-5.1-codex-mini`), `engine.session` (`false` \| `true` \| `"shared"` \| `"user"`; see [Session configuration](../../config/session/README.md)), `engine.sessionMsg`, and the permission flags under `engine.codex` (see table below).
+- **Invocation:** `codex exec -C <cwd> ...` for fresh, or `codex exec resume --last` / `codex exec resume <UUID>` for session continuation.
+- **Sessions:** `session: true` or `"shared"` = shared (`resume --last`). `session: "user"` = **experimental** per-user: HAL scans `~/.codex/sessions/` after each run, extracts the session UUID for the project `cwd`, and uses `codex exec resume <UUID>` next time (relies on Codex’s internal layout). `session: false` = stateless. `/clean` sends `engine.sessionMsg` without resuming.
 - **Permission flags:** HAL always passes `--skip-git-repo-check` so Codex runs without the trusted-directory check. You can escalate via `engine.codex`:
 
 | Field | Description | Default |

@@ -142,9 +142,14 @@ export function createVoiceHandler(ctx: ProjectContext) {
         // Ignore cleanup errors
       }
 
-      const sessionId = config.engineSession
-        ? await getSessionId(userDir)
-        : null;
+      const sessionEnabled = config.engineSession !== false;
+      const usePerUserSession =
+        sessionEnabled &&
+        !(config.engine === "claude" && config.engineSession === "shared") &&
+        (config.engineSession === "user" ||
+          config.engine === "claude" ||
+          config.engine === "antigravity");
+      const sessionId = usePerUserSession ? await getSessionId(userDir) : null;
       let lastProgressUpdate = Date.now();
       let lastProgressText = "Processing...";
 
@@ -192,7 +197,7 @@ export function createVoiceHandler(ctx: ProjectContext) {
 
       const parsed = ctx.engine.parse(result);
 
-      if (config.engineSession && parsed.sessionId) {
+      if (config.engineSession !== false && parsed.sessionId) {
         await saveSessionId(userDir, parsed.sessionId);
       }
 
