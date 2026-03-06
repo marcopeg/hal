@@ -1,6 +1,6 @@
 # Configuration
 
-HAL is configured via a config file in the directory where you run the CLI. Three formats are supported — only one per file is allowed.
+HAL is configured via a config file in the directory where you run the CLI. The recommended way to create or complete your config is the **[Setup wizard](../setup-wizard/README.md)** — run `npx @marcopeg/hal wiz`, or run `npx @marcopeg/hal` and accept the prompt when HAL detects the config is missing/incomplete. Three formats are supported — only one per file is allowed.
 
 | Format | Extension | Features |
 |--------|-----------|----------|

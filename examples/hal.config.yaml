@@ -13,9 +13,9 @@ projects:
     cwd: ./obsidian
     telegram:
       botToken: ${OBSIDIAN_TELEGRAM_TOKEN}
-    engine:
-      name: codex
-      session: user
+    # engine:
+    #   name: codex
+    #   session: user
   timetracker:
     active: false
     cwd: ./timetracker

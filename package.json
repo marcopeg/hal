@@ -12,7 +12,8 @@
   ],
   "packageManager": "pnpm@10.13.1",
   "scripts": {
-    "start": "tsx watch src/cli.ts start --config-dir examples",
+    "start": "tsx src/cli.ts start --config-dir examples",
+    "dev": "tsx watch src/cli.ts start --config-dir examples",
     "start:test": "tsx src/cli.ts start --config-dir manual-tests",
     "dev:test": "tsx watch src/cli.ts start --config-dir manual-tests",
     "wiz:test": "tsx src/cli.ts wiz --config-dir manual-tests",

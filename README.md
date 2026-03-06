@@ -68,21 +68,25 @@ Read more in the [engine docs](docs/engines/README.md).
 
 ## Quick Start
 
+The easiest way to get going is the **interactive setup wizard**. It creates or completes your config and can start the bot when done.
+
 ```bash
-# Create a config file in the current directory (init may create JSON; YAML is recommended)
-npx @marcopeg/hal init
+# Run the wizard (recommended): it will ask for project dir, bot token, user ID, engine, etc.
+npx @marcopeg/hal wiz
 
-# Or in a specific folder (config and bots will use that directory)
-npx @marcopeg/hal init --cwd ./workspace
-
-# Optional: pick engine at init
-npx @marcopeg/hal init --engine copilot
-npx @marcopeg/hal init --cwd ./workspace --engine copilot
-
-# Edit your config (e.g. hal.config.yaml): add your bot token and project path, then start
+# Or just run HAL: if no config exists (or it’s incomplete), HAL will suggest running the wizard
 npx @marcopeg/hal
-npx @marcopeg/hal --cwd ./workspace
+npx @marcopeg/hal --config-dir ./workspace
 ```
+
+You can pre-fill some values so the wizard only asks for the rest (see [Setup wizard](docs/setup-wizard/README.md)):
+
+```bash
+npx @marcopeg/hal wiz --engine cursor
+npx @marcopeg/hal wiz --engine codex --model gpt-5.2-codex
+```
+
+**Legacy:** `npx @marcopeg/hal init` still creates a config from a template (non-interactive) but is deprecated in favour of `wiz`.
 
 ## Telegram
 
@@ -93,8 +97,9 @@ Before running HAL you need a Telegram bot token and your own Telegram user ID. 
 
 ## Configuration
 
-HAL is configured via a config file in the directory where you run the CLI. **YAML** is the recommended format for examples and commented configs; JSON and JSONC are also supported. See [Configuration](docs/config/README.md) and [Configuration alternatives](docs/config/README.md#configuration-alternatives) for details. Full reference:
+HAL is configured via a config file in the directory where you run the CLI. Use the **[Setup wizard](docs/setup-wizard/README.md)** to create or complete your config interactively; you can run it directly with `wiz`, and HAL will suggest it if you run `start` with no or incomplete config. **YAML** is the recommended format; JSON and JSONC are also supported. See [Configuration](docs/config/README.md) and [Configuration alternatives](docs/config/README.md#configuration-alternatives) for details. Full reference:
 
+- **[Setup wizard](docs/setup-wizard/README.md)** — interactive config creation and completion, start-time suggestion, pre-fill flags
 - **[Configuration](docs/config/README.md)** — config files, [reference.yaml](docs/config/reference.yaml) (all keys), [examples/hal.config.yaml](examples/hal.config.yaml), env vars, `globals`, `projects` (map), dataDir, log files
 - **[Context](docs/config/context/README.md)** — context injection (implicit keys, custom context, hooks)
 - **[Commands](docs/config/commands/README.md)** — built-in command config (`/start`, `/help`, `/reset`, `/clean`, `/model`, `/engine`, `/git`)

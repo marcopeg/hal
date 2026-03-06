@@ -56,8 +56,11 @@ export async function startWizard(
   cwd: string,
   prefill: PrefillFlags,
   reset: boolean,
+  options?: { showBanner?: boolean },
 ): Promise<boolean> {
-  printWizardBanner();
+  if (options?.showBanner !== false) {
+    printWizardBanner();
+  }
 
   let existingConfig: PartialConfig | null = null;
   let existingConfigPath: string | null = null;

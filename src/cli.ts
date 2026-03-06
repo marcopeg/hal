@@ -514,7 +514,7 @@ async function runBotsForConfig(
 const STARTUP_BANNER_DELAY_MS = 500;
 
 const HAL_DOCS_URL = "https://github.com/marcopeg/hal";
-const HAL_QUICK_START = "npx @marcopeg/hal init";
+const HAL_QUICK_START = "npx @marcopeg/hal wiz";
 
 function printConfigError(err: unknown): never {
   const message = err instanceof Error ? err.message : String(err);
@@ -531,21 +531,36 @@ async function runStart(
   configDir: string,
   wizardPrefill: Record<string, unknown>,
 ): Promise<void> {
-  // Auto-trigger wizard when config is missing or incomplete (TTY only)
-  if (process.stdin.isTTY) {
+  // Always show the HAL startup banner first (even if we end up suggesting the wizard).
+  printStartupBanner();
+
+  // If config is missing or incomplete, offer to run the wizard (TTY only).
+  // We do NOT auto-run it: users may prefer to keep the current behavior and see the error.
+  {
     const { needsWizard } = await import("./wizard/analyzer.js");
     if (needsWizard(configDir)) {
-      const { startWizard } = await import("./wizard/index.js");
-      const shouldContinue = await startWizard(
-        configDir,
-        wizardPrefill as never,
-        false,
-      );
-      if (!shouldContinue) return;
+      if (process.stdin.isTTY) {
+        const yes = await promptYesNo(
+          "\nConfiguration looks incomplete.\nRun the interactive setup wizard now? (Y/n) ",
+        );
+        if (yes) {
+          const { startWizard } = await import("./wizard/index.js");
+          const shouldContinue = await startWizard(
+            configDir,
+            wizardPrefill as never,
+            false,
+            { showBanner: false },
+          );
+          if (!shouldContinue) return;
+        }
+      } else {
+        console.error(
+          '\nConfiguration looks incomplete. Run "npx @marcopeg/hal wiz" to set up interactively.\n',
+        );
+      }
     }
   }
 
-  printStartupBanner();
   await new Promise((resolve) => setTimeout(resolve, STARTUP_BANNER_DELAY_MS));
   const startupLogger = createStartupLogger();
 
@@ -668,6 +683,7 @@ async function main(): Promise<void> {
       configDir,
       { name, cwd, engine, model, apiKey, botKey, userId, session },
       reset ?? false,
+      { showBanner: true },
     );
     if (shouldStart) {
       await runStart(configDir, {

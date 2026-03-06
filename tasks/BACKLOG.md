@@ -9,8 +9,6 @@ The commands in the menu should be sorted:
 
 ## In Progress
 
-- [045 — Interactive setup wizard](./045.setup-wizard.md) | [plan](./045.setup-wizard.plan.md)
-
 ## Ready Tasks
 - [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
 - [046 — Codex log streaming](./ready/046.codex-log-streaming.md) | [plan](./ready/046.codex-log-streaming.plan.md)
@@ -70,3 +68,4 @@ The commands in the menu should be sorted:
 - [052 — Remove doc link placeholders from config init template](./completed/052.remove-doc-link-placeholders-from-config-init-template.md) | [plan](./completed/052.remove-doc-link-placeholders-from-config-init-template.plan.md)
 - [053 — Resilient config hot-reload](./completed/053.resilient-config-hot-reload.md) | [plan](./completed/053.resilient-config-hot-reload.plan.md)
 - [054 — Changelog generation from conventional commits](./completed/054.changelog.md) | [plan](./completed/054.changelog.plan.md)
+- [045 — Interactive setup wizard](./completed/045.setup-wizard.md) | [plan](./completed/045.setup-wizard.plan.md)

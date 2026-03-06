@@ -16,6 +16,15 @@ const VALID_ENGINES = [
   "antigravity",
 ] as const;
 
+function enabledEnginesFromProviders(providers: unknown): EngineName[] | null {
+  if (!providers || typeof providers !== "object") return null;
+  const keys = Object.keys(providers as Record<string, unknown>);
+  const enabled = keys.filter((k) =>
+    (VALID_ENGINES as readonly string[]).includes(k),
+  ) as EngineName[];
+  return enabled.length > 0 ? enabled : null;
+}
+
 export const engineStep: WizardStep = {
   id: "engine",
   label: "Engines and default",
@@ -23,7 +32,13 @@ export const engineStep: WizardStep = {
   isConfigured(ctx: WizardContext): boolean {
     const globalEngine = ctx.existingConfig?.globals?.engine?.name;
     const projects = ctx.existingConfig?.projects ?? {};
-    const projectEngine = Object.values(projects).some((p) => p.engine?.name);
+    const keys = Object.keys(projects);
+    const primaryKey =
+      (ctx.results as Record<string, unknown>).projectKey ??
+      (keys.length > 0 ? keys[0] : undefined);
+    const primaryProject =
+      typeof primaryKey === "string" ? projects[primaryKey] : undefined;
+    const projectEngine = primaryProject?.engine?.name;
     return !!(globalEngine || projectEngine);
   },
 
@@ -54,6 +69,64 @@ export const engineStep: WizardStep = {
             : getOpencodeModelsFromCli(ctx.cwd, cmd);
         if (typeof m === "string" && models.some((x) => x.name === m)) {
           ctx.results.model = m;
+        } else {
+          ctx.results.model = undefined;
+        }
+      } else {
+        ctx.results.model = undefined;
+      }
+      return;
+    }
+
+    // Gap-fill: if providers are already configured, do not re-ask which engines
+    // to enable — just pick the default engine from the enabled set.
+    const fromProviders = enabledEnginesFromProviders(
+      ctx.existingConfig?.providers,
+    );
+    if (fromProviders) {
+      ctx.results.enabledEngines = fromProviders;
+
+      let defaultEngine: EngineName;
+      if (fromProviders.length === 1) {
+        defaultEngine = fromProviders[0];
+      } else {
+        const picked = await select({
+          message: "Which engine should be used by default?",
+          options: fromProviders.map((e) => ({ value: e, label: e })),
+        });
+        guardCancel(picked);
+        defaultEngine = picked as EngineName;
+      }
+
+      ctx.results.engine = defaultEngine;
+
+      // Model selection only for self-discovery engines
+      if (defaultEngine === "cursor" || defaultEngine === "opencode") {
+        const s = spinner();
+        s.start("Fetching available models...");
+        const cmd = defaultEngineCommand(defaultEngine);
+        const models =
+          defaultEngine === "cursor"
+            ? getCursorModelsFromCli(ctx.cwd, cmd)
+            : getOpencodeModelsFromCli(ctx.cwd, cmd);
+        s.stop(models.length > 0 ? "Models loaded" : "No models discovered");
+
+        if (
+          ctx.prefill.model &&
+          models.some((m) => m.name === ctx.prefill.model)
+        ) {
+          ctx.results.model = ctx.prefill.model;
+          console.log(`  Model pre-filled: ${ctx.prefill.model}`);
+          return;
+        }
+
+        if (models.length > 0) {
+          const picked = await select({
+            message: "Which model should be used by default?",
+            options: models.map((m) => ({ value: m.name, label: m.name })),
+          });
+          guardCancel(picked);
+          ctx.results.model = picked as string;
         } else {
           ctx.results.model = undefined;
         }
