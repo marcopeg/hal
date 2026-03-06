@@ -187,15 +187,15 @@ Releases are handled by [release-it](https://github.com/release-it/release-it) w
    - **Patch (one command):** `pnpm run deploy` or `npm run deploy` — non-interactive patch bump, changelog update, commit, tag, and publish.
    - **Interactive (choose patch/minor/major):** `pnpm run release` or `npm run release` — prompts for the version bump, then updates changelog, commits, tags, and publishes.
 
-**npm 2FA (OTP):** When your npm account uses two-factor auth, npm won’t show the browser/OTP prompt when publish is run by release-it (it runs in a subprocess). Pass the one-time password on the command line so release-it can forward it:
+**npm 2FA (OTP):** When your npm account uses two-factor auth, pass the one-time password so release-it can forward it to `npm publish`:
 
 ```bash
 pnpm run deploy -- --npm.otp=123456
-# or
-npm run release -- --npm.otp=123456
+# or interactive
+pnpm run release -- --npm.otp=123456
 ```
 
-Replace `123456` with the code from your authenticator app. The `--` is required so the option is passed to release-it, not to npm.
+Replace `123456` with the code from your authenticator app. The `--` is required so the option is passed to the script (and then to release-it). If the OTP still isn’t picked up (e.g. on some Windows setups), run release-it directly: `pnpm exec release-it patch --ci --npm.otp=123456` or `pnpm exec release-it --npm.otp=123456` for interactive.
 
 Config lives in [.release-it.json](.release-it.json) (conventional-commits preset, `CHANGELOG.md` at repo root, npm publish with `--access public`).
 
