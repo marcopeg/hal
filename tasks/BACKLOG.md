@@ -9,11 +9,10 @@ The commands in the menu should be sorted:
 
 ## In Progress
 
-- [040 — Opt-in session configuration](./040.opt-in-session-configuration.md) | [plan](./040.opt-in-session-configuration.plan.md)
+- [041 — Custom env file](./041.custom-env-file.md) | [plan](./041.custom-env-file.plan.md)
 
 ## Ready Tasks
 - [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
-- [041 — Custom env file](./ready/041.custom-env-file.md) | [plan](./ready/041.custom-env-file.plan.md)
 - [045 — Interactive setup wizard](./ready/045.setup-wizard.md) | [plan](./ready/045.setup-wizard.plan.md)
 - [046 — Codex log streaming](./ready/046.codex-log-streaming.md) | [plan](./ready/046.codex-log-streaming.plan.md)
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
@@ -36,6 +35,7 @@ The commands in the menu should be sorted:
 - [049 — Antigravity log streaming](./drafts/049.antigravity-log-streaming.md)
 - [050 — Copilot log streaming](./drafts/050.copilot-log-streaming.md)
 - [053 — Resilient config hot-reload](./drafts/053.resilient-config-hot-reload.md)
+- [054 — Changelog generation from conventional commits](./drafts/054.changelog.md)
 
 ## Completed
 
@@ -70,3 +70,4 @@ The commands in the menu should be sorted:
 - [044 — ASCII art HAL 9000 banner on startup](./completed/044.ascii-art.md) | [plan](./completed/044.ascii-art.plan.md)
 - [039 — Move docs to YAML](./completed/039.move-docs-to-yaml.md) | [plan](./completed/039.move-docs-to-yaml.plan.md)
 - [043 — Fix OpenCode engine (default free services)](./completed/043.fix-opencode.md)
+- [040 — Opt-in session configuration](./completed/040.opt-in-session-configuration.md) | [plan](./completed/040.opt-in-session-configuration.plan.md)
