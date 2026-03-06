@@ -9,8 +9,6 @@ The commands in the menu should be sorted:
 
 ## In Progress
 
-- [054 — Changelog generation from conventional commits](./054.changelog.md) | [plan](./054.changelog.plan.md)
-
 ## Ready Tasks
 - [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
 - [045 — Interactive setup wizard](./ready/045.setup-wizard.md) | [plan](./ready/045.setup-wizard.plan.md)
@@ -70,3 +68,4 @@ The commands in the menu should be sorted:
 - [041 — Custom env file](./completed/041.custom-env-file.md) | [plan](./completed/041.custom-env-file.plan.md)
 - [052 — Remove doc link placeholders from config init template](./completed/052.remove-doc-link-placeholders-from-config-init-template.md) | [plan](./completed/052.remove-doc-link-placeholders-from-config-init-template.plan.md)
 - [053 — Resilient config hot-reload](./completed/053.resilient-config-hot-reload.md) | [plan](./completed/053.resilient-config-hot-reload.plan.md)
+- [054 — Changelog generation from conventional commits](./completed/054.changelog.md) | [plan](./completed/054.changelog.plan.md)

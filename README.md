@@ -175,39 +175,9 @@ The engine can send files back through Telegram. Each user has a `downloads/` fo
 3. The file is sent via Telegram (as a document)
 4. The file is deleted from the server after delivery
 
-## Releasing
+## Development
 
-Releases use [release-it](https://github.com/release-it/release-it) with [conventional commits](https://www.conventionalcommits.org/). The flow is split so version/changelog/tag stay local until you run the push step; `npm publish` runs in your terminal so the browser/OTP flow works with 2FA.
-
-**Package manager:** This repo uses **pnpm** (see `packageManager` in `package.json`). You can use **npm** instead; Node 18+ and `npm login` are the only requirements.
-
-### Scripts
-
-| Script | What it does |
-|--------|----------------|
-| **release:patch** | Lint → build (fails if either fails) → bump patch → update `CHANGELOG.md` → commit → tag. Does **not** push or publish. |
-| **release:minor** | Same as above with minor bump. |
-| **release:major** | Same as above with major bump. |
-| **release:push** | Pushes the release commit and tag to the remote, then runs `npm publish --access public` (browser/OTP in your terminal). |
-| **release** | Interactive: release-it prompts for version bump and options. Use when you want to choose patch/minor/major at runtime. |
-| **deploy** | Alias for `release:patch`. |
-
-**prepare** runs when you (or CI) run `npm install` / `pnpm install`; here it sets up **husky** (git hooks). It is not part of the release flow.
-
-**prepublishOnly** runs automatically when you run the **publish** script (or `npm publish`). It runs `npm run build` so the package is built right before publish. You don’t run it yourself; it runs as part of `release:push` → `publish`.
-
-### Flow
-
-1. **Clean tree** — Commit or stash all changes. release-it will refuse to run if the working directory is dirty.
-2. **Auth** — Run `npm login` if you are not already logged in.
-3. **Version + changelog (local only)** — Run one of:
-   - `pnpm run release:patch`
-   - `pnpm run release:minor`
-   - `pnpm run release:major`
-   Each runs lint and build first; if either fails, the script stops. Then it bumps the version, updates `CHANGELOG.md`, commits, and creates the tag. Nothing is pushed.
-4. **Push and publish** — When you’re ready: `pnpm run release:push`. This pushes the commit and tag, then runs `npm publish --access public` so you get the normal npm 2FA prompt in your terminal.
-
-Config: [.release-it.json](.release-it.json) (conventional-commits preset, `CHANGELOG.md` at repo root, no push/publish inside release-it).
+For local setup, running the bot, and releasing: **[Development](docs/development/README.md)** — requirements, quick start (`pnpm install`, `pnpm start`), examples folder and `.env`, release scripts, and npm token setup for publish.
 
 ## Security Notice
 
