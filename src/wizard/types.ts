@@ -31,6 +31,7 @@ export type ProjectEdits = Record<
   {
     cwd?: string;
     botToken?: string;
+    name?: string;
   }
 >;
 

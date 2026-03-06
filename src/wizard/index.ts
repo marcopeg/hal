@@ -3,7 +3,7 @@ import { parseConfigContent, resolveConfigFile } from "../config.js";
 import { runConfirmAndWrite } from "./confirm-and-write.js";
 import { discoverAvailableEngines } from "./engine-discovery.js";
 import { runWizard } from "./runner.js";
-import { bootstrapSteps, globalSteps, projectSteps } from "./steps/index.js";
+import { finalSteps, globalSteps, projectSteps } from "./steps/index.js";
 import type { PartialConfig, PrefillFlags, WizardContext } from "./types.js";
 
 export type { PrefillFlags };
@@ -98,10 +98,9 @@ export async function startWizard(
   // Identify projects to fill.
   const existingKeys = Object.keys(existingConfig?.projects ?? {});
   if (existingKeys.length === 0) {
-    // Fresh setup: ask for project key/name first, then proceed with single-project steps.
-    await runWizard(ctx, bootstrapSteps);
-    const k = ctx.results.projectKey ?? "prj1";
-    ctx.targetProjectKeys = [k];
+    // Fresh setup: default to a single project (key prj1); name is asked after cwd.
+    ctx.targetProjectKeys = ["prj1"];
+    ctx.results.projectKey = "prj1";
   } else {
     // Existing config: fill only active projects (active !== false).
     const keys = existingKeys.filter((k) => {
@@ -116,7 +115,7 @@ export async function startWizard(
   // Global missing info (access list, enabled providers/default engine, etc.)
   await runWizard(ctx, globalSteps);
 
-  // Project-scoped missing info (cwd, bot token, etc.)
+  // Project-scoped missing info (cwd, name, bot token, etc.)
   const targets = ctx.targetProjectKeys ?? [];
   if (targets.length > 1) {
     process.stdout.write("\nFilling missing project settings...\n");
@@ -128,6 +127,10 @@ export async function startWizard(
     }
     await runWizard(ctx, projectSteps);
   }
+
+  // Final global required info (user id)
+  ctx.currentProjectKey = null;
+  await runWizard(ctx, finalSteps);
 
   await runConfirmAndWrite(ctx);
 

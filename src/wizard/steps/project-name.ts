@@ -1,71 +1,69 @@
+import { basename } from "node:path";
 import { text } from "@clack/prompts";
 import { guardCancel } from "../runner.js";
 import type { WizardContext, WizardStep } from "../types.js";
-
-function slugify(name: string): string {
-  return (
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 64) || "prj1"
-  );
-}
 
 export const projectNameStep: WizardStep = {
   id: "project-name",
   label: "Project name",
 
   isConfigured(ctx: WizardContext): boolean {
-    // Skip if an existing project key is already present (gap-fill mode)
-    const projects = ctx.existingConfig?.projects ?? {};
-    return Object.keys(projects).length > 0;
+    if (ctx.reset) return false;
+    const key = ctx.currentProjectKey ?? ctx.results.projectKey;
+    if (!key) return false;
+    const edited = ctx.results.projectEdits?.[key]?.name;
+    if (typeof edited === "string" && edited.trim() !== "") return true;
+    const existing = ctx.existingConfig?.projects?.[key]?.name;
+    return typeof existing === "string" && existing.trim() !== "";
   },
 
   shouldSkip(ctx: WizardContext): boolean {
+    const oneProject = (ctx.targetProjectKeys?.length ?? 1) <= 1;
     return (
-      typeof ctx.prefill.name === "string" && ctx.prefill.name.trim() !== ""
+      oneProject &&
+      typeof ctx.prefill.name === "string" &&
+      ctx.prefill.name.trim() !== ""
     );
   },
 
   run: async (ctx: WizardContext) => {
-    // Pre-fill: apply silently
-    if (ctx.prefill.name) {
+    const key = ctx.currentProjectKey ?? ctx.results.projectKey ?? "prj1";
+    if (!ctx.results.projectEdits) ctx.results.projectEdits = {};
+    ctx.results.projectEdits[key] ??= {};
+
+    // Pre-fill: apply silently (single-project only)
+    if ((ctx.targetProjectKeys?.length ?? 1) <= 1 && ctx.prefill.name) {
       const pre = ctx.prefill.name.trim();
       if (pre) {
-        const baseSlug = slugify(pre);
-        const existing = new Set(
-          Object.keys(ctx.existingConfig?.projects ?? {}),
-        );
-        let slug = baseSlug;
-        let n = 2;
-        while (existing.has(slug)) slug = `${baseSlug}-${n++}`;
-        ctx.results.projectKey = slug;
+        ctx.results.projectEdits[key].name = pre;
         ctx.results.projectName = pre;
         return;
       }
     }
 
+    const cwd =
+      ctx.results.projectEdits?.[key]?.cwd ??
+      ctx.existingConfig?.projects?.[key]?.cwd ??
+      ".";
+    const defaultName =
+      cwd === "." || cwd === "./"
+        ? basename(ctx.cwd)
+        : basename(
+            String(cwd)
+              .replace(/\/+$/g, "")
+              .replace(/^\.\/+/, ""),
+          );
+
     const answer = await text({
-      message: "Project name (optional — press Enter to skip):",
-      placeholder: "e.g. My Backend",
+      message: `Project name (default: ${defaultName}):`,
+      placeholder: defaultName,
     });
     guardCancel(answer);
 
     const name = typeof answer === "string" ? answer.trim() : "";
-    if (name) {
-      const baseSlug = slugify(name);
-      const existing = new Set(Object.keys(ctx.existingConfig?.projects ?? {}));
-      let slug = baseSlug;
-      let n = 2;
-      while (existing.has(slug)) {
-        slug = `${baseSlug}-${n++}`;
-      }
-      ctx.results.projectKey = slug;
-      ctx.results.projectName = name;
-    } else {
-      ctx.results.projectKey = "prj1";
-      ctx.results.projectName = undefined;
+    ctx.results.projectEdits[key].name = name === "" ? defaultName : name;
+    if (key === ctx.results.projectKey) {
+      ctx.results.projectName = ctx.results.projectEdits[key].name;
     }
   },
 };

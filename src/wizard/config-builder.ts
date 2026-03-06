@@ -47,10 +47,13 @@ export function buildConfigFromResults(ctx: WizardContext): BuildResult {
   const project = base.projects[projectKey];
 
   // Apply project name
-  if (projectName) {
+  if (projectEdits[projectKey]?.name) {
+    project.name = projectEdits[projectKey].name;
+  } else if (projectName) {
     project.name = projectName;
   } else {
-    delete project.name;
+    // Do not force deletion for existing projects; only remove when explicitly reset in future.
+    if (!ctx.existingConfig) delete project.name;
   }
 
   // Apply cwd
@@ -65,6 +68,9 @@ export function buildConfigFromResults(ctx: WizardContext): BuildResult {
     if (!edit.cwd) continue;
     if (!base.projects[k]) base.projects[k] = {};
     base.projects[k].cwd = edit.cwd;
+    if (edit.name && edit.name.trim() !== "") {
+      base.projects[k].name = edit.name;
+    }
   }
 
   // Engines enabled (providers) + default engine (globals)

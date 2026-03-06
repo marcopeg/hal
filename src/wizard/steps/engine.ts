@@ -1,9 +1,5 @@
 import { multiselect, select, spinner } from "@clack/prompts";
-import {
-  getCursorModelsFromCli,
-  getOpencodeModelsFromCli,
-} from "../../engine/opencode-models.js";
-import { defaultEngineCommand, type EngineName } from "../engine-discovery.js";
+import type { EngineName } from "../engine-discovery.js";
 import { guardCancel } from "../runner.js";
 import type { WizardContext, WizardStep } from "../types.js";
 
@@ -58,23 +54,6 @@ export const engineStep: WizardStep = {
       const engine = ctx.prefill.engine as EngineName;
       ctx.results.enabledEngines = [engine];
       ctx.results.engine = engine;
-
-      // Model prefill: only for self-discovery engines, and only if valid in discovered list.
-      const m = ctx.prefill.model;
-      if (engine === "cursor" || engine === "opencode") {
-        const cmd = defaultEngineCommand(engine);
-        const models =
-          engine === "cursor"
-            ? getCursorModelsFromCli(ctx.cwd, cmd)
-            : getOpencodeModelsFromCli(ctx.cwd, cmd);
-        if (typeof m === "string" && models.some((x) => x.name === m)) {
-          ctx.results.model = m;
-        } else {
-          ctx.results.model = undefined;
-        }
-      } else {
-        ctx.results.model = undefined;
-      }
       return;
     }
 
@@ -99,40 +78,6 @@ export const engineStep: WizardStep = {
       }
 
       ctx.results.engine = defaultEngine;
-
-      // Model selection only for self-discovery engines
-      if (defaultEngine === "cursor" || defaultEngine === "opencode") {
-        const s = spinner();
-        s.start("Fetching available models...");
-        const cmd = defaultEngineCommand(defaultEngine);
-        const models =
-          defaultEngine === "cursor"
-            ? getCursorModelsFromCli(ctx.cwd, cmd)
-            : getOpencodeModelsFromCli(ctx.cwd, cmd);
-        s.stop(models.length > 0 ? "Models loaded" : "No models discovered");
-
-        if (
-          ctx.prefill.model &&
-          models.some((m) => m.name === ctx.prefill.model)
-        ) {
-          ctx.results.model = ctx.prefill.model;
-          console.log(`  Model pre-filled: ${ctx.prefill.model}`);
-          return;
-        }
-
-        if (models.length > 0) {
-          const picked = await select({
-            message: "Which model should be used by default?",
-            options: models.map((m) => ({ value: m.name, label: m.name })),
-          });
-          guardCancel(picked);
-          ctx.results.model = picked as string;
-        } else {
-          ctx.results.model = undefined;
-        }
-      } else {
-        ctx.results.model = undefined;
-      }
       return;
     }
 
@@ -198,42 +143,5 @@ export const engineStep: WizardStep = {
 
     ctx.results.enabledEngines = enabledEngines;
     ctx.results.engine = defaultEngine;
-
-    const engineForModels = defaultEngine;
-    if (engineForModels === "cursor" || engineForModels === "opencode") {
-      const s = spinner();
-      s.start("Fetching available models...");
-      const cmd = defaultEngineCommand(engineForModels);
-      const models =
-        engineForModels === "cursor"
-          ? getCursorModelsFromCli(ctx.cwd, cmd)
-          : getOpencodeModelsFromCli(ctx.cwd, cmd);
-      s.stop(models.length > 0 ? "Models loaded" : "No models discovered");
-
-      // Prefill model: validate against discovered list (only for self-discovery engines)
-      if (
-        ctx.prefill.model &&
-        models.some((m) => m.name === ctx.prefill.model)
-      ) {
-        ctx.results.model = ctx.prefill.model;
-        console.log(`  Model pre-filled: ${ctx.prefill.model}`);
-        return;
-      }
-
-      if (models.length > 0) {
-        const picked = await select({
-          message: "Which model should be used by default?",
-          options: models.map((m) => ({ value: m.name, label: m.name })),
-        });
-        guardCancel(picked);
-        ctx.results.model = picked as string;
-      } else {
-        // Leave globals.engine.model unset
-        ctx.results.model = undefined;
-      }
-    } else {
-      // Leave globals.engine.model unset
-      ctx.results.model = undefined;
-    }
   },
 };

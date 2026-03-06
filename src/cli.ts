@@ -4,6 +4,7 @@ import { execSync, spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { isCancel, outro, select } from "@clack/prompts";
 import type pino from "pino";
 import { type BotHandle, startBot } from "./bot.js";
 import type { LoadedConfigResult } from "./config.js";
@@ -307,10 +308,13 @@ async function runInit(
   cwd: string,
   engineName: EngineName,
   modelOverride?: string,
+  options?: { showDeprecation?: boolean },
 ): Promise<void> {
-  console.log(
-    "\u001b[33mNote: `init` is deprecated. Use `npx @marcopeg/hal wiz` for an interactive setup experience.\u001b[0m\n",
-  );
+  if (options?.showDeprecation !== false) {
+    console.log(
+      "\u001b[33mNote: `init` is deprecated. Use `npx @marcopeg/hal wiz` for an interactive setup experience.\u001b[0m\n",
+    );
+  }
   for (const name of INIT_CONFIG_BASENAMES) {
     if (existsSync(join(cwd, name))) {
       console.error(`Error: ${name} already exists in ${cwd}`);
@@ -517,6 +521,20 @@ const STARTUP_BANNER_DELAY_MS = 500;
 const HAL_DOCS_URL = "https://github.com/marcopeg/hal";
 const HAL_QUICK_START = "npx @marcopeg/hal wiz";
 
+function openUrl(url: string): void {
+  try {
+    const cmd =
+      process.platform === "darwin"
+        ? "open"
+        : process.platform === "win32"
+          ? "start"
+          : "xdg-open";
+    spawn(cmd, [url], { stdio: "ignore", detached: true }).unref();
+  } catch {
+    // ignore
+  }
+}
+
 function printConfigError(err: unknown): never {
   const message = err instanceof Error ? err.message : String(err);
   console.error("\n\u001b[1;31mConfiguration error\u001b[0m\n");
@@ -538,8 +556,59 @@ async function runStart(
   // If config is missing or incomplete, offer to run the wizard (TTY only).
   // We do NOT auto-run it: users may prefer to keep the current behavior and see the error.
   {
-    const { needsWizard } = await import("./wizard/analyzer.js");
-    if (needsWizard(configDir)) {
+    const { analyzeConfig } = await import("./wizard/analyzer.js");
+    const analysis = analyzeConfig(configDir);
+
+    if (!analysis.configExists) {
+      if (process.stdin.isTTY) {
+        const action = await select({
+          message: "Configuration is missing, what do you want to do?",
+          options: [
+            {
+              value: "wiz",
+              label: "Start the interactive setup wizard (recommended)",
+            },
+            {
+              value: "basic",
+              label: "Generate a basic config file to complete with your data",
+            },
+            { value: "docs", label: "Open the configuration documentation" },
+          ],
+          initialValue: "wiz",
+        });
+
+        if (isCancel(action)) {
+          outro("Aborted.");
+          process.exit(0);
+        }
+
+        if (action === "wiz") {
+          const { startWizard } = await import("./wizard/index.js");
+          const shouldContinue = await startWizard(
+            configDir,
+            wizardPrefill as never,
+            false,
+            { showBanner: false },
+          );
+          if (!shouldContinue) return;
+        } else if (action === "basic") {
+          await runInit(configDir, "codex", undefined, {
+            showDeprecation: false,
+          });
+          return;
+        } else {
+          const url =
+            "https://github.com/marcopeg/hal/blob/main/docs/config/README.md";
+          openUrl(url);
+          console.log(`\n  Docs: ${url}\n`);
+          return;
+        }
+      } else {
+        console.error(
+          '\nConfiguration is missing. Run "npx @marcopeg/hal wiz" to set up interactively.\n',
+        );
+      }
+    } else if (analysis.missingFields.length > 0) {
       if (process.stdin.isTTY) {
         const yes = await promptYesNo(
           "\nConfiguration looks incomplete.\nRun the interactive setup wizard now? (Y/n) ",
@@ -702,7 +771,9 @@ async function main(): Promise<void> {
   }
 
   if (command === "init") {
-    await runInit(configDir, engine ?? "codex", model);
+    await runInit(configDir, engine ?? "codex", model, {
+      showDeprecation: true,
+    });
   } else {
     await runStart(configDir, {
       name,
