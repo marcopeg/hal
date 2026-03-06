@@ -9,8 +9,6 @@ The commands in the menu should be sorted:
 
 ## In Progress
 
-- [041 — Custom env file](./041.custom-env-file.md) | [plan](./041.custom-env-file.plan.md)
-
 ## Ready Tasks
 - [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
 - [045 — Interactive setup wizard](./ready/045.setup-wizard.md) | [plan](./ready/045.setup-wizard.plan.md)
@@ -71,3 +69,4 @@ The commands in the menu should be sorted:
 - [039 — Move docs to YAML](./completed/039.move-docs-to-yaml.md) | [plan](./completed/039.move-docs-to-yaml.plan.md)
 - [043 — Fix OpenCode engine (default free services)](./completed/043.fix-opencode.md)
 - [040 — Opt-in session configuration](./completed/040.opt-in-session-configuration.md) | [plan](./completed/040.opt-in-session-configuration.plan.md)
+- [041 — Custom env file](./completed/041.custom-env-file.md) | [plan](./completed/041.custom-env-file.plan.md)
