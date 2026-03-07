@@ -107,7 +107,7 @@ export function createTextHandler(ctx: ProjectContext) {
           logger,
         );
 
-        if (skillEntry?.skillPrompt) {
+        if (skillEntry?.skillPrompt && skillEntry.telegram) {
           const prompt =
             args.length > 0
               ? `${skillEntry.skillPrompt}\n\nUser input: ${args.join(" ")}`

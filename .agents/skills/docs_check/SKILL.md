@@ -20,6 +20,7 @@ Run a **docs QA refinement loop**:
 ## Scope and rules
 
 - **Primary scope**: root `README.md`, `docs/README.md` (if present), and any Markdown files they link to (directly or transitively), especially under `docs/`.
+- **Code improvements**: Your primary scope is documentation. You must NEVER automatically modify source code (`.ts`, `.js`, etc.) or application logic. However, if while reviewing the docs you feel there is an improvement that can be made in the source code, you should present it as an option to the user, asking for explicit confirmation to proceed before making any code changes. Otherwise, your edits must strictly be limited to Markdown documentation files and `docs_QA/` logs. Even if the user's answer describes how the system *should* work, you must only update the documentation to reflect it unless they confirm a code change.
 - **Allowed expansion**: if you need to validate a claim, you may read config/examples and code anywhere in the repo to remove ambiguity and avoid misinformation.
 - **One issue per run**: do not collect a list; find the *next* highest-signal issue and resolve it.
 - **Do not invent facts**: if something is not supported by the code/config or is uncertain, it must become a question or be reworded as an explicitly optional/unknown item.

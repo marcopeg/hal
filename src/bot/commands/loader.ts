@@ -205,7 +205,7 @@ async function parseSkillMd(
 
   const nameMatch = frontmatter.match(/^name:\s*(.+)$/m);
   const descMatch = frontmatter.match(/^description:\s*(.+)$/m);
-  const telegramMatch = frontmatter.match(/^telegram:\s*(.+)$/m);
+  const telegramMatch = frontmatter.match(/^telegram:\s*(.+)$/im);
 
   if (!nameMatch || !descMatch) {
     logger.warn(

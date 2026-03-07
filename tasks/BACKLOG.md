@@ -31,6 +31,8 @@ The commands in the menu should be sorted:
 - [048 — Cursor log streaming](./drafts/048.cursor-log-streaming.md)
 - [049 — Antigravity log streaming](./drafts/049.antigravity-log-streaming.md)
 - [050 — Copilot log streaming](./drafts/050.copilot-log-streaming.md)
+- [056 — Debounce messages](./drafts/056.debounce-messages.md)
+
 ## Completed
 
 - [001 — Multi Project Setup](./completed/001.multi.md) | [plan](./completed/001.multi.plan.md)
