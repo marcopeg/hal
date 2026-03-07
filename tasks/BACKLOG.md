@@ -13,6 +13,7 @@ The commands in the menu should be sorted:
 - [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
 - [046 — Codex log streaming](./ready/046.codex-log-streaming.md) | [plan](./ready/046.codex-log-streaming.plan.md)
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
+- [055 — NPM commands wrapper](./ready/055.npm-commands-wrapper.md) | [plan](./ready/055.npm-commands-wrapper.plan.md)
 
 ## Drafts
 

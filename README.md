@@ -12,7 +12,7 @@ A Telegram bot that provides access to AI coding agents as a personal assistant.
 - Send images and documents for analysis
 - **Voice message support** with local Whisper transcription
 - **File sending** — the engine can send files back to you
-- **Multi-engine support** — use Claude Code, GitHub Copilot, Codex, OpenCode, or Antigravity per project
+- **Multi-engine support** — use [Claude Code](docs/engines/claude/README.md), [GitHub Copilot](docs/engines/copilot/README.md), [Codex](docs/engines/codex/README.md), [OpenCode](docs/engines/opencode/README.md), [Cursor](docs/engines/cursor/README.md), or [Antigravity](docs/engines/antigravity/README.md) per project
 - **Multi-project support** — run multiple bots from a single config, each connected to a different independent directory
 - **Context injection** — every message includes system metadata (timestamps, user info, custom values) and supports custom injections via config and per-project hooks (`.mjs`) with hot-reload
 - **Custom slash commands** — add `.mjs` command files per-project or globally; hot-reloaded so the engine can create new commands at runtime
