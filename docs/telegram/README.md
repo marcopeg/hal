@@ -34,7 +34,7 @@ You get a bot token from **BotFather**, Telegram’s official bot for creating a
 ### Step 4: Add the token to HAL
 
 - **Do not** put the token directly in your config file if it is committed to git.
-- Put it in a **`.env.local`** file in the same directory as your config (or in the project `cwd`). Example:
+- Put it in a **`.env.local`** file in the same directory as your config (the directory where you run the HAL CLI). Example:
 
   ```bash
   # .env.local  (create this file next to hal.config.yaml)
@@ -51,7 +51,7 @@ You get a bot token from **BotFather**, Telegram’s official bot for creating a
         botToken: "${BACKEND_BOT_TOKEN}"
   ```
 
-- HAL resolves `${BACKEND_BOT_TOKEN}` at startup from `.env.local` (or `.env` or the shell environment). See [Configuration — Environment variable substitution](../config/README.md#environment-variable-substitution).
+- HAL resolves `${BACKEND_BOT_TOKEN}` at startup from `.env.local` (or `.env` or the shell environment). See [Configuration — Environment variable substitution](../config/README.md#environment-variable-substitution) and [Configuration — Env files](../config/README.md#environment-variable-substitution) for details on `.env`/`.env.local`.
 
 ### One bot per project
 

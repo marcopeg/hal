@@ -32,6 +32,7 @@ The commands in the menu should be sorted:
 - [049 — Antigravity log streaming](./drafts/049.antigravity-log-streaming.md)
 - [050 — Copilot log streaming](./drafts/050.copilot-log-streaming.md)
 - [056 — Debounce messages](./drafts/056.debounce-messages.md)
+- [057 — Status/info command with feature flags](./drafts/057.status-info-command.md)
 
 ## Completed
 
