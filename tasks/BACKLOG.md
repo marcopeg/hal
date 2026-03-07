@@ -32,7 +32,6 @@ The commands in the menu should be sorted:
 - [049 — Antigravity log streaming](./drafts/049.antigravity-log-streaming.md)
 - [050 — Copilot log streaming](./drafts/050.copilot-log-streaming.md)
 - [056 — Debounce messages](./drafts/056.debounce-messages.md)
-- [057 — Status/info command with feature flags](./drafts/057.status-info-command.md)
 
 ## Completed
 
@@ -74,3 +73,4 @@ The commands in the menu should be sorted:
 - [054 — Changelog generation from conventional commits](./completed/054.changelog.md) | [plan](./completed/054.changelog.plan.md)
 - [045 — Interactive setup wizard](./completed/045.setup-wizard.md) | [plan](./completed/045.setup-wizard.plan.md)
 - [055 — NPM commands wrapper](./completed/055.npm-commands-wrapper.md) | [plan](./completed/055.npm-commands-wrapper.plan.md)
+- [057 — Status/info command with feature flags](./completed/057.status-info-command.md) | [plan](./completed/057.status-info-command.plan.md)

@@ -205,7 +205,7 @@ Per-project `providers` can override the top-level list for a specific project (
 | `providers: { opencode:, codex: }` (empty lists) | Only opencode and codex appear in `/engine`. Default models or CLI auto-discovery (OpenCode/Cursor) for `/model`. |
 | `providers` with one or more engine keys | Every project’s `engine.name` must be one of those keys; otherwise HAL fails at boot with a clear error. |
 
-When `/engine` or `/model` is disabled, sending the command replies *"This command is disabled."* instead of forwarding to the LLM.
+When `/engine`, `/model`, or `/info` is disabled, sending the command replies *"This command is disabled."* instead of forwarding to the LLM.
 
 ## Access control
 

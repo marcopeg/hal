@@ -9,6 +9,7 @@ import {
   createGitStatusHandler,
 } from "./bot/commands/git/index.js";
 import { createHelpHandler } from "./bot/commands/help.js";
+import { createInfoHandler } from "./bot/commands/info.js";
 import {
   type CommandEnabledFlags,
   commandsForTelegramMenu,
@@ -82,6 +83,7 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
     bot.on("callback_query:data", createResetCallbackHandler(projectCtx));
   }
   if (cmd.clean.enabled) bot.command("clean", createCleanHandler(projectCtx));
+  if (cmd.info.enabled) bot.command("info", createInfoHandler(projectCtx));
 
   if (cmd.git.enabled) {
     bot.command("git_init", createGitInitHandler(projectCtx));
@@ -113,6 +115,12 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
   } else {
     bot.command("engine", createEngineHandler(projectCtx));
     bot.on("callback_query:data", createEngineCallbackHandler(projectCtx));
+  }
+
+  if (!cmd.info.enabled) {
+    bot.hears(/^\/info(@\w+)?(\s|$)/i, (ctx) =>
+      ctx.reply("This command is disabled."),
+    );
   }
 
   // Answer old inline buttons for /model and /engine when those commands are disabled
@@ -173,6 +181,7 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
     help: cmd.help.enabled,
     reset: cmd.reset.enabled,
     clean: cmd.clean.enabled,
+    info: cmd.info.enabled,
     git: cmd.git.enabled,
     model: cmd.model.enabled,
     engine: cmd.engine.enabled,

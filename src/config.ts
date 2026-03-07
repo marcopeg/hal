@@ -128,12 +128,23 @@ const NpmConfigSchema = z
   })
   .optional();
 
+const InfoConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    cwd: z.boolean().optional(),
+    engineModel: z.boolean().optional(),
+    session: z.boolean().optional(),
+    context: z.boolean().optional(),
+  })
+  .optional();
+
 const CommandsConfigSchema = z
   .object({
     start: StartConfigSchema,
     help: SimpleCommandConfigSchema,
     reset: ResetCommandConfigSchema,
     clean: SimpleCommandConfigSchema,
+    info: InfoConfigSchema,
     git: GitConfigSchema,
     model: GitConfigSchema,
     engine: GitConfigSchema,
@@ -355,6 +366,13 @@ export interface ResolvedProjectConfig {
       timeout: number;
     };
     clean: { enabled: boolean; message?: string };
+    info: {
+      enabled: boolean;
+      cwd: boolean;
+      engineModel: boolean;
+      session: boolean;
+      context: boolean;
+    };
     git: { enabled: boolean };
     model: { enabled: boolean };
     engine: { enabled: boolean };
@@ -636,6 +654,25 @@ export function resolveProjectConfig(
       message: rawClean?.message
         ? resolveMessageTemplate(rawClean.message, "commands.clean")
         : undefined,
+    },
+    info: {
+      enabled:
+        project.commands?.info?.enabled ??
+        globals.commands?.info?.enabled ??
+        true,
+      cwd: project.commands?.info?.cwd ?? globals.commands?.info?.cwd ?? true,
+      engineModel:
+        project.commands?.info?.engineModel ??
+        globals.commands?.info?.engineModel ??
+        true,
+      session:
+        project.commands?.info?.session ??
+        globals.commands?.info?.session ??
+        true,
+      context:
+        project.commands?.info?.context ??
+        globals.commands?.info?.context ??
+        true,
     },
     git: {
       enabled:

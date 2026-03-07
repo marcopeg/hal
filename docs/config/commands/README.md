@@ -24,6 +24,12 @@ commands:
     enabled: true
   clean:
     enabled: true
+  info:
+    enabled: true
+    cwd: true
+    engineModel: true
+    session: true
+    context: true
   npm:
     enabled: false
     whitelist: ["build", "test"]
@@ -88,6 +94,27 @@ The `/reset` command asks for confirmation before deleting user data. It sends a
 
 The `/clean` command always resets the LLM session regardless of configuration — user files (uploads, downloads) are preserved. The custom message only changes what the user sees afterward.
 
+## /info
+
+The `/info` command shows current runtime information for the project.
+
+- Message 1: summary section (always includes project name; optionally includes CWD, engine/model, session mode)
+- Message 2: resolved context key-value pairs in a fenced code block (when enabled)
+
+When context output is too large for one Telegram message, HAL splits it into multiple fenced code-block messages.
+
+| Field | Description | Default |
+|-------|-------------|---------|
+| `enabled` | Enable the `/info` command | `true` |
+| `cwd` | Include CWD in summary output | `true` |
+| `engineModel` | Include current engine and model in summary output | `true` |
+| `session` | Include session mode (`true`, `false`, `shared`, `user`) in summary output | `true` |
+| `context` | Send resolved context as a second code-block message | `true` |
+
+When `enabled: false`, sending `/info` replies with `This command is disabled.` and does not forward to the LLM.
+
+Note: env/source-aware redaction for context values is not implemented in this task iteration.
+
 ## /model
 
 The `/model` command lets users switch the AI model for the current engine.
@@ -137,6 +164,7 @@ When no `commands` config is set:
 | `/help` | The command list |
 | `/reset` | Confirmation prompt: `"This is going to delete the user data folder. Are you sure?"`, then `"done!"` on confirm |
 | `/clean` | `Session reset. Your next message starts a new conversation.` |
+| `/info` | Summary info, plus context in a separate code block message (when `commands.info.context: true`) |
 
 Messages are sent with Telegram's legacy Markdown formatting. Supported syntax: `*bold*`, `_italic_`, `` `inline code` ``, ` ```code blocks``` `, `[link text](url)`.
 
@@ -154,7 +182,7 @@ The special **`${HAL_COMMANDS}`** placeholder expands to a formatted list of all
 - **Project Commands** — `.mjs` commands from the project's `.hal/commands/` directory
 - **Project Skills** — engine skills marked with `telegram: true` in their `SKILL.md` frontmatter
 - **System Commands** — `.mjs` commands from the global `.hal/commands/` directory (shared across projects)
-- **Hal Commands** — built-in commands (`/start`, `/help`, `/reset`, `/clean`, `/model`, `/engine`)
+- **Hal Commands** — built-in commands (`/start`, `/help`, `/reset`, `/clean`, `/info`, `/model`, `/engine`)
 - **Versioning** — git built-in commands (`/git_init`, `/git_status`, `/git_commit`, `/git_clean`) — only when `commands.git.enabled: true`
 
 Example `WELCOME.md`:

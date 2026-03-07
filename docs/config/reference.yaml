@@ -67,6 +67,12 @@ globals:
     clean:
       enabled: true
       message: {}
+    info:
+      enabled: true
+      cwd: true
+      engineModel: true
+      session: true
+      context: true
     git:
       enabled: true
     model:

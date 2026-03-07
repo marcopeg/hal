@@ -24,6 +24,7 @@ export interface CommandEnabledFlags {
   help: boolean;
   reset: boolean;
   clean: boolean;
+  info: boolean;
   git: boolean;
   model: boolean;
   engine: boolean;
@@ -319,6 +320,12 @@ export const BUILTIN_COMMANDS: CommandEntry[] = [
     source: "builtin",
   },
   {
+    command: "info",
+    description: "Show project runtime info",
+    filePath: "",
+    source: "builtin",
+  },
+  {
     command: "model",
     description: "Switch the AI model",
     filePath: "",
@@ -370,6 +377,7 @@ const BUILTIN_ENABLED_MAP: Record<string, keyof CommandEnabledFlags> = {
   help: "help",
   reset: "reset",
   clean: "clean",
+  info: "info",
   model: "model",
   engine: "engine",
   npm: "npm",

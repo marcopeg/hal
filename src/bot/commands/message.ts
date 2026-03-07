@@ -30,6 +30,7 @@ async function buildHalCommands(ctx: ProjectContext): Promise<string> {
     help: config.commands.help.enabled,
     reset: config.commands.reset.enabled,
     clean: config.commands.clean.enabled,
+    info: config.commands.info.enabled,
     git: config.commands.git.enabled,
     model: config.commands.model.enabled,
     engine: config.commands.engine.enabled,
