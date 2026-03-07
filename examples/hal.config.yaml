@@ -1,7 +1,11 @@
 providers:
   codex: null
   opencode: null
-  copilot: null
+  copilot:
+    - name: gpt-5-mini
+    - name: gpt-5.2
+    - name: gpt-5.1-codex-mini
+    - name: gpt-5.3-codex
 globals:
   access:
     allowedUserIds:
@@ -15,7 +19,8 @@ projects:
     telegram:
       botToken: ${OBSIDIAN_TELEGRAM_TOKEN}
     engine:
-      name: copilot
+      name: opencode
+      model: github-copilot/gpt-5.3-codex
   timetracker:
     active: false
     cwd: ./timetracker

@@ -11,6 +11,37 @@ import type {
 
 const DEFAULT_COMMAND = "copilot";
 
+/**
+ * Best-effort extraction of the final answer when Copilot (e.g. with Codex-style
+ * model) outputs reasoning/tool runs followed by a clear answer. Codex CLI with
+ * --json emits item.type === "agent_message" for the final message; Copilot
+ * streams plain text, so we approximate by finding the last line that matches
+ * common "final answer" lead-ins (headers, bold labels, or natural-language
+ * phrases) and return from that line to the end.
+ * Returns undefined if no such line is found, so callers fall back to full output.
+ */
+function extractFinalAnswer(output: string): string | undefined {
+  const lines = output.split(/\r?\n/);
+  // Recurring patterns: markdown headers (## Answer, ## Summary), bold labels
+  // (**Answer:**), and natural-language lead-ins (Here are the..., Answer:, etc.).
+  const leadInPatterns = [
+    /^#{1,6}\s*(Answer|Summary|Result|Output|Final answer|Conclusion)\s*$/i,
+    /^\*\*(Answer|Summary|Result|Output):\s*\*\*/i,
+    /^(Here are the |Here is the )/i,
+    /^(Answer|Summary|Result|Output|Conclusion):\s*/i,
+    /^(Final answer|In summary|To summarize):\s*/i,
+    /^The (last |following )?\d+ (commits?|results?|items?):\s*/i,
+  ];
+  let lastMatchIndex = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!.trim();
+    if (leadInPatterns.some((re) => re.test(line))) lastMatchIndex = i;
+  }
+  if (lastMatchIndex < 0) return undefined;
+  const slice = lines.slice(lastMatchIndex).join("\n").trim();
+  return slice.length > 20 ? slice : undefined;
+}
+
 export function createCopilotAdapter(
   command?: string,
   model?: string,
@@ -137,8 +168,10 @@ export function createCopilotAdapter(
       if (!result.success) {
         return { text: result.error || "An unknown error occurred" };
       }
+      const raw = (result.output || "No response received").trim();
+      const extracted = extractFinalAnswer(raw);
       return {
-        text: result.output || "No response received",
+        text: extracted ?? raw,
       };
     },
 
