@@ -33,6 +33,7 @@ async function buildHalCommands(ctx: ProjectContext): Promise<string> {
     git: config.commands.git.enabled,
     model: config.commands.model.enabled,
     engine: config.commands.engine.enabled,
+    npm: config.commands.npm.enabled,
   };
 
   const all = await loadCommands(

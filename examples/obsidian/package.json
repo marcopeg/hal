@@ -1,0 +1,8 @@
+{
+  "name": "obsidian",
+  "version": "1.0.0",
+  "scripts": {
+    "hello": "node -e \"console.log('Hello! Current date: ' + new Date().toLocaleString())\"",
+    "world": "node -e \"console.log('Word! Current date: ' + new Date().toLocaleString())\""
+  }
+}

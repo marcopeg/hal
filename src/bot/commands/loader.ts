@@ -27,6 +27,7 @@ export interface CommandEnabledFlags {
   git: boolean;
   model: boolean;
   engine: boolean;
+  npm: boolean;
 }
 
 // Canonical display/menu order for command sources
@@ -329,6 +330,12 @@ export const BUILTIN_COMMANDS: CommandEntry[] = [
     filePath: "",
     source: "builtin",
   },
+  {
+    command: "npm",
+    description: "Run an npm script",
+    filePath: "",
+    source: "builtin",
+  },
 ];
 
 export const GIT_COMMANDS: CommandEntry[] = [
@@ -365,6 +372,7 @@ const BUILTIN_ENABLED_MAP: Record<string, keyof CommandEnabledFlags> = {
   clean: "clean",
   model: "model",
   engine: "engine",
+  npm: "npm",
 };
 
 // ─── Public API ──────────────────────────────────────────────────────────────

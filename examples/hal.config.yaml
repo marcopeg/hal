@@ -21,6 +21,12 @@ projects:
     engine:
       name: opencode
       model: github-copilot/gpt-5.3-codex
+    commands:
+      npm:
+        enabled: true
+        whitelist:
+          - hello
+          - world
   timetracker:
     active: false
     cwd: ./timetracker
@@ -29,3 +35,5 @@ projects:
       model: gpt-5.3-codex
     telegram:
       botToken: ${TIMETRACKER_TELEGRAM_TOKEN}
+    # Enable /npm command with a whitelist of allowed scripts
+    

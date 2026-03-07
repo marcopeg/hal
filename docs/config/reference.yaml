@@ -73,6 +73,13 @@ globals:
       enabled: true
     engine:
       enabled: true
+    npm:
+      enabled: false          # opt-in; run npm scripts via /npm
+      whitelist: []            # optional; if set, only these scripts are allowed
+      blacklist: []            # optional; if set, these scripts are excluded
+      timeoutMs: 60000         # hard timeout (ms); process is killed after this
+      maxOutputChars: 4000     # inline output limit; excess is sent as file
+      sendAsFileWhenLarge: true
 
 # ─── Top-level: providers (model lists for /model) ───────────────────────────
 # See [Engines — Model list](../engines/README.md#model-list-providers-key)

@@ -13,7 +13,7 @@ The commands in the menu should be sorted:
 - [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
 - [046 — Codex log streaming](./ready/046.codex-log-streaming.md) | [plan](./ready/046.codex-log-streaming.plan.md)
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
-- [055 — NPM commands wrapper](./ready/055.npm-commands-wrapper.md) | [plan](./ready/055.npm-commands-wrapper.plan.md)
+
 
 ## Drafts
 
@@ -70,3 +70,4 @@ The commands in the menu should be sorted:
 - [053 — Resilient config hot-reload](./completed/053.resilient-config-hot-reload.md) | [plan](./completed/053.resilient-config-hot-reload.plan.md)
 - [054 — Changelog generation from conventional commits](./completed/054.changelog.md) | [plan](./completed/054.changelog.plan.md)
 - [045 — Interactive setup wizard](./completed/045.setup-wizard.md) | [plan](./completed/045.setup-wizard.plan.md)
+- [055 — NPM commands wrapper](./completed/055.npm-commands-wrapper.md) | [plan](./completed/055.npm-commands-wrapper.plan.md)

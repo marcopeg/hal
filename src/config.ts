@@ -117,6 +117,17 @@ const GitConfigSchema = z
   })
   .optional();
 
+const NpmConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    whitelist: z.array(z.string()).optional(),
+    blacklist: z.array(z.string()).optional(),
+    timeoutMs: z.number().positive().optional(),
+    maxOutputChars: z.number().positive().optional(),
+    sendAsFileWhenLarge: z.boolean().optional(),
+  })
+  .optional();
+
 const CommandsConfigSchema = z
   .object({
     start: StartConfigSchema,
@@ -126,6 +137,7 @@ const CommandsConfigSchema = z
     git: GitConfigSchema,
     model: GitConfigSchema,
     engine: GitConfigSchema,
+    npm: NpmConfigSchema,
   })
   .optional();
 
@@ -346,6 +358,14 @@ export interface ResolvedProjectConfig {
     git: { enabled: boolean };
     model: { enabled: boolean };
     engine: { enabled: boolean };
+    npm: {
+      enabled: boolean;
+      whitelist: string[] | undefined;
+      blacklist: string[] | undefined;
+      timeoutMs: number;
+      maxOutputChars: number;
+      sendAsFileWhenLarge: boolean;
+    };
   };
 }
 
@@ -625,6 +645,32 @@ export function resolveProjectConfig(
     },
     model: { enabled: modelEnabled },
     engine: { enabled: engineEnabled },
+    npm: {
+      enabled:
+        project.commands?.npm?.enabled ??
+        globals.commands?.npm?.enabled ??
+        false,
+      whitelist:
+        project.commands?.npm?.whitelist ??
+        globals.commands?.npm?.whitelist ??
+        undefined,
+      blacklist:
+        project.commands?.npm?.blacklist ??
+        globals.commands?.npm?.blacklist ??
+        undefined,
+      timeoutMs:
+        project.commands?.npm?.timeoutMs ??
+        globals.commands?.npm?.timeoutMs ??
+        60_000,
+      maxOutputChars:
+        project.commands?.npm?.maxOutputChars ??
+        globals.commands?.npm?.maxOutputChars ??
+        4000,
+      sendAsFileWhenLarge:
+        project.commands?.npm?.sendAsFileWhenLarge ??
+        globals.commands?.npm?.sendAsFileWhenLarge ??
+        true,
+    },
   };
 
   return {

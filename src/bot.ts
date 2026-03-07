@@ -18,6 +18,10 @@ import {
 import { createModelHandler } from "./bot/commands/model.js";
 import { createModelCallbackHandler } from "./bot/commands/model-callback.js";
 import {
+  createNpmCallbackHandler,
+  createNpmHandler,
+} from "./bot/commands/npm/index.js";
+import {
   createResetCallbackHandler,
   createResetHandler,
 } from "./bot/commands/reset.js";
@@ -85,6 +89,11 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
     bot.command("git_commit", createGitCommitHandler(projectCtx));
     bot.command("git_clean", createGitCleanHandler(projectCtx));
     bot.on("callback_query:data", createGitCallbackHandler(projectCtx));
+  }
+
+  if (cmd.npm.enabled) {
+    bot.command("npm", createNpmHandler(projectCtx));
+    bot.on("callback_query:data", createNpmCallbackHandler(projectCtx));
   }
 
   // When disabled, catch /model and /engine (and their callbacks) so we reply instead of sending to the LLM
@@ -167,6 +176,7 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
     git: cmd.git.enabled,
     model: cmd.model.enabled,
     engine: cmd.engine.enabled,
+    npm: cmd.npm.enabled,
   };
 
   // Register project-specific commands and skills with Telegram on startup
