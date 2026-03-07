@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.35](https://github.com/marcopeg/hal/compare/v1.0.34...v1.0.35) (2026-03-07)
+
+### Bug Fixes
+
+* improve npm handling ([6ccff08](https://github.com/marcopeg/hal/commit/6ccff08465c37d476a0908b12229e1c8baa9897c))
+
 ## [1.0.34](https://github.com/marcopeg/hal/compare/v1.0.33...v1.0.34) (2026-03-07)
 
 ### Features
