@@ -24,6 +24,23 @@ Run a **docs QA refinement loop**:
 - **One issue per run**: do not collect a list; find the *next* highest-signal issue and resolve it.
 - **Do not invent facts**: if something is not supported by the code/config or is uncertain, it must become a question or be reworded as an explicitly optional/unknown item.
 - **Docs conventions**: when editing docs, follow the project’s docs conventions (see the `docs` skill) for structure and relative links.
+- **Tone of voice**: keep docs **concise but friendly**.
+- **Telegram constraints**:
+  - The skill is exposed as a Telegram command only when `telegram: true` is present.
+  - Keep frontmatter `description` \(\le 256\) characters.
+  - The command name comes from the **skill folder name** (must match Telegram’s `/[a-z0-9_]{1,32}` rule).
+
+### Root README intent (be explicit)
+
+Treat the root `README.md` as **marketing + quickstart**:
+
+- It should immediately communicate **HAL’s value** (why try it).
+- It should contain a **super quick starter** (the most basic “how to run” command(s)).
+- It should link to the documentation index (typically `docs/README.md`) and also provide a short **“docs map”**:
+  - main doc sections listed in the root README
+  - each with a 1–2 sentence description + a link
+
+The exhaustive, canonical details live under `docs/`.
 
 ---
 
@@ -33,8 +50,9 @@ Run a **docs QA refinement loop**:
 
 Start from:
 
-- `README.md` (repo root)
-- then `docs/README.md` (if it exists and/or is linked from the root README)
+- `README.md` (repo root; treat it as marketing + quickstart)
+- find and follow the link into the docs index (prefer `docs/README.md` when present)
+- then continue traversal from within `docs/`
 
 For each doc page you read:
 
@@ -45,8 +63,24 @@ For each doc page you read:
 
 Notes:
 
-- External links may be used to validate a claim, but the primary goal is to improve *in-repo* docs.
+- External links may be used to validate a claim, but **do not** treat external pages as required reading for traversal.
+- Only follow external links when it helps confirm or correct an in-repo statement (or to pick the right wording/link to add).
 - If a link target doesn’t exist, that’s a valid refinement candidate (broken link).
+
+#### Broken link handling (still one question)
+
+If the first issue you hit is a broken in-repo link:
+
+1. **Diagnose** the likely cause before asking:
+   - wrong relative path (needs `../`)
+   - wrong filename/casing (`README.md` vs `readme.md`)
+   - moved docs (target exists elsewhere)
+   - intended doc page never created
+2. Ask the user **one** question that includes both the decision and (if needed) the guidance:
+   - **Where found**: source doc + the broken link text/URL
+   - **What seems wrong**: your best hypothesis (1 sentence)
+   - **Question**: “What should we do with this link: **remove it**, **fix it to an existing page**, or **create a new doc page**?”
+   - If they choose **create**, ask them (in the same question) to include 2–5 bullets of what the new page should cover and where it should live under `docs/`.
 
 ### 2) Identify the first refinement-worthy point
 
@@ -59,6 +93,20 @@ Stop traversal when you hit the first high-signal issue, such as:
 - **Inconsistent terminology** across pages.
 
 If needed, read relevant code/config to confirm what’s true before asking the user.
+
+Practical rule of thumb while validating docs:
+
+- When a page discusses configuration keys, defaults, or examples, consult `docs/config/reference.yaml` (canonical key reference) and `examples/hal.config.yaml` (copy/paste example) as needed to avoid stale claims.
+
+#### Priority order (first issue per run)
+
+When you encounter multiple issues, pick the *first* one to resolve using this priority:
+
+1. Broken links (targets missing / wrong path)
+2. Ambiguity (unclear defaults, unclear meaning, unclear “where to set X”)
+3. Missing steps / non-working quickstart or commands
+4. Correctness/misinformation vs code/config
+5. Structure/wording/typos (only if nothing above is present)
 
 ### 3) Ask the user exactly one question
 
@@ -90,6 +138,7 @@ Where:
 - `MM` is 2-digit month
 - `HH` is 2-digit hour (24h)
 - `mm` is 2-digit minute
+- Timestamp uses **local machine time** (not UTC).
 - `<slug>` is derived from the question text:
   - lowercase
   - convert spaces to `-`
