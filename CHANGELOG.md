@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.0](https://github.com/marcopeg/hal/compare/v1.0.35...v1.1.0) (2026-03-07)
+
+### Features
+
+* 057 add /info command to display project runtime information with configurable visibility ([75ac175](https://github.com/marcopeg/hal/commit/75ac175312cfb449e7cf51bb142e5d8867030d0d))
+
 ## [1.0.35](https://github.com/marcopeg/hal/compare/v1.0.34...v1.0.35) (2026-03-07)
 
 ### Bug Fixes
