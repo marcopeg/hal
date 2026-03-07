@@ -15,7 +15,7 @@ globals:
     model: opencode/gpt-5-nano
 projects:
   obsidian:
-    cwd: ./obsidian
+    cwd: ./blog
     telegram:
       botToken: ${OBSIDIAN_TELEGRAM_TOKEN}
     engine:
@@ -25,8 +25,10 @@ projects:
       npm:
         enabled: true
         whitelist:
+          - tunnel:start
+          - tunnel:stop
+          - tunnel:logs
           - hello
-          - world
   timetracker:
     active: false
     cwd: ./timetracker

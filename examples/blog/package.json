@@ -7,7 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "tunnel": "./scripts/tunnel.sh",
+    "tunnel:start": "./scripts/tunnel.sh",
     "tunnel:stop": "./scripts/tunnel.sh stop",
     "tunnel:logs": "./scripts/tunnel.sh logs",
     "hello": "node -e \"console.log('Hello! Current date: ' + new Date().toLocaleString())\""

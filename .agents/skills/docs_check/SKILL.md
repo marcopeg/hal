@@ -20,6 +20,7 @@ Run a **docs QA refinement loop**:
 ## Scope and rules
 
 - **Primary scope**: root `README.md`, `docs/README.md` (if present), and any Markdown files they link to (directly or transitively), especially under `docs/`.
+- **No commits**: Never run `git add`, `git commit`, or any other git write command. Leave all changes as uncommitted working-tree edits; the user decides when to commit.
 - **Code improvements**: Your primary scope is documentation. You must NEVER automatically modify source code (`.ts`, `.js`, etc.) or application logic. However, if while reviewing the docs you feel there is an improvement that can be made in the source code, you should present it as an option to the user, asking for explicit confirmation to proceed before making any code changes. Otherwise, your edits must strictly be limited to Markdown documentation files and `docs_QA/` logs. Even if the user's answer describes how the system *should* work, you must only update the documentation to reflect it unless they confirm a code change.
 - **Allowed expansion**: if you need to validate a claim, you may read config/examples and code anywhere in the repo to remove ambiguity and avoid misinformation.
 - **One issue per run**: do not collect a list; find the *next* highest-signal issue and resolve it.
@@ -173,6 +174,7 @@ After edits:
 
 - Summarize what changed (1–3 bullets), and point to the log file in `docs_QA/`.
 - Ask the user if they want **another docs_check round**.
+- **Do NOT commit or stage any changes.** Leave all edits as uncommitted working-tree changes. The user decides if and when to commit.
 
 ---
 
