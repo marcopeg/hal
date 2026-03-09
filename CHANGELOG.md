@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.1](https://github.com/marcopeg/hal/compare/v1.1.0...v1.1.1) (2026-03-09)
+
+### Features
+
+* 059 add support for engine environment file sourcing ([89bd2cd](https://github.com/marcopeg/hal/commit/89bd2cdd9b6d4f2cba68f60f94b4c8d40138d226))
+
+### Bug Fixes
+
+* 58 session context ([9397f69](https://github.com/marcopeg/hal/commit/9397f691de39d118cb6f2845b7e68c31bac9424d))
+* repair broken sessions for Copilot and Codex ([5eb9b57](https://github.com/marcopeg/hal/commit/5eb9b57d671117e5c449f512653dc5dbf8da78aa))
+
 ## [1.1.0](https://github.com/marcopeg/hal/compare/v1.0.35...v1.1.0) (2026-03-07)
 
 ### Features
