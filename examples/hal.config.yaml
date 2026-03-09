@@ -2,8 +2,10 @@ providers:
   claude: null
   codex: null
   opencode: null
+  antigravity: null
   copilot:
     - name: gpt-5-mini
+      default: true
     - name: gpt-5.2
     - name: gpt-5.1-codex-mini
     - name: gpt-5.3-codex
@@ -58,6 +60,13 @@ projects:
       name: antigravity
     telegram:
       botToken: ${HAL_ANTIGRAVITY_TELEGRAM_TOKEN}
+  cursor:
+    active: true
+    cwd: ./cursor
+    engine:
+      name: cursor
+    telegram:
+      botToken: ${HAL_CURSOR_TELEGRAM_TOKEN}
 
 
 
