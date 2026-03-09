@@ -8,12 +8,12 @@ The commands in the menu should be sorted:
 - Hal commands
 
 ## In Progress
-- [058 — Fix broken session continuity across adapters](./058.fix-broken-sessions-for-copilot-and-codex.md) | [plan](./058.fix-broken-sessions-for-copilot-and-codex.plan.md)
 
 ## Ready Tasks
 - [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
 - [046 — Codex log streaming](./ready/046.codex-log-streaming.md) | [plan](./ready/046.codex-log-streaming.plan.md)
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
+- [059 — CLI env file sourcing](./ready/059.cli-env-file-sourcing.md) | [plan](./ready/059.cli-env-file-sourcing.plan.md)
 
 
 ## Drafts
@@ -75,3 +75,4 @@ The commands in the menu should be sorted:
 - [045 — Interactive setup wizard](./completed/045.setup-wizard.md) | [plan](./completed/045.setup-wizard.plan.md)
 - [055 — NPM commands wrapper](./completed/055.npm-commands-wrapper.md) | [plan](./completed/055.npm-commands-wrapper.plan.md)
 - [057 — Status/info command with feature flags](./completed/057.status-info-command.md) | [plan](./completed/057.status-info-command.plan.md)
+- [058 — Fix broken session continuity across adapters](./completed/058.fix-broken-sessions-for-copilot-and-codex.md) | [plan](./completed/058.fix-broken-sessions-for-copilot-and-codex.plan.md)
