@@ -11,22 +11,23 @@ The commands in the menu should be sorted:
 
 
 ## Ready Tasks
-- [022 — Default engine auto-detection](./ready/022.default-engine.md) | [plan](./ready/022.default-engine.plan.md)
 - [046 — Codex log streaming](./ready/046.codex-log-streaming.md) | [plan](./ready/046.codex-log-streaming.plan.md)
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
+- [062 — Wizard env file precedence when both .env and .env.local exist](./ready/062.wizard-env-file-precedence.md) | [plan](./ready/062.wizard-env-file-precedence.plan.md)
+- [032a — Core scheduler + system-level crons](./ready/032a.core-scheduler-and-system-crons.md) | [plan](./ready/032a.core-scheduler-and-system-crons.plan.md)
 
 
 ## Drafts
 
+- [032 — Cron jobs and scheduled actions](./drafts/032.cron-jobs-and-scheduled-actions.md) (parent)
+  - [032b — Project-level crons + logging refinement](./drafts/032b.project-crons-and-logging.md)
+  - [032c — User-level crons + slash commands](./drafts/032c.user-crons-and-slash-commands.md)
+- [034 — Codex session ID investigation and user isolation](./drafts/034.codex-session-id-investigation-and-user-isolation.md)
+- [061 — Copilot JSONL output + engine minimum version checks](./drafts/061.copilot-jsonl-output.md)
 - [007 — Python commands + venv support](./drafts/007.python.md)
 - [014 — Multi-thread project isolation](./drafts/014.multi-thread.md)
 - [031 — Reset model with duration and cron scheduling](./drafts/031.reset-model-with-duration-and-cron.md)
-- [032 — Cron jobs and scheduled actions](./drafts/032.cron-jobs-and-scheduled-actions.md) (parent)
-  - [032a — Core scheduler + system-level crons](./drafts/032a.core-scheduler-and-system-crons.md)
-  - [032b — Project-level crons + logging refinement](./drafts/032b.project-crons-and-logging.md)
-  - [032c — User-level crons + slash commands](./drafts/032c.user-crons-and-slash-commands.md)
 - [033 — Expose project as MCP server](./drafts/033.expose-project-as-mcp-server.md)
-- [034 — Codex session ID investigation and user isolation](./drafts/034.codex-session-id-investigation-and-user-isolation.md)
 - [042 — Users map](./drafts/042.users-map.md)
 - [047 — OpenCode log streaming](./drafts/047.opencode-log-streaming.md)
 - [048 — Cursor log streaming](./drafts/048.cursor-log-streaming.md)
@@ -34,8 +35,7 @@ The commands in the menu should be sorted:
 - [050 — Copilot log streaming](./drafts/050.copilot-log-streaming.md)
 - [056 — Debounce messages](./drafts/056.debounce-messages.md)
 - [060 — Stale session empty-response recovery](./drafts/060.stale-session-empty-response-recovery.md)
-- [061 — Copilot JSONL output + engine minimum version checks](./drafts/061.copilot-jsonl-output.md)
-- [062 — Wizard env file precedence when both .env and .env.local exist](./drafts/062.wizard-env-file-precedence.md)
+- [063 — Shared engine progress fallback](./drafts/063.engine-progress-fallback.md)
 
 ## Completed
 
@@ -59,6 +59,7 @@ The commands in the menu should be sorted:
 - [026 — Add Google Antigravity Engine](./completed/026.antigravity-engine.md) | [plan](./completed/026.antigravity-engine.plan.md)
 - [023 — Sort commands in /help and Telegram UI](./completed/023.sort-commands.md) | [plan](./completed/023.sort-commands.plan.md)
 - [021 — Switch model command](./completed/021.switch-model.md) | [plan](./completed/021.switch-model.plan.md)
+- [022 — Default engine auto-detection](./completed/022.default-engine.md) | [plan](./completed/022.default-engine.plan.md)
 - [035 — Access list safe defaults and overrides](./completed/035.access-list-safe-defaults-and-overrides.md) | [plan](./completed/035.access-list-safe-defaults-and-overrides.plan.md)
 - [036 — Allowed user IDs: env substitution and numeric validation](./completed/036.allowed-user-ids-env-substitution-and-validation.md) | [plan](./completed/036.allowed-user-ids-env-substitution-and-validation.plan.md)
 - [027 — YAML config support](./completed/027.yaml-config-support.md) | [plan](./completed/027.yaml-config-support.plan.md)
