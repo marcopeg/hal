@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.0](https://github.com/marcopeg/hal/compare/v1.1.1...v1.2.0) (2026-03-10)
+
+### Features
+
+* 32a honor "enabled" flag and docs sub second and one shot ([60ce38b](https://github.com/marcopeg/hal/commit/60ce38ba5d8f6c991e937f13b666084a62921a41))
+* 32a improve logging ([9cde361](https://github.com/marcopeg/hal/commit/9cde36122eb9585fa43c7d06476e8b9cbd979732))
+* 32a single shot ([198541a](https://github.com/marcopeg/hal/commit/198541ae5da834f14fc6e09907919e2ac9e0dc82))
+* 32a system cron job ([c5819f6](https://github.com/marcopeg/hal/commit/c5819f61899fe9fd5535435d9fa6ade3a19b995f))
+
 ## [1.1.1](https://github.com/marcopeg/hal/compare/v1.1.0...v1.1.1) (2026-03-09)
 
 ### Features
