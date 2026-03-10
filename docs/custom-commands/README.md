@@ -44,7 +44,7 @@ The fully-resolved context that would be sent to the AI for this message — ide
 |-----------|-------------|
 | `bot.*` | `bot.userId`, `bot.username`, `bot.firstName`, `bot.chatId`, `bot.messageId`, `bot.timestamp`, `bot.datetime`, `bot.messageType` |
 | `sys.*` | `sys.date`, `sys.time`, `sys.datetime`, `sys.ts`, `sys.tz` |
-| `project.*` | `project.name`, `project.cwd`, `project.slug` |
+| `project.*` | `project.name`, `project.cwd`, `project.slug` (legacy) |
 | `engine.*` | `engine.name`, `engine.command`, `engine.model` (if set), `engine.defaultModel` (if HAL default applied) |
 | custom | Any keys defined in `context` config blocks, after `${}` / `#{}` / `@{}` substitution and context hook transforms |
 
@@ -128,7 +128,7 @@ The project-level context object. Useful fields:
 | Field | Type | Description |
 |-------|------|-------------|
 | `projectCtx.config.name` | `string \| undefined` | Project name from config |
-| `projectCtx.config.slug` | `string` | Internal slug (used for log/data paths) |
+| `projectCtx.config.slug` | `string` | Project key (legacy field name: `slug`, used for log/data paths) |
 | `projectCtx.config.cwd` | `string` | Absolute path to the project directory |
 | `projectCtx.config.configDir` | `string` | Absolute path to the directory containing the config file (e.g. `hal.config.yaml`) |
 | `projectCtx.config.dataDir` | `string` | Absolute path to user data storage root |

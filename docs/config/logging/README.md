@@ -34,7 +34,7 @@ Here **backend** overrides the global default and enables log persistence for th
 When `logging.persist` is `true` (globally or for a project), logs are written to:
 
 ```
-{config-dir}/.hal/logs/{project-slug}/YYYY-MM-DD.txt
+{config-dir}/.hal/logs/{project-key}/YYYY-MM-DD.txt
 ```
 
 Files are created daily. The directory structure is described in [Configuration](../README.md#directory-structure).

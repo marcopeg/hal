@@ -98,8 +98,8 @@ providers: {}
 context: {}
 # Example: { "IMPLICIT_KEY": "value", "CUSTOM": "{{projectCwd}}" }
 
-# ─── Top-level: projects (map keyed by slug) ──────────────────────────────────
-# Each key = project slug; name/cwd default to key. See projects table in README.
+# ─── Top-level: projects (map keyed by project key) ───────────────────────────
+# Each key = project key (legacy internal name: slug); name/cwd default to key. See projects table in README.
 
 projects:
   my-project:

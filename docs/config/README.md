@@ -225,7 +225,7 @@ This validation runs at both initial boot and after config hot-reload. A reload 
 
 ## projects (map)
 
-`projects` is an object (map) keyed by **project key**. Each key identifies one project and one Telegram bot connected to one directory. The key is the project’s **slug** (used in logs, data paths, and errors).
+`projects` is an object (map) keyed by **project key**. Each key identifies one project and one Telegram bot connected to one directory. This key is used in logs, data paths, and errors (legacy internal name: `slug`).
 
 **Key format:** Only letters, numbers, dashes, and underscores (`[a-zA-Z0-9_-]+`). This keeps the default `cwd` safe as a path segment when omitted.
 
@@ -255,16 +255,16 @@ This validation runs at both initial boot and after config hot-reload. A reload 
 | `context` | No | Per-project context overrides (see [Context](context/README.md)) |
 | `commands` | No | Toggle and configure built-in commands (see [Commands](commands/README.md)) |
 
-## Project slug
+## Project key (legacy: slug)
 
-The slug is used as a folder name for log and data paths. It is always the **project key** (the key in the `projects` map). It is not derived from `name` or `cwd`; the map key is the single source of identity.
+The project key (the key in the `projects` map) is the single source of identity and is used in log/data paths. It is not derived from `name` or `cwd`. You may still see this key referred to as `slug` in code and internal fields — treat `slug` as legacy naming.
 
 ## dataDir values
 
 | Value | Resolved Path |
 |-------|---------------|
 | _(empty)_ | `{project-cwd}/.hal/users` |
-| `~` | `{config-dir}/.hal/{slug}/data` |
+| `~` | `{config-dir}/.hal/{project-key}/data` |
 | Relative path (e.g. `.mydata`) | `{project-cwd}/{value}` |
 | Absolute path | Used as-is |
 

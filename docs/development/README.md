@@ -17,7 +17,7 @@ pnpm install
 pnpm start
 ```
 
-The `start` script runs the bot with `--cwd examples`, so HAL uses the config and env from the `examples/` folder. You must create your own env file there before it will work.
+The `start` script runs the bot with `--config-dir examples`, so HAL uses the config and env from the `examples/` folder. You must create your own env file there before it will work.
 
 ## Examples folder and `.env`
 

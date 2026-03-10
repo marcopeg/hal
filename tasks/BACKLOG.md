@@ -34,6 +34,8 @@ The commands in the menu should be sorted:
 - [050 — Copilot log streaming](./drafts/050.copilot-log-streaming.md)
 - [056 — Debounce messages](./drafts/056.debounce-messages.md)
 - [060 — Stale session empty-response recovery](./drafts/060.stale-session-empty-response-recovery.md)
+- [061 — Copilot JSONL output + engine minimum version checks](./drafts/061.copilot-jsonl-output.md)
+- [062 — Wizard env file precedence when both .env and .env.local exist](./drafts/062.wizard-env-file-precedence.md)
 
 ## Completed
 

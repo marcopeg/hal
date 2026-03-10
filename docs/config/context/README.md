@@ -18,9 +18,9 @@ These keys are injected for every message, even without any `context` configurat
 | `bot.firstName` | Sender's first name |
 | `bot.chatId` | Chat ID |
 | `bot.messageType` | `text` / `photo` / `document` / `voice` |
-| `project.name` | Project name (falls back to internal slug if not set) |
+| `project.name` | Project name (falls back to project key if not set) |
 | `project.cwd` | Resolved absolute project working directory |
-| `project.slug` | Project slug (full path with `/` → `-`) |
+| `project.slug` | Legacy key: path-derived slug from project cwd (`/` → `-`); slated to be removed or replaced by the project key |
 | `sys.datetime` | Current local datetime with timezone |
 | `sys.date` | Current date, `YYYY-MM-DD` |
 | `sys.time` | Current time, `HH:MM:SS` |
@@ -30,6 +30,8 @@ These keys are injected for every message, even without any `context` configurat
 | `engine.command` | CLI command used to invoke the engine |
 | `engine.model` | AI model from config (only present when explicitly set) |
 | `engine.defaultModel` | HAL default model applied (only present when `engine.model` is omitted; see [Model defaults](../../engines/README.md#model-defaults)) |
+
+Note: `project.slug` is legacy and should not be relied upon for stable identity.
 
 ## Custom context via config
 
