@@ -19,6 +19,7 @@ import {
 } from "./config.js";
 import { startConfigWatcher } from "./config-watcher.js";
 import { evaluateBootTimeShells } from "./context/resolver.js";
+import { type CronHandle, startSystemCrons } from "./crons/index.js";
 import { getDefaultEngineModel } from "./default-models.js";
 import { getAvailableEnginesFromCli } from "./engine/cli-available.js";
 import { getEngine } from "./engine/index.js";
@@ -385,6 +386,7 @@ async function runInit(
  */
 interface RunResult {
   botHandles: BotHandle[];
+  cronHandle: CronHandle;
 }
 
 function supportsAnsiColor(
@@ -522,7 +524,28 @@ async function runBotsForConfig(
 
   const botHandles = await Promise.all(contexts.map((ctx) => startBot(ctx)));
   startupLogger.info({ count: botHandles.length }, "All bots running");
-  return { botHandles };
+
+  // Build the project map for the cron runtime (slug → { projectCtx, bot })
+  const cronProjects: Record<
+    string,
+    { projectCtx: ProjectContext; bot: BotHandle["bot"] }
+  > = {};
+  for (let i = 0; i < contexts.length; i++) {
+    const ctx = contexts[i];
+    cronProjects[ctx.config.slug] = {
+      projectCtx: ctx,
+      bot: botHandles[i].bot,
+    };
+  }
+
+  const cronHandle = await startSystemCrons({
+    configDir,
+    multiConfig: multiConfig as Record<string, unknown>,
+    projects: cronProjects,
+    logger: startupLogger,
+  });
+
+  return { botHandles, cronHandle };
 }
 
 const STARTUP_BANNER_DELAY_MS = 500;
@@ -652,11 +675,14 @@ async function runStart(
     printConfigError(err);
   }
 
-  // Single source of truth for current bot handles. Reload and shutdown use this.
+  // Single source of truth for current bot handles and cron handle.
   // Startup: config or bot failure still exits the process (no resilient behaviour).
   // Reload: on failure we set botHandles to [] (degraded), keep watcher running;
   // next config file change triggers another reload; fix and save → auto-recover.
-  const state: { botHandles: RunResult["botHandles"] } = { botHandles: [] };
+  const state: {
+    botHandles: RunResult["botHandles"];
+    cronHandle: CronHandle | null;
+  } = { botHandles: [], cronHandle: null };
 
   let runResult: RunResult;
   try {
@@ -669,6 +695,7 @@ async function runStart(
     process.exit(1);
   }
   state.botHandles = runResult.botHandles;
+  state.cronHandle = runResult.cronHandle;
 
   let reloading = false;
   const watcherExtraPaths =
@@ -693,6 +720,8 @@ async function runStart(
         );
         startupLogger.info("Config change detected");
         const hadBots = state.botHandles.length > 0;
+        await state.cronHandle?.stop().catch(() => {});
+        state.cronHandle = null;
         await Promise.all(
           state.botHandles.map((h) => h.stop().catch(() => {})),
         );
@@ -708,6 +737,7 @@ async function runStart(
             startupLogger,
           );
           state.botHandles = nextResult.botHandles;
+          state.cronHandle = nextResult.cronHandle;
           if (wasDegraded) {
             startupLogger.info("Exiting degraded state; all bots running");
           }
@@ -719,6 +749,7 @@ async function runStart(
             "Reload failed; in degraded state, waiting for corrected config",
           );
           state.botHandles = [];
+          state.cronHandle = null;
         }
       } finally {
         reloading = false;
@@ -730,6 +761,7 @@ async function runStart(
   async function shutdown(signal: string): Promise<void> {
     startupLogger.info({ signal }, "Received shutdown signal");
     await configWatcher.stop();
+    await state.cronHandle?.stop().catch(() => {});
     await Promise.all(state.botHandles.map((h) => h.stop().catch(() => {})));
     if (state.botHandles.length > 0) startupLogger.info("All bots stopped");
     process.exit(0);

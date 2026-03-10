@@ -43,6 +43,8 @@ import type { ProjectContext } from "./types.js";
 
 export interface BotHandle {
   stop: () => Promise<void>;
+  /** The Grammy Bot instance for this project. Used by the cron scheduler to send messages. */
+  bot: Bot;
 }
 
 /**
@@ -237,6 +239,7 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
   );
 
   return {
+    bot,
     stop: async () => {
       await watcher.stop();
       clearAllPrompts();

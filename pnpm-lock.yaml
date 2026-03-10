@@ -14,6 +14,9 @@ importers:
       chokidar:
         specifier: ^5.0.0
         version: 5.0.0
+      croner:
+        specifier: ^10.0.1
+        version: 10.0.1
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
@@ -678,6 +681,10 @@ packages:
     resolution: {integrity: sha512-lqIdmw330QdMBgfL0e6+6q5OMKyIpy4OZNmepit6FS3GldhkG+70drZjuZ0A5NFpze5j85dlYs3GabQXl6sMHw==}
     engines: {node: '>=18'}
     hasBin: true
+
+  croner@10.0.1:
+    resolution: {integrity: sha512-ixNtAJndqh173VQ4KodSdJEI6nuioBWI0V1ITNKhZZsO0pEMoDxz539T4FTTbSZ/xIOSuDnzxLVRqBVSvPNE2g==}
+    engines: {node: '>=18.0'}
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
@@ -1987,6 +1994,8 @@ snapshots:
       conventional-commits-filter: 5.0.0
       conventional-commits-parser: 6.3.0
       meow: 13.2.0
+
+  croner@10.0.1: {}
 
   cross-spawn@7.0.6:
     dependencies:

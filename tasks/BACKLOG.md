@@ -9,12 +9,12 @@ The commands in the menu should be sorted:
 
 ## In Progress
 
+- [032a — Core scheduler + system-level crons](./032a.core-scheduler-and-system-crons.md) | [plan](./032a.core-scheduler-and-system-crons.plan.md)
 
 ## Ready Tasks
 - [046 — Codex log streaming](./ready/046.codex-log-streaming.md) | [plan](./ready/046.codex-log-streaming.plan.md)
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 - [062 — Wizard env file precedence when both .env and .env.local exist](./ready/062.wizard-env-file-precedence.md) | [plan](./ready/062.wizard-env-file-precedence.plan.md)
-- [032a — Core scheduler + system-level crons](./ready/032a.core-scheduler-and-system-crons.md) | [plan](./ready/032a.core-scheduler-and-system-crons.plan.md)
 
 
 ## Drafts

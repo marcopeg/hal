@@ -74,6 +74,7 @@
   "dependencies": {
     "@clack/prompts": "^1.1.0",
     "chokidar": "^5.0.0",
+    "croner": "^10.0.1",
     "dotenv": "^17.2.3",
     "grammy": "^1.39.2",
     "nodejs-whisper": "^0.2.9",
