@@ -44,6 +44,7 @@ export async function startSystemCrons(
     internalProjectCtxs,
     configDir,
     logger,
+    "system",
   );
   scheduler.load(definitions);
 

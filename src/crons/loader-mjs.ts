@@ -26,14 +26,13 @@ export async function loadMjsCron(
     );
   }
 
-  const nameFromFile = basename(filePath, ".mjs");
-
   return {
     type: "mjs",
-    name: typeof mod.name === "string" ? mod.name : nameFromFile,
+    name: basename(filePath, ".mjs"),
     sourceFile: filePath,
     schedule: typeof mod.schedule === "string" ? mod.schedule : undefined,
     runAt: mod.runAt ? new Date(mod.runAt as string) : undefined,
+    enabled: mod.enabled === true,
     handler: mod.handler as (ctx: CronContext) => Promise<void>,
   };
 }

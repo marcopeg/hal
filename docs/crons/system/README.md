@@ -22,13 +22,14 @@ A `.md` cron sends a prompt to a project's AI engine on schedule. The YAML front
 
 | Field      | Type    | Required | Default | Description |
 |------------|---------|----------|---------|-------------|
-| `name`     | string  | No       | filename (without `.md`) | Display name used in logs and error messages |
-| `enabled`  | boolean | No       | `true` | Set to `false` to disable without deleting the file |
+| `enabled`  | boolean | **Yes**  | `false` | Must be `true` for the job to be scheduled. Omitting it (or setting `false`) silently skips the job. |
 | `schedule` | string  | One of   | —       | Cron expression for recurring jobs (e.g. `"0 9 * * *"`) |
 | `runAt`    | string  | One of   | —       | ISO 8601 datetime for a one-off job (e.g. `"2026-06-01T09:00:00Z"`) |
 | `targets`  | array   | Yes      | —       | One or more target projects (at least one entry required) |
 
 **`schedule` and `runAt` are mutually exclusive.** Exactly one must be set.
+
+> **`enabled` defaults to `false`.** A cron file without `enabled: true` is loaded and validated but never scheduled. This makes it safe to commit draft crons to version control without them firing.
 
 ### Target object reference
 
@@ -50,7 +51,7 @@ Runs every day at 09:00 UTC and sends the agent's response to a Telegram user.
 
 ```markdown
 ---
-name: daily-git-summary
+enabled: true
 schedule: "0 9 * * *"
 targets:
   - projectId: my-project
@@ -67,7 +68,7 @@ Runs once at the specified time and sends a DM. After firing, editing `runAt` to
 
 ```markdown
 ---
-name: deploy-reminder
+enabled: true
 runAt: "2026-06-01T08:00:00Z"
 targets:
   - projectId: my-project
@@ -84,7 +85,7 @@ The same prompt runs on multiple projects. Each target is evaluated independentl
 
 ```markdown
 ---
-name: weekly-health-check
+enabled: true
 schedule: "0 10 * * 1"
 targets:
   - projectId: backend
@@ -104,7 +105,7 @@ No `flowResult` — the agent runs and the output is written to the execution lo
 
 ```markdown
 ---
-name: nightly-cleanup
+enabled: true
 schedule: "0 2 * * *"
 targets:
   - projectId: my-project
@@ -121,14 +122,16 @@ A `.mjs` cron is an ES module that exports a scheduling declaration and a handle
 
 ### Export reference
 
-| Export     | Type     | Required | Description |
-|------------|----------|----------|-------------|
-| `schedule` | string   | One of   | Cron expression for recurring jobs |
-| `runAt`    | string   | One of   | ISO 8601 datetime for a one-off job |
-| `handler`  | function | Yes      | Async function called on each tick: `async (ctx) => void` |
-| `name`     | string   | No       | Display name; defaults to filename without `.mjs` |
+| Export     | Type     | Required | Default | Description |
+|------------|----------|----------|---------|-------------|
+| `enabled`  | boolean  | **Yes**  | `false` | Must be `true` for the job to be scheduled. Omitting it silently skips the job. |
+| `schedule` | string   | One of   | —       | Cron expression for recurring jobs |
+| `runAt`    | string   | One of   | —       | ISO 8601 datetime for a one-off job |
+| `handler`  | function | Yes      | —       | Async function called on each tick: `async (ctx) => void` |
 
 **`schedule` and `runAt` are mutually exclusive.** Exactly one must be exported.
+
+> **`enabled` defaults to `false`.** A `.mjs` file without `export const enabled = true` is loaded and validated but never scheduled.
 
 ### `CronContext` reference
 
@@ -159,7 +162,7 @@ await bot.api.sendMessage(userId, "Hello from a scheduled task!");
 
 ```js
 // .hal/crons/health-check.mjs
-export const name = "health-check";
+export const enabled = true;
 export const schedule = "*/15 * * * *";
 
 export async function handler(ctx) {
@@ -187,7 +190,7 @@ Runs once at the specified time. After it fires, updating `runAt` and saving the
 
 ```js
 // .hal/crons/migrate-schema.mjs
-export const name = "migrate-schema";
+export const enabled = true;
 export const runAt = "2026-06-15T02:00:00Z";
 
 export async function handler(ctx) {
@@ -214,7 +217,7 @@ Iterates over multiple projects and sends a combined report.
 
 ```js
 // .hal/crons/daily-status.mjs
-export const name = "daily-status";
+export const enabled = true;
 export const schedule = "0 8 * * 1-5"; // weekdays at 08:00
 
 const PROJECTS = ["backend", "frontend", "infra"];
@@ -248,29 +251,34 @@ export async function handler(ctx) {
 
 ### Cron expressions (`schedule`)
 
-HAL uses [croner](https://github.com/hexagon/croner) for cron expression parsing.
+HAL uses [croner](https://github.com/hexagon/croner) for cron expression parsing. Full croner documentation is available at [github.com/hexagon/croner](https://github.com/hexagon/croner).
+
+Croner supports both standard 5-field and extended 6-field expressions. The optional leading field adds **seconds** precision, enabling sub-minute scheduling:
 
 ```
-┌─────────── second (0-59)      [optional]
-│ ┌───────── minute (0-59)
-│ │ ┌─────── hour (0-23)
-│ │ │ ┌───── day of month (1-31)
-│ │ │ │ ┌─── month (1-12 or JAN-DEC)
-│ │ │ │ │ ┌─ day of week (0-7 or SUN-SAT, 0 and 7 are Sunday)
+┌──────────────── second (0-59)      [optional — omit for standard 5-field syntax]
+│ ┌────────────── minute (0-59)
+│ │ ┌──────────── hour (0-23)
+│ │ │ ┌────────── day of month (1-31)
+│ │ │ │ ┌──────── month (1-12 or JAN-DEC)
+│ │ │ │ │ ┌────── day of week (0-7 or SUN-SAT, 0 and 7 are Sunday)
 │ │ │ │ │ │
-* * * * * *
+* * * * * *   ← 6-field (with seconds)
+  * * * * *   ← 5-field (standard, minute precision)
 ```
 
 Common examples:
 
-| Expression      | Meaning                          |
-|-----------------|----------------------------------|
-| `"0 9 * * *"`   | Every day at 09:00               |
-| `"0 9 * * 1"`   | Every Monday at 09:00            |
-| `"*/15 * * * *"`| Every 15 minutes                 |
-| `"0 8 * * 1-5"` | Weekdays at 08:00                |
-| `"0 0 1 * *"`   | First day of every month at midnight |
-| `"0 2 * * 0"`   | Every Sunday at 02:00            |
+| Expression          | Meaning                                      |
+|---------------------|----------------------------------------------|
+| `"*/10 * * * * *"`  | Every 10 seconds (6-field)                   |
+| `"*/30 * * * * *"`  | Every 30 seconds (6-field)                   |
+| `"*/15 * * * *"`    | Every 15 minutes (5-field)                   |
+| `"0 9 * * *"`       | Every day at 09:00                           |
+| `"0 9 * * 1"`       | Every Monday at 09:00                        |
+| `"0 8 * * 1-5"`     | Weekdays at 08:00                            |
+| `"0 0 1 * *"`       | First day of every month at midnight         |
+| `"0 2 * * 0"`       | Every Sunday at 02:00                        |
 
 ### Absolute one-off (`runAt`)
 
@@ -286,6 +294,18 @@ runAt: "2026-06-01T09:00:00+02:00"  # CEST
 ---
 
 ## Execution logs
+
+### Log identifier
+
+Every log entry emitted by the scheduler includes a `jobId` field in the format `{scope}/{filename}`:
+
+- System crons: `system/health-check`
+- Project crons _(032b)_: `my-project/health-check`
+- User crons _(032c)_: `user/health-check`
+
+This makes it easy to filter cron activity in the log stream by scope or by job.
+
+### Log files
 
 Every job execution writes a log file to:
 

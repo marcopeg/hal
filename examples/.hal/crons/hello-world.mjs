@@ -1,5 +1,5 @@
-export const name = "hello-world";
-export const schedule = "* * * * *"; // every minute
+export const enabled = false;
+export const schedule = "*/10 * * * * *"; // every 10 seconds
 
 export async function handler(ctx) {
   console.log("CRON Hello World");

@@ -258,6 +258,110 @@ export async function resolveContext(
   return merged;
 }
 
+// ─── Cron context (no Grammy message) ───────────────────────────────────────
+
+export interface BuildCronContextVarsOptions {
+  configContext: Record<string, string> | undefined;
+  bootContext: BootContext;
+  configDir: string;
+  projectCwd: string;
+  projectName: string | undefined;
+  projectSlug: string;
+  logger: pino.Logger;
+  engineName: string;
+  engineCommand: string;
+  engineModel: string | undefined;
+  engineDefaultModel: string | undefined;
+  /** Optional Telegram user ID driving this cron target (used as bot.userId). */
+  userId?: number;
+}
+
+/**
+ * Build a context vars map for a cron execution — same pipeline as
+ * resolveContext but without a Grammy message (no bot.messageId / bot.chatId).
+ * Runs configContext merging, ${} / @{} substitution, and context hooks.
+ */
+export async function buildCronContextVars(
+  options: BuildCronContextVarsOptions,
+): Promise<Record<string, string>> {
+  const {
+    configContext,
+    bootContext,
+    configDir,
+    projectCwd,
+    projectName,
+    projectSlug,
+    logger,
+    engineName,
+    engineCommand,
+    engineModel,
+    engineDefaultModel,
+    userId,
+  } = options;
+
+  const slug = deriveProjectSlug(projectCwd);
+  const now = new Date();
+
+  const implicit: Record<string, string> = {
+    ...buildSystemContext(),
+    "project.name": projectName ?? projectSlug,
+    "project.cwd": projectCwd,
+    "project.slug": slug,
+    "engine.name": engineName,
+    "engine.command": engineCommand,
+    ...(engineModel ? { "engine.model": engineModel } : {}),
+    ...(engineDefaultModel
+      ? { "engine.defaultModel": engineDefaultModel }
+      : {}),
+    "bot.userId": userId != null ? String(userId) : "",
+    "bot.messageId": "",
+    "bot.timestamp": String(Math.floor(now.getTime() / 1000)),
+    "bot.datetime": now.toISOString(),
+    "bot.username": "",
+    "bot.firstName": "",
+    "bot.chatId": "",
+    "bot.messageType": "cron",
+  };
+
+  let merged: Record<string, string>;
+  if (configContext) {
+    merged = { ...implicit };
+    for (const [key, value] of Object.entries(configContext)) {
+      merged[key] = bootContext.shellCache[key] ?? value;
+    }
+  } else {
+    merged = { ...implicit };
+  }
+
+  for (const [key, value] of Object.entries(merged)) {
+    if (APP_VAR_RE.test(value)) {
+      APP_VAR_RE.lastIndex = 0;
+      merged[key] = resolveAppVars(value, merged);
+    }
+  }
+
+  for (const [key, value] of Object.entries(merged)) {
+    if (MSG_SHELL_RE.test(value)) {
+      MSG_SHELL_RE.lastIndex = 0;
+      merged[key] = evaluateMessageTimeShells(value, logger);
+    }
+  }
+
+  merged = await loadAndRunHook(
+    join(configDir, ".hal", "hooks", "context.mjs"),
+    merged,
+    logger,
+  );
+
+  merged = await loadAndRunHook(
+    join(projectCwd, ".hal", "hooks", "context.mjs"),
+    merged,
+    logger,
+  );
+
+  return merged;
+}
+
 // ─── Single-string substitution helper ───────────────────────────────────────
 
 /**

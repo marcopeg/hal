@@ -8,8 +8,7 @@ export const CronTargetSchema = z.object({
 
 export const MdFrontmatterSchema = z
   .object({
-    name: z.string().optional(),
-    enabled: z.boolean().default(true),
+    enabled: z.boolean().default(false),
     schedule: z.string().optional(),
     runAt: z.string().optional(),
     targets: z.array(CronTargetSchema).min(1),

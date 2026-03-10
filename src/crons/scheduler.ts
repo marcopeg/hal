@@ -19,6 +19,8 @@ export class CronScheduler {
     private readonly internalProjectCtxs: Record<string, ProjectContext>,
     private readonly logBaseDir: string,
     private readonly logger: pino.Logger,
+    /** Prefix added to jobName in all log entries, e.g. "system" or a project slug. */
+    private readonly scope: string,
   ) {}
 
   /** Load an array of definitions and schedule all eligible jobs. */
@@ -35,8 +37,10 @@ export class CronScheduler {
   add(def: CronDefinition): void {
     this.remove(def.name);
 
-    if ("enabled" in def && def.enabled === false) {
-      this.logger.debug({ jobName: def.name }, "Cron disabled — not scheduled");
+    const jobId = `${this.scope}/${def.name}`;
+
+    if (def.enabled !== true) {
+      this.logger.debug({ jobId }, "Cron not enabled — not scheduled");
       this.jobs.set(def.name, { definition: def, cronInstance: null });
       return;
     }
@@ -44,7 +48,7 @@ export class CronScheduler {
     if (def.runAt) {
       if (def.runAt <= new Date()) {
         this.logger.debug(
-          { jobName: def.name, runAt: def.runAt.toISOString() },
+          { jobId, runAt: def.runAt.toISOString() },
           "Cron runAt is in the past — skipping",
         );
         this.jobs.set(def.name, { definition: def, cronInstance: null });
@@ -55,17 +59,14 @@ export class CronScheduler {
     const pattern: string | Date = def.runAt ?? def.schedule!;
 
     const cronInstance = new Cron(pattern, { protect: true }, async () => {
-      this.logger.info({ jobName: def.name }, "Cron firing");
-      await this.execute(def);
+      this.logger.info({ jobId }, "Cron firing");
+      await this.execute(def, jobId);
       // For Date-based one-offs, croner fires once and stops automatically.
     });
 
     this.jobs.set(def.name, { definition: def, cronInstance });
     this.logger.info(
-      {
-        jobName: def.name,
-        pattern: def.runAt?.toISOString() ?? def.schedule,
-      },
+      { jobId, pattern: def.runAt?.toISOString() ?? def.schedule },
       "Cron scheduled",
     );
   }
@@ -77,6 +78,7 @@ export class CronScheduler {
       entry.cronInstance.stop();
     }
     this.jobs.delete(name);
+    this.logger.debug({ jobId: `${this.scope}/${name}` }, "Cron removed");
   }
 
   /** Replace a job with a new definition (used by file watcher on change). */
@@ -89,13 +91,13 @@ export class CronScheduler {
     for (const [name, entry] of this.jobs) {
       if (entry.cronInstance) {
         entry.cronInstance.stop();
-        this.logger.debug({ jobName: name }, "Cron stopped");
+        this.logger.debug({ jobId: `${this.scope}/${name}` }, "Cron stopped");
       }
     }
     this.jobs.clear();
   }
 
-  private async execute(def: CronDefinition): Promise<void> {
+  private async execute(def: CronDefinition, jobId: string): Promise<void> {
     try {
       if (def.type === "md") {
         await executeMdCron(
@@ -111,7 +113,7 @@ export class CronScheduler {
     } catch (err) {
       this.logger.error(
         {
-          jobName: def.name,
+          jobId,
           error: err instanceof Error ? err.message : String(err),
         },
         "Unhandled error in cron execution",

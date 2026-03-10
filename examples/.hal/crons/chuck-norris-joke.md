@@ -1,5 +1,5 @@
 ---
-name: chuck-norris-joke
+enabled: false
 schedule: "* * * * *"
 targets:
   - projectId: claude-code

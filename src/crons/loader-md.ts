@@ -43,11 +43,9 @@ export function loadMdCron(
     }
   }
 
-  const nameFromFile = basename(filePath, ".md");
-
   return {
     type: "md",
-    name: fm.name ?? nameFromFile,
+    name: basename(filePath, ".md"),
     sourceFile: filePath,
     schedule: fm.schedule,
     runAt: fm.runAt ? new Date(fm.runAt) : undefined,

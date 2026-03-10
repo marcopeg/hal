@@ -19,7 +19,7 @@ globals:
     model: opencode/gpt-5-nano
 projects:
   copilot:
-    active: false
+    active: true
     cwd: ./copilot
     telegram:
       botToken: ${HAL_COPILOR_CODE_TELEGRAM_TOKEN}

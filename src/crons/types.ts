@@ -27,6 +27,7 @@ export interface MjsCronDefinition {
   sourceFile: string;
   schedule?: string;
   runAt?: Date;
+  enabled: boolean;
   handler: (ctx: CronContext) => Promise<void>;
 }
 

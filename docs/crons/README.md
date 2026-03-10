@@ -18,6 +18,8 @@ All tiers use the same file format. All directories are hot-reloaded via file wa
 - Project crons — _coming soon (032b)_
 - User crons and `/cron_*` slash commands — _coming soon (032c)_
 
+> **Crons are opt-in.** A job is only scheduled when `enabled: true` is explicitly set (frontmatter for `.md`, named export for `.mjs`). Omitting `enabled` or setting it to `false` loads and validates the file but never runs it — safe for committing draft crons to version control.
+
 ## File types
 
 ### `.md` — Prompt-based
@@ -26,6 +28,7 @@ Sends a prompt to a project's AI engine on schedule. Defined by YAML frontmatter
 
 ```markdown
 ---
+enabled: true
 schedule: "0 9 * * *"
 targets:
   - projectId: my-project
@@ -41,6 +44,7 @@ Check git status and summarise what changed since yesterday.
 Runs arbitrary JavaScript on schedule with full access to the Grammy Bot API. Defined by named ES module exports.
 
 ```js
+export const enabled = true;
 export const schedule = "*/15 * * * *";
 
 export async function handler(ctx) {
