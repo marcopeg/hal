@@ -31,6 +31,7 @@ The file is a Markdown document with YAML frontmatter. The body is the prompt se
 | `enabled` | boolean | no | `false` | Must be `true` to schedule. |
 | `schedule` | string | one of | — | Schedule for the job. Accepts: cron expressions (`"0 9 * * *"`), relative recurring (`"+5m"`), relative single-shot (`"!30s"`). See [scheduling reference](../scheduling/README.md). |
 | `runAt` | string | one of | — | ISO 8601 absolute datetime (one-off). |
+| `scheduleEnds` | string | no | — | Stop recurring executions after this point. Relative (`"20d"`) or ISO 8601 absolute. See [scheduling reference](../scheduling/README.md#scheduleends--expiry-for-recurring-jobs). |
 | `runAs` | number | no | — | User ID: context injected as `bot.userId` AND receives the result via DM. |
 | `notify` | number[] | no | — | Additional user IDs that receive the result via DM (no context injection). |
 
@@ -180,6 +181,7 @@ export async function handler(ctx) {
 | `enabled` | boolean | no | Defaults to `false`. Must be `true` to schedule. |
 | `schedule` | string | one of | Schedule: cron expression, `"+5m"` (relative recurring), or `"!30s"` (relative single-shot). See [scheduling reference](../scheduling/README.md). |
 | `runAt` | string | one of | ISO 8601 absolute datetime (one-off). |
+| `scheduleEnds` | string \| Date | no | Stop recurring executions after this point. Relative string (`"20d"`), ISO string, or `Date` object. |
 | `handler` | function | yes | `async (ctx: ProjectCronContext) => Promise<void>` |
 
 ### Example

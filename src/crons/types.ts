@@ -16,6 +16,8 @@ export interface MdCronDefinition {
   sourceFile: string;
   schedule?: string;
   runAt?: Date;
+  /** Absolute datetime after which the schedule stops firing. */
+  scheduleEnds?: Date;
   enabled: boolean;
   targets: CronTarget[];
   prompt: string;
@@ -29,6 +31,8 @@ export interface MjsCronDefinition {
   sourceFile: string;
   schedule?: string;
   runAt?: Date;
+  /** Absolute datetime after which the schedule stops firing. */
+  scheduleEnds?: Date;
   enabled: boolean;
   handler: (ctx: CronContext) => Promise<void>;
 }
@@ -43,6 +47,8 @@ export interface ProjectMdCronDefinition {
   sourceFile: string;
   schedule?: string;
   runAt?: Date;
+  /** Absolute datetime after which the schedule stops firing. */
+  scheduleEnds?: Date;
   enabled: boolean;
   /** User ID whose context (bot.userId) is injected into the prompt AND who receives the result. */
   runAs?: number;
@@ -59,6 +65,8 @@ export interface ProjectMjsCronDefinition {
   sourceFile: string;
   schedule?: string;
   runAt?: Date;
+  /** Absolute datetime after which the schedule stops firing. */
+  scheduleEnds?: Date;
   enabled: boolean;
   /** User ID injected as bot.userId into the context vars built for this handler. */
   runAs?: number;

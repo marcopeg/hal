@@ -166,6 +166,62 @@ export async function handler(ctx) {
 
 ---
 
+## `scheduleEnds` — expiry for recurring jobs
+
+`scheduleEnds` is an optional property that stops a recurring schedule after a given point in time. Once the deadline passes, no further executions are started. Already-running executions complete normally.
+
+Accepted values:
+
+| Value | Meaning |
+|-------|---------|
+| Relative duration (`"20d"`, `"2w"`, `"1h"`) | Deadline = now + duration, evaluated when the file is **loaded** |
+| ISO 8601 datetime (`"2026-12-31T23:59:59Z"`) | Absolute wall-clock deadline |
+
+> **Relative `scheduleEnds` is anchored to load time, not to the first execution.** `schedule: "5m"` with `scheduleEnds: "20d"` means "run every 5 minutes, stop 20 days after this file was loaded (or the process restarted)."
+
+### `.md` frontmatter
+
+```yaml
+---
+enabled: true
+schedule: "5m"
+scheduleEnds: "20d"      # stop after 20 days from load
+---
+```
+
+```yaml
+---
+enabled: true
+schedule: "0 9 * * *"
+scheduleEnds: "2026-12-31T23:59:59Z"   # stop at absolute date
+---
+```
+
+### `.mjs` export
+
+`scheduleEnds` can be exported as a string (relative or ISO) or as a `Date` object:
+
+```js
+export const enabled = true;
+export const schedule = "5m";
+export const scheduleEnds = "20d";               // relative: 20 days from load
+
+// or
+export const scheduleEnds = "2026-12-31T23:59:59Z";  // absolute ISO string
+
+// or
+export const scheduleEnds = new Date("2026-12-31T23:59:59Z");  // Date object
+```
+
+### Behaviour
+
+- `scheduleEnds` in the past at **boot or hot reload** → job is silently skipped (debug log). Not an error.
+- `scheduleEnds` reached **mid-run** → current execution completes normally; next `scheduleNext()` call sees the deadline and stops the chain.
+- **`runAt` jobs** — `scheduleEnds` is redundant (one-off by definition) but accepted without error.
+- **Hot reload**: if `scheduleEnds` is a relative value, it is re-evaluated from the moment the file is saved, effectively resetting the deadline clock.
+
+---
+
 ## Behaviour on hot reload
 
 All formats are re-evaluated when a cron file is saved:
@@ -174,8 +230,10 @@ All formats are re-evaluated when a cron file is saved:
 |--------|----------------------|
 | Cron expression | Schedule is replaced; next tick calculated from the updated expression |
 | `runAt` | If the new date is in the future, the job is re-armed |
-| `+Xs` (interval) | Timer is reset; first fire will occur `X` after the file was saved |
+| `Xs` / `+Xs` (interval) | Timer is reset; first fire will occur `X` after the file was saved |
 | `!Xs` (once) | Timer is reset; job fires once `X` after the file was saved |
+| `scheduleEnds` (relative) | Deadline is re-evaluated from save time |
+| `scheduleEnds` (absolute) | Deadline is unchanged unless the value itself is edited |
 
 ---
 
@@ -187,5 +245,6 @@ All formats are re-evaluated when a cron file is saved:
 | Neither `schedule` nor `runAt` set | Error at both boot and hot reload |
 | `enabled` absent or `false` | Loaded and validated, but not scheduled (silent debug log) |
 | `runAt` in the past | Silent skip (debug log). Not an error. |
+| `scheduleEnds` in the past | Silent skip (debug log). Not an error. |
 | Invalid cron expression | Error from croner at scheduling time — logged, job skipped |
 | `+0s` / `!0s` (zero delay) | Technically valid — fires immediately on the next event-loop tick |

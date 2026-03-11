@@ -91,6 +91,15 @@ export class CronScheduler {
       }
     }
 
+    if (def.scheduleEnds && def.scheduleEnds <= new Date()) {
+      this.logger.debug(
+        { jobId, scheduleEnds: def.scheduleEnds.toISOString() },
+        "Cron scheduleEnds is in the past — skipping",
+      );
+      this.jobs.set(def.name, { definition: def, handle: null });
+      return;
+    }
+
     // ── Relative schedule: +Xs (interval) or !Xs (once) ───────────────────────
     const rel = def.schedule ? parseRelativeSchedule(def.schedule) : null;
 
@@ -102,6 +111,13 @@ export class CronScheduler {
 
       const scheduleNext = (): void => {
         if (stopped) return;
+        if (def.scheduleEnds && def.scheduleEnds <= new Date()) {
+          this.logger.info(
+            { jobId, scheduleEnds: def.scheduleEnds.toISOString() },
+            "Cron schedule ended",
+          );
+          return;
+        }
         timeoutId = setTimeout(async () => {
           timeoutId = null;
           this.logger.info({ jobId }, "Cron firing");
@@ -124,7 +140,13 @@ export class CronScheduler {
 
       this.jobs.set(def.name, { definition: def, handle });
       this.logger.info(
-        { jobId, pattern: def.schedule, mode: rel.mode, delayMs: rel.ms },
+        {
+          jobId,
+          pattern: def.schedule,
+          mode: rel.mode,
+          delayMs: rel.ms,
+          scheduleEnds: def.scheduleEnds?.toISOString(),
+        },
         "Cron scheduled",
       );
       return;
@@ -133,18 +155,26 @@ export class CronScheduler {
     // ── Standard croner path: cron expression or runAt Date ───────────────────
     const pattern: string | Date = def.runAt ?? def.schedule!;
 
-    const cronInstance = new Cron(pattern, { protect: true }, async () => {
-      this.logger.info({ jobId }, "Cron firing");
-      await this.execute(def, jobId);
-      // For Date-based one-offs, croner fires once and stops automatically.
-    });
+    const cronInstance = new Cron(
+      pattern,
+      { protect: true, stopAt: def.scheduleEnds },
+      async () => {
+        this.logger.info({ jobId }, "Cron firing");
+        await this.execute(def, jobId);
+        // For Date-based one-offs, croner fires once and stops automatically.
+      },
+    );
 
     this.jobs.set(def.name, {
       definition: def,
       handle: { kind: "cron", instance: cronInstance },
     });
     this.logger.info(
-      { jobId, pattern: def.runAt?.toISOString() ?? def.schedule },
+      {
+        jobId,
+        pattern: def.runAt?.toISOString() ?? def.schedule,
+        scheduleEnds: def.scheduleEnds?.toISOString(),
+      },
       "Cron scheduled",
     );
   }

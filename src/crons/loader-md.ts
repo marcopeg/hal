@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { parse as parseYaml } from "yaml";
+import { resolveScheduleEnds } from "./schedule.js";
 import { MdFrontmatterSchema, ProjectMdFrontmatterSchema } from "./schema.js";
 import type { MdCronDefinition, ProjectMdCronDefinition } from "./types.js";
 import { type CronVarsContext, substituteVars } from "./vars.js";
@@ -66,6 +67,9 @@ export function loadMdCron(
     sourceFile: filePath,
     schedule: fm.schedule,
     runAt: fm.runAt ? new Date(fm.runAt) : undefined,
+    scheduleEnds: fm.scheduleEnds
+      ? resolveScheduleEnds(fm.scheduleEnds)
+      : undefined,
     enabled: fm.enabled,
     targets: fm.targets,
     prompt: body.trim(),
@@ -114,6 +118,9 @@ export function loadProjectMdCron(
     sourceFile: filePath,
     schedule: result.data.schedule,
     runAt: result.data.runAt ? new Date(result.data.runAt) : undefined,
+    scheduleEnds: result.data.scheduleEnds
+      ? resolveScheduleEnds(result.data.scheduleEnds)
+      : undefined,
     enabled: result.data.enabled,
     runAs: result.data.runAs,
     notify: result.data.notify,

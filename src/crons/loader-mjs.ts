@@ -1,10 +1,18 @@
 import { basename } from "node:path";
+import { resolveScheduleEnds } from "./schedule.js";
 import type {
   CronContext,
   MjsCronDefinition,
   ProjectCronContext,
   ProjectMjsCronDefinition,
 } from "./types.js";
+
+/** Coerce a mod.scheduleEnds export (string | Date | undefined) to a Date. */
+function readScheduleEnds(val: unknown): Date | undefined {
+  if (!val) return undefined;
+  if (val instanceof Date) return val;
+  return resolveScheduleEnds(String(val));
+}
 
 /**
  * Dynamically import a system-tier .mjs cron module and validate its exports.
@@ -38,6 +46,7 @@ export async function loadMjsCron(
     sourceFile: filePath,
     schedule: typeof mod.schedule === "string" ? mod.schedule : undefined,
     runAt: mod.runAt ? new Date(mod.runAt as string) : undefined,
+    scheduleEnds: readScheduleEnds(mod.scheduleEnds),
     enabled: mod.enabled === true,
     handler: mod.handler as (ctx: CronContext) => Promise<void>,
   };
@@ -80,6 +89,7 @@ export async function loadProjectMjsCron(
     sourceFile: filePath,
     schedule: typeof mod.schedule === "string" ? mod.schedule : undefined,
     runAt: mod.runAt ? new Date(mod.runAt as string) : undefined,
+    scheduleEnds: readScheduleEnds(mod.scheduleEnds),
     enabled: mod.enabled === true,
     runAs: runAs !== undefined && !isNaN(runAs) ? runAs : undefined,
     handler: mod.handler as (ctx: ProjectCronContext) => Promise<void>,

@@ -27,6 +27,7 @@ The **filename** (without extension) is the job name. There is no `name` field.
 | `enabled`  | boolean | **Yes**  | `false` | Must be `true` for the job to be scheduled. Omitting it (or setting `false`) silently skips the job. |
 | `schedule` | string  | One of   | —       | Schedule for the job. Accepts: cron expressions (`"0 9 * * *"`), relative recurring (`"+5m"`), relative single-shot (`"!30s"`). See [scheduling reference](../scheduling/README.md). |
 | `runAt`    | string  | One of   | —       | ISO 8601 datetime for a one-off job (e.g. `"2026-06-01T09:00:00Z"`) |
+| `scheduleEnds` | string | No  | —       | Stop recurring executions after this point. Relative (`"20d"`) or ISO 8601 absolute. See [scheduling reference](../scheduling/README.md#scheduleends--expiry-for-recurring-jobs). |
 | `targets`  | array   | Yes      | —       | One or more target projects (at least one entry required) |
 
 **`schedule` and `runAt` are mutually exclusive.** Exactly one must be set.
@@ -145,6 +146,7 @@ The **filename** (without extension) is the job name. There is no `name` export.
 | `enabled`  | boolean  | **Yes**  | `false` | Must be `true` for the job to be scheduled. Omitting it silently skips the job. |
 | `schedule` | string   | One of   | —       | Schedule: cron expression, `"+5m"` (relative recurring), or `"!30s"` (relative single-shot). See [scheduling reference](../scheduling/README.md). |
 | `runAt`    | string   | One of   | —       | ISO 8601 datetime for a one-off job |
+| `scheduleEnds` | string \| Date | No | — | Stop recurring executions after this point. Relative string (`"20d"`), ISO string, or `Date` object. |
 | `handler`  | function | Yes      | —       | Async function called on each tick: `async (ctx) => void` |
 
 **`schedule` and `runAt` are mutually exclusive.** Exactly one must be exported.

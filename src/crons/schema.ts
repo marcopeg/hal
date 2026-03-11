@@ -13,6 +13,7 @@ export const MdFrontmatterSchema = z
     enabled: z.boolean().default(false),
     schedule: z.string().optional(),
     runAt: z.string().optional(),
+    scheduleEnds: z.string().optional(),
     targets: z.array(CronTargetSchema).min(1),
   })
   .refine((data) => !!(data.schedule || data.runAt), {
@@ -31,6 +32,7 @@ export const ProjectMdFrontmatterSchema = z
     enabled: z.boolean().default(false),
     schedule: z.string().optional(),
     runAt: z.string().optional(),
+    scheduleEnds: z.string().optional(),
     /** User ID for context injection AND primary DM recipient. Coerced — accepts "123" or 123. */
     runAs: z.coerce.number().int().optional(),
     /** Additional DM recipients (no context injection). Coerced — accepts string or number. */

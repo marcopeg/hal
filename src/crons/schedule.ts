@@ -36,7 +36,7 @@ const UNIT_MS: Record<string, number> = {
 };
 
 /**
- * Parse a relative schedule expression (`+Xs` / `!Xs`).
+ * Parse a relative schedule expression (`+Xs` / `!Xs` / bare `Xs`).
  * Returns `null` if the string is not a relative expression — caller should
  * treat it as a standard cron expression or pass it to croner.
  */
@@ -46,4 +46,28 @@ export function parseRelativeSchedule(expr: string): RelativeSchedule | null {
   const [, prefix, amount, unit] = match;
   const ms = Math.round(parseFloat(amount) * UNIT_MS[unit.toLowerCase()]);
   return { mode: prefix === "!" ? "once" : "interval", ms };
+}
+
+/**
+ * Parse a duration string (`Xs`, `+Xs` — no `!` mode) and return milliseconds,
+ * or `null` if the string is not a recognised duration format.
+ * Used for `scheduleEnds` resolution.
+ */
+export function parseDuration(expr: string): number | null {
+  const match = expr.match(/^[+]?(\d+(?:\.\d+)?)(s|m|h|d|w)$/i);
+  if (!match) return null;
+  const [, amount, unit] = match;
+  return Math.round(parseFloat(amount) * UNIT_MS[unit.toLowerCase()]);
+}
+
+/**
+ * Resolve a `scheduleEnds` value to a concrete Date.
+ * Accepts:
+ *   - A relative duration string (`"20d"`, `"2w"`, `"+1h"`) → now + duration
+ *   - An ISO 8601 datetime string                           → parsed as-is
+ */
+export function resolveScheduleEnds(val: string): Date {
+  const ms = parseDuration(val);
+  if (ms !== null) return new Date(Date.now() + ms);
+  return new Date(val);
 }
