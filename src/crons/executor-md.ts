@@ -1,3 +1,4 @@
+import type { Bot } from "grammy";
 import type pino from "pino";
 import { createAgent } from "../agent/index.js";
 import {
@@ -8,10 +9,14 @@ import {
 import { getDefaultEngineModel } from "../default-models.js";
 import type { ProjectContext } from "../types.js";
 import { writeCronLog } from "./log.js";
-import type { CronContext, MdCronDefinition } from "./types.js";
+import type {
+  CronContext,
+  MdCronDefinition,
+  ProjectMdCronDefinition,
+} from "./types.js";
 
 /**
- * Execute a .md cron definition.
+ * Execute a system-tier .md cron definition.
  *
  * For each target: calls the project engine anonymously with the prompt body,
  * then optionally sends the result to a Telegram user if flowResult: true.
@@ -19,8 +24,7 @@ import type { CronContext, MdCronDefinition } from "./types.js";
  *
  * Context (sys.*, project.*, engine.*, bot.userId) is injected into the prompt
  * the same way as user-driven messages. bot.messageId and bot.chatId are empty
- * since there is no inbound Telegram message. userDir / session scoping is
- * deferred to 032b.
+ * since there is no inbound Telegram message.
  *
  * @param internalProjectCtxs - full ProjectContext per project slug; not exposed in CronContext
  * @param logBaseDir - base directory for execution logs (configDir for system tier)
@@ -124,4 +128,106 @@ export async function executeMdCron(
       },
     });
   }
+}
+
+/**
+ * Execute a project-tier .md cron definition.
+ *
+ * The projectId is implicit (scheduler scope). Context is built fresh on every
+ * execution to capture time-sensitive @{} values. Result is sent via DM to
+ * the runAs user (if set) and all notify users (if set). Silent if neither.
+ *
+ * @param projectCtx - full ProjectContext for this project
+ * @param bot - Grammy Bot instance for this project
+ * @param logBaseDir - configDir (centralised log base)
+ * @param scope - project slug (used as log scope)
+ */
+export async function executeMdProjectCron(
+  def: ProjectMdCronDefinition,
+  projectCtx: ProjectContext,
+  bot: Bot,
+  logBaseDir: string,
+  logger: pino.Logger,
+  scope: string,
+): Promise<void> {
+  const startedAt = new Date();
+  let output = "";
+  let error: string | undefined;
+  let contextVars: Record<string, string> | undefined;
+
+  try {
+    const { config, logger: pLogger, bootContext } = projectCtx;
+    const defaultModel = config.engineModel
+      ? undefined
+      : (getDefaultEngineModel(config.engine) ?? "engine-defaults");
+
+    contextVars = await buildCronContextVars({
+      configContext: config.context,
+      bootContext,
+      configDir: config.configDir,
+      projectCwd: config.cwd,
+      projectName: config.name,
+      projectSlug: config.slug,
+      logger: pLogger,
+      engineName: config.engine,
+      engineCommand: projectCtx.engine.command,
+      engineModel: config.engineModel,
+      engineDefaultModel: defaultModel,
+      userId: def.runAs,
+    });
+
+    const contextualPrompt = formatContextPrompt(contextVars, def.prompt);
+    const agent = createAgent(projectCtx);
+    output = await agent.call(contextualPrompt);
+
+    // Dispatch result to runAs user and all notify users
+    const recipients = [
+      ...(def.runAs != null ? [def.runAs] : []),
+      ...(def.notify ?? []),
+    ];
+    for (const userId of recipients) {
+      try {
+        await bot.api.sendMessage(userId, output);
+      } catch (sendErr) {
+        logger.warn(
+          {
+            jobName: def.name,
+            userId,
+            error: sendErr instanceof Error ? sendErr.message : String(sendErr),
+          },
+          "Cron result DM failed",
+        );
+      }
+    }
+  } catch (err) {
+    error = err instanceof Error ? err.message : String(err);
+    logger.error(
+      { jobName: def.name, error },
+      "Cron .md project execution failed",
+    );
+  }
+
+  const cfg = projectCtx.config;
+  writeCronLog(logBaseDir, {
+    jobName: def.name,
+    sourceFile: def.sourceFile,
+    scope,
+    type: def.type,
+    startedAt,
+    finishedAt: new Date(),
+    output,
+    error,
+    prompt: def.prompt,
+    context: contextVars,
+    projectId: cfg.slug,
+    projectConfig: {
+      slug: cfg.slug,
+      name: cfg.name,
+      cwd: cfg.cwd,
+      engine: cfg.engine,
+      engineModel: cfg.engineModel,
+      engineSession: cfg.engineSession,
+      context: cfg.context,
+    },
+  });
 }

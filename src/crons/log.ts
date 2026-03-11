@@ -44,7 +44,7 @@ export interface CronLogEntry {
  */
 export function writeCronLog(logBaseDir: string, entry: CronLogEntry): void {
   const scopePath =
-    entry.scope === "system" ? join("system") : join("project", entry.scope);
+    entry.scope === "system" ? join("system") : join("projects", entry.scope);
 
   const logDir = join(
     logBaseDir,

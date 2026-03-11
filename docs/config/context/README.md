@@ -61,7 +61,7 @@ Three patterns are supported in context values:
 
 | Pattern | Evaluated | Description |
 |---------|-----------|-------------|
-| `${expr}` | Per message | Looks up `expr` in implicit context (`bot.*`, `sys.*`), then env vars |
+| `${expr}` | Per message | Looks up `expr` in the full context map (implicit + configured keys), then env vars |
 | `#{cmd}` | Once at boot | Runs shell command, caches result for all messages |
 | `@{cmd}` | Per message | Runs shell command fresh for each message |
 

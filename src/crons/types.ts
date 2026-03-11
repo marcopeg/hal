@@ -8,9 +8,10 @@ export interface CronTarget {
   flowResult?: boolean;
 }
 
-/** Parsed .md cron definition. */
+/** Parsed system-tier .md cron definition. */
 export interface MdCronDefinition {
   type: "md";
+  tier: "system";
   name: string;
   sourceFile: string;
   schedule?: string;
@@ -20,9 +21,10 @@ export interface MdCronDefinition {
   prompt: string;
 }
 
-/** Parsed .mjs cron definition. */
+/** Parsed system-tier .mjs cron definition. */
 export interface MjsCronDefinition {
   type: "mjs";
+  tier: "system";
   name: string;
   sourceFile: string;
   schedule?: string;
@@ -33,7 +35,44 @@ export interface MjsCronDefinition {
 
 export type CronDefinition = MdCronDefinition | MjsCronDefinition;
 
-/** Per-project context available to .mjs cron handlers and internal executors. */
+/** Parsed project-tier .md cron definition (no targets — projectId is implicit). */
+export interface ProjectMdCronDefinition {
+  type: "md";
+  tier: "project";
+  name: string;
+  sourceFile: string;
+  schedule?: string;
+  runAt?: Date;
+  enabled: boolean;
+  /** User ID whose context (bot.userId) is injected into the prompt AND who receives the result. */
+  runAs?: number;
+  /** Additional user IDs that receive the result via DM (no context injection). */
+  notify?: number[];
+  prompt: string;
+}
+
+/** Parsed project-tier .mjs cron definition. */
+export interface ProjectMjsCronDefinition {
+  type: "mjs";
+  tier: "project";
+  name: string;
+  sourceFile: string;
+  schedule?: string;
+  runAt?: Date;
+  enabled: boolean;
+  /** User ID injected as bot.userId into the context vars built for this handler. */
+  runAs?: number;
+  handler: (ctx: ProjectCronContext) => Promise<void>;
+}
+
+export type ProjectCronDefinition =
+  | ProjectMdCronDefinition
+  | ProjectMjsCronDefinition;
+
+/** Union of system-tier and project-tier definitions — used by CronScheduler. */
+export type AnyDefinition = CronDefinition | ProjectCronDefinition;
+
+/** Per-project context available to system-tier .mjs cron handlers and internal executors. */
 export interface CronProjectContext {
   config: ResolvedProjectConfig;
   bot: Bot;
@@ -41,7 +80,7 @@ export interface CronProjectContext {
   call(prompt: string): Promise<string>;
 }
 
-/** Context object passed to .mjs handlers and used by .md executors. */
+/** Context object passed to system-tier .mjs handlers and used by .md executors. */
 export interface CronContext {
   /** Full computed HAL configuration currently in use. */
   config: Record<string, unknown>;
@@ -49,7 +88,25 @@ export interface CronContext {
   projects: Record<string, CronProjectContext>;
 }
 
-/** Handle returned by the system cron startup. */
+/**
+ * Context passed to project-tier .mjs handlers.
+ * Flat (single project), built fresh on every execution.
+ */
+export interface ProjectCronContext {
+  /** Full resolved config for this project. */
+  project: ResolvedProjectConfig;
+  /** Grammy Bot instance for this project only. */
+  bot: Bot;
+  /**
+   * Resolved context vars — same key/value map injected into .md cron prompts.
+   * Built fresh on every execution; includes time-sensitive @{} values.
+   */
+  context: Record<string, string>;
+  /** Call this project's AI engine with a prompt and return the response. */
+  call(prompt: string): Promise<string>;
+}
+
+/** Handle returned by cron startup functions. */
 export interface CronHandle {
   stop: () => Promise<void>;
 }

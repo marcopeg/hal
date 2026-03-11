@@ -371,7 +371,7 @@ Every job execution writes a log file to:
 {configDir}/.hal/logs/crons/system/{job-name}.{md|mjs}/{timestamp}.{job-name}.txt
 
 # Project crons (032b)
-{configDir}/.hal/logs/crons/project/{project-slug}/{job-name}.{md|mjs}/{timestamp}.{job-name}.txt
+{configDir}/.hal/logs/crons/projects/{project-slug}/{job-name}.{md|mjs}/{timestamp}.{job-name}.txt
 ```
 
 The folder name includes the file extension (`.md` / `.mjs`) so same-named prompt and programmatic crons never collide. For `.md` crons that target multiple projects, one file is written per target and the project ID is appended to the filename.
@@ -459,6 +459,64 @@ The system cron directory is watched for file changes. No restart is needed.
 **On validation error (hot reload):** the error is logged and the job is skipped. The process keeps running. Fix the file and save it again to retry.
 
 **On `runAt` update (past → future):** editing a one-off job's `runAt` to a future date and saving will re-arm the job automatically.
+
+---
+
+## Variable substitution in `.md` frontmatter
+
+`${VAR}` patterns in `.md` frontmatter are resolved before YAML parsing. This lets you parameterise schedules, user IDs, and project slugs without hardcoding them in cron files.
+
+### Syntax
+
+```yaml
+targets:
+  - projectId: ${DEFAULT_PROJECT}
+    userId: ${ADMIN_USER_ID}
+    flowResult: true
+schedule: "${BRIEFING_SCHEDULE}"
+```
+
+### Resolution chain (system crons)
+
+Sources are checked in order; the first match wins:
+
+| Priority | Source |
+|----------|--------|
+| 1 | `ctx` — values from `multiConfig.context` in `hal.config.*` |
+| 2 | `.env.local` — `{configDir}/.env.local` |
+| 3 | `.env` — `{configDir}/.env` |
+| 4 | `process.env` — shell environment |
+
+Env files are re-read on every hot-reload so changes to `.env.local` are picked up without a restart.
+
+### Unresolved references
+
+If a `${VAR}` key is not found in any source, the placeholder is left as-is (e.g. `${MISSING_KEY}`). This will almost certainly cause a YAML parse or Zod validation error — check the startup log for the file path and fix the missing variable.
+
+### Example
+
+`{configDir}/.env.local`:
+```
+ADMIN_USER_ID=123456789
+BRIEFING_SCHEDULE=0 9 * * *
+DEFAULT_PROJECT=my-project
+```
+
+`{configDir}/.hal/crons/daily-briefing.md`:
+```markdown
+---
+enabled: true
+schedule: "${BRIEFING_SCHEDULE}"
+targets:
+  - projectId: ${DEFAULT_PROJECT}
+    userId: ${ADMIN_USER_ID}
+    flowResult: true
+---
+
+Summarise the git log from the last 24 hours. List files changed, authors, and a one-sentence summary per commit. Keep it under 10 lines.
+```
+
+> **Note:** Variable substitution applies to `.md` frontmatter only. `.mjs` files are plain JavaScript — use `process.env.VAR_NAME` directly.
 
 ---
 

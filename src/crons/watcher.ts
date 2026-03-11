@@ -1,11 +1,24 @@
 import { mkdirSync } from "node:fs";
 import type pino from "pino";
-import { loadMdCron } from "./loader-md.js";
-import { loadMjsCron } from "./loader-mjs.js";
+import { loadMdCron, loadProjectMdCron } from "./loader-md.js";
+import { loadMjsCron, loadProjectMjsCron } from "./loader-mjs.js";
 import type { CronScheduler } from "./scheduler.js";
+import type { CronVarsContext } from "./vars.js";
 
 export interface CronWatcher {
   stop: () => Promise<void>;
+}
+
+export interface CronWatcherOptions {
+  /** "system" uses system-tier loaders; "project" uses project-tier loaders. Default: "system". */
+  tier?: "system" | "project";
+  /**
+   * When provided, ${VAR} patterns in .md frontmatter are resolved on every
+   * hot-reload using the same resolution chain as at boot time.
+   * Env files (.env.local / .env) are re-read on each reload so changes
+   * to env files are picked up without a restart.
+   */
+  vars?: CronVarsContext;
 }
 
 /**
@@ -22,7 +35,10 @@ export function startCronWatcher(
   cronDir: string,
   scheduler: CronScheduler,
   logger: pino.Logger,
+  options: CronWatcherOptions = {},
 ): CronWatcher {
+  const tier = options.tier ?? "system";
+  const vars = options.vars;
   mkdirSync(cronDir, { recursive: true });
 
   const DEBOUNCE_MS = 300;
@@ -61,9 +77,14 @@ export function startCronWatcher(
     }
 
     try {
-      const def = filePath.endsWith(".md")
-        ? loadMdCron(filePath, { strict: false })
-        : await loadMjsCron(filePath);
+      const def =
+        tier === "project"
+          ? filePath.endsWith(".md")
+            ? loadProjectMdCron(filePath, { strict: false, vars })
+            : await loadProjectMjsCron(filePath)
+          : filePath.endsWith(".md")
+            ? loadMdCron(filePath, { strict: false, vars })
+            : await loadMjsCron(filePath);
 
       if (event === "add") {
         scheduler.add(def);
@@ -105,7 +126,7 @@ export function startCronWatcher(
       });
 
       watcherInstance = watcher;
-      logger.debug({ cronDir }, "Cron file watcher started");
+      logger.debug({ cronDir, tier }, "Cron file watcher started");
     } catch (err) {
       logger.error(
         { error: err instanceof Error ? err.message : String(err) },

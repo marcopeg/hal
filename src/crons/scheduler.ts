@@ -1,30 +1,40 @@
 import { Cron } from "croner";
 import type pino from "pino";
-import type { ProjectContext } from "../types.js";
-import { executeMdCron } from "./executor-md.js";
-import { executeMjsCron } from "./executor-mjs.js";
-import type { CronContext, CronDefinition } from "./types.js";
+import type { AnyDefinition } from "./types.js";
 
 interface JobEntry {
-  definition: CronDefinition;
+  definition: AnyDefinition;
   /** null when the job was skipped (disabled or past runAt) */
   cronInstance: Cron | null;
 }
 
+/**
+ * Generic cron scheduler backed by croner.
+ *
+ * Accepts an `executeJob` callback that captures all tier-specific state in its
+ * closure. This keeps the scheduler a pure timer manager, reusable for both
+ * system-tier and project-tier crons without carrying context-specific fields.
+ *
+ * Usage:
+ *   const scheduler = new CronScheduler(
+ *     async (def) => { ... execute def ... },
+ *     logger,
+ *     "system",   // or project slug for project-tier
+ *   );
+ */
 export class CronScheduler {
   private readonly jobs = new Map<string, JobEntry>();
 
   constructor(
-    private readonly cronCtx: CronContext,
-    private readonly internalProjectCtxs: Record<string, ProjectContext>,
-    private readonly logBaseDir: string,
+    /** Called when a job fires. Closure captures all tier-specific execution state. */
+    private readonly executeJob: (def: AnyDefinition) => Promise<void>,
     private readonly logger: pino.Logger,
     /** Prefix added to jobName in all log entries, e.g. "system" or a project slug. */
     private readonly scope: string,
   ) {}
 
   /** Load an array of definitions and schedule all eligible jobs. */
-  load(definitions: CronDefinition[]): void {
+  load(definitions: AnyDefinition[]): void {
     for (const def of definitions) {
       this.add(def);
     }
@@ -34,7 +44,7 @@ export class CronScheduler {
    * Add and schedule a single job.
    * Replaces any existing job with the same name (used by hot reload on change).
    */
-  add(def: CronDefinition): void {
+  add(def: AnyDefinition): void {
     this.remove(def.name);
 
     const jobId = `${this.scope}/${def.name}`;
@@ -82,7 +92,7 @@ export class CronScheduler {
   }
 
   /** Replace a job with a new definition (used by file watcher on change). */
-  replace(def: CronDefinition): void {
+  replace(def: AnyDefinition): void {
     this.add(def);
   }
 
@@ -97,26 +107,9 @@ export class CronScheduler {
     this.jobs.clear();
   }
 
-  private async execute(def: CronDefinition, jobId: string): Promise<void> {
+  private async execute(def: AnyDefinition, jobId: string): Promise<void> {
     try {
-      if (def.type === "md") {
-        await executeMdCron(
-          def,
-          this.internalProjectCtxs,
-          this.cronCtx,
-          this.logBaseDir,
-          this.logger,
-          this.scope,
-        );
-      } else {
-        await executeMjsCron(
-          def,
-          this.cronCtx,
-          this.logBaseDir,
-          this.logger,
-          this.scope,
-        );
-      }
+      await this.executeJob(def);
     } catch (err) {
       this.logger.error(
         {

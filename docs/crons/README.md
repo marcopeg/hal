@@ -15,7 +15,7 @@ Jobs are defined as files — either prompt-based Markdown (`.md`) or programmat
 All tiers accept the same two file formats (`.md` and `.mjs`). All directories are hot-reloaded via file watchers — add, edit, or delete a file and the scheduler updates without a restart.
 
 - [System crons](./system/README.md) — global scheduled tasks, available across all projects
-- Project crons — _coming soon (032b)_
+- [Project crons](./project/README.md) — per-project scheduled tasks defined in `{projectCwd}/.hal/crons/`
 - User crons and `/cron_*` slash commands — _coming soon (032c)_
 
 > **Crons are opt-in.** A job is only scheduled when `enabled: true` is explicitly set (frontmatter for `.md`, named export for `.mjs`). Omitting `enabled` or setting it to `false` loads and validates the file but never runs it — safe for committing draft crons to version control.
@@ -63,10 +63,13 @@ Every execution is logged to disk:
 {tierRootDir}/.hal/logs/crons/{job-name}/{timestamp}.{job-name}.txt
 ```
 
-Where `tierRootDir` is:
-- **System:** `{configDir}`
-- **Project:** `{projectCwd}`
-- **User:** `{dataDir}/{userId}`
+All tiers write logs to the **centralised log directory** under `{configDir}/.hal/logs/crons/`:
+
+```
+{configDir}/.hal/logs/crons/
+  system/{name}.{type}/{timestamp}.{name}.txt
+  projects/{slug}/{name}.{type}/{timestamp}.{name}.txt
+```
 
 Log files are plain text and contain the job name, source file, start/end timestamps, full output, and exit status.
 
