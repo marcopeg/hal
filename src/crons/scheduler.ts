@@ -1,15 +1,40 @@
 import { Cron } from "croner";
 import type pino from "pino";
+import { parseRelativeSchedule } from "./schedule.js";
 import type { AnyDefinition } from "./types.js";
+
+// ─── Timer handle types ────────────────────────────────────────────────────────
+
+interface CronTimerHandle {
+  kind: "cron";
+  instance: Cron;
+}
+
+interface RelativeTimerHandle {
+  kind: "relative";
+  cleanup: () => void;
+}
+
+type TimerHandle = CronTimerHandle | RelativeTimerHandle;
+
+// ─── Internal job entry ────────────────────────────────────────────────────────
 
 interface JobEntry {
   definition: AnyDefinition;
   /** null when the job was skipped (disabled or past runAt) */
-  cronInstance: Cron | null;
+  handle: TimerHandle | null;
 }
 
+// ─── Scheduler ────────────────────────────────────────────────────────────────
+
 /**
- * Generic cron scheduler backed by croner.
+ * Generic cron scheduler.
+ *
+ * Supports three schedule formats:
+ *   - Standard cron expressions  ("0 9 * * *") via croner
+ *   - Absolute one-offs          (runAt Date)  via croner
+ *   - Relative recurring         ("+3s")       via setInterval
+ *   - Relative single-shot       ("!3s")       via setTimeout
  *
  * Accepts an `executeJob` callback that captures all tier-specific state in its
  * closure. This keeps the scheduler a pure timer manager, reusable for both
@@ -51,7 +76,7 @@ export class CronScheduler {
 
     if (def.enabled !== true) {
       this.logger.debug({ jobId }, "Cron not enabled — not scheduled");
-      this.jobs.set(def.name, { definition: def, cronInstance: null });
+      this.jobs.set(def.name, { definition: def, handle: null });
       return;
     }
 
@@ -61,11 +86,51 @@ export class CronScheduler {
           { jobId, runAt: def.runAt.toISOString() },
           "Cron runAt is in the past — skipping",
         );
-        this.jobs.set(def.name, { definition: def, cronInstance: null });
+        this.jobs.set(def.name, { definition: def, handle: null });
         return;
       }
     }
 
+    // ── Relative schedule: +Xs (interval) or !Xs (once) ───────────────────────
+    const rel = def.schedule ? parseRelativeSchedule(def.schedule) : null;
+
+    if (rel) {
+      // Chain setTimeout calls so each countdown starts only AFTER the previous
+      // execution fully completes: boot → +Xs → run → await → +Xs → run → …
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+      let stopped = false;
+
+      const scheduleNext = (): void => {
+        if (stopped) return;
+        timeoutId = setTimeout(async () => {
+          timeoutId = null;
+          this.logger.info({ jobId }, "Cron firing");
+          await this.execute(def, jobId);
+          if (rel.mode === "interval") {
+            scheduleNext();
+          }
+        }, rel.ms);
+      };
+
+      scheduleNext();
+
+      const handle: RelativeTimerHandle = {
+        kind: "relative",
+        cleanup: () => {
+          stopped = true;
+          if (timeoutId !== null) clearTimeout(timeoutId);
+        },
+      };
+
+      this.jobs.set(def.name, { definition: def, handle });
+      this.logger.info(
+        { jobId, pattern: def.schedule, mode: rel.mode, delayMs: rel.ms },
+        "Cron scheduled",
+      );
+      return;
+    }
+
+    // ── Standard croner path: cron expression or runAt Date ───────────────────
     const pattern: string | Date = def.runAt ?? def.schedule!;
 
     const cronInstance = new Cron(pattern, { protect: true }, async () => {
@@ -74,7 +139,10 @@ export class CronScheduler {
       // For Date-based one-offs, croner fires once and stops automatically.
     });
 
-    this.jobs.set(def.name, { definition: def, cronInstance });
+    this.jobs.set(def.name, {
+      definition: def,
+      handle: { kind: "cron", instance: cronInstance },
+    });
     this.logger.info(
       { jobId, pattern: def.runAt?.toISOString() ?? def.schedule },
       "Cron scheduled",
@@ -84,8 +152,8 @@ export class CronScheduler {
   /** Remove and stop a job by name. No-op if not found. */
   remove(name: string): void {
     const entry = this.jobs.get(name);
-    if (entry?.cronInstance) {
-      entry.cronInstance.stop();
+    if (entry?.handle) {
+      this.stopHandle(entry.handle);
     }
     this.jobs.delete(name);
     this.logger.debug({ jobId: `${this.scope}/${name}` }, "Cron removed");
@@ -99,12 +167,20 @@ export class CronScheduler {
   /** Stop all scheduled timers and clear the jobs map. */
   stop(): void {
     for (const [name, entry] of this.jobs) {
-      if (entry.cronInstance) {
-        entry.cronInstance.stop();
+      if (entry.handle) {
+        this.stopHandle(entry.handle);
         this.logger.debug({ jobId: `${this.scope}/${name}` }, "Cron stopped");
       }
     }
     this.jobs.clear();
+  }
+
+  private stopHandle(handle: TimerHandle): void {
+    if (handle.kind === "cron") {
+      handle.instance.stop();
+    } else {
+      handle.cleanup();
+    }
   }
 
   private async execute(def: AnyDefinition, jobId: string): Promise<void> {

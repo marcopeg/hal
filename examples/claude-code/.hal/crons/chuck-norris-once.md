@@ -1,6 +1,6 @@
 ---
-enabled: true
-schedule: "2026-03-11T13:12:00Z"
+enabled: false
+schedule: "+5s"
 runAs: "${USER_MARCO_IPHONE_ID}"
 # notify:
 #   - 789012

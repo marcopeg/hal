@@ -25,7 +25,7 @@ The **filename** (without extension) is the job name. There is no `name` field.
 | Field      | Type    | Required | Default | Description |
 |------------|---------|----------|---------|-------------|
 | `enabled`  | boolean | **Yes**  | `false` | Must be `true` for the job to be scheduled. Omitting it (or setting `false`) silently skips the job. |
-| `schedule` | string  | One of   | —       | Cron expression for recurring jobs (e.g. `"0 9 * * *"`) |
+| `schedule` | string  | One of   | —       | Schedule for the job. Accepts: cron expressions (`"0 9 * * *"`), relative recurring (`"+5m"`), relative single-shot (`"!30s"`). See [scheduling reference](../scheduling/README.md). |
 | `runAt`    | string  | One of   | —       | ISO 8601 datetime for a one-off job (e.g. `"2026-06-01T09:00:00Z"`) |
 | `targets`  | array   | Yes      | —       | One or more target projects (at least one entry required) |
 
@@ -143,7 +143,7 @@ The **filename** (without extension) is the job name. There is no `name` export.
 | Export     | Type     | Required | Default | Description |
 |------------|----------|----------|---------|-------------|
 | `enabled`  | boolean  | **Yes**  | `false` | Must be `true` for the job to be scheduled. Omitting it silently skips the job. |
-| `schedule` | string   | One of   | —       | Cron expression for recurring jobs |
+| `schedule` | string   | One of   | —       | Schedule: cron expression, `"+5m"` (relative recurring), or `"!30s"` (relative single-shot). See [scheduling reference](../scheduling/README.md). |
 | `runAt`    | string   | One of   | —       | ISO 8601 datetime for a one-off job |
 | `handler`  | function | Yes      | —       | Async function called on each tick: `async (ctx) => void` |
 
@@ -306,47 +306,7 @@ export async function handler(ctx) {
 
 ## Scheduling reference
 
-### Cron expressions (`schedule`)
-
-HAL uses [croner](https://github.com/hexagon/croner) for cron expression parsing. Full croner documentation is available at [github.com/hexagon/croner](https://github.com/hexagon/croner).
-
-Croner supports both standard 5-field and extended 6-field expressions. The optional leading field adds **seconds** precision, enabling sub-minute scheduling:
-
-```
-┌──────────────── second (0-59)      [optional — omit for standard 5-field syntax]
-│ ┌────────────── minute (0-59)
-│ │ ┌──────────── hour (0-23)
-│ │ │ ┌────────── day of month (1-31)
-│ │ │ │ ┌──────── month (1-12 or JAN-DEC)
-│ │ │ │ │ ┌────── day of week (0-7 or SUN-SAT, 0 and 7 are Sunday)
-│ │ │ │ │ │
-* * * * * *   ← 6-field (with seconds)
-  * * * * *   ← 5-field (standard, minute precision)
-```
-
-Common examples:
-
-| Expression          | Meaning                                      |
-|---------------------|----------------------------------------------|
-| `"*/10 * * * * *"`  | Every 10 seconds (6-field)                   |
-| `"*/30 * * * * *"`  | Every 30 seconds (6-field)                   |
-| `"*/15 * * * *"`    | Every 15 minutes (5-field)                   |
-| `"0 9 * * *"`       | Every day at 09:00                           |
-| `"0 9 * * 1"`       | Every Monday at 09:00                        |
-| `"0 8 * * 1-5"`     | Weekdays at 08:00                            |
-| `"0 0 1 * *"`       | First day of every month at midnight         |
-| `"0 2 * * 0"`       | Every Sunday at 02:00                        |
-
-### Absolute one-off (`runAt`)
-
-An ISO 8601 datetime string. The job fires once at that moment (UTC unless a timezone offset is included).
-
-```yaml
-runAt: "2026-06-01T09:00:00Z"       # UTC
-runAt: "2026-06-01T09:00:00+02:00"  # CEST
-```
-
-**Past dates:** if `runAt` is already in the past when the file is loaded, the job is silently skipped (a debug-level log entry is written). No error is raised.
+→ See **[Cron scheduling reference](../scheduling/README.md)** for the full guide covering cron expressions, `runAt`, relative recurring (`+Xs`), and relative single-shot (`!Xs`).
 
 ---
 
