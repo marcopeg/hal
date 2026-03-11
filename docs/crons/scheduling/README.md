@@ -212,6 +212,7 @@ export const scheduleStarts = "30m"; // start in 30 minutes
 - `scheduleStarts` in the past → ignored; the job is scheduled immediately.
 - `scheduleStarts` in the future → job is armed only after the start time is reached.
 - For `runAt` jobs, if the start time is **after** `runAt`, the job will be skipped because the one-off time is already in the past.
+- When `scheduleStarts` is a relative duration and `scheduleEnds` is also a relative duration, the `scheduleEnds` window is measured from the moment `scheduleStarts` fires — not from load time. Use this to express "run for N duration starting in M time".
 
 ---
 
@@ -223,10 +224,16 @@ Accepted values:
 
 | Value | Meaning |
 |-------|---------|
-| Relative duration (`"20d"`, `"2w"`, `"1h"`) | Deadline = now + duration, evaluated when the file is **loaded** |
+| Relative duration (`"20d"`, `"2w"`, `"1h"`) | Deadline = now + duration — see anchoring rules below |
 | ISO 8601 datetime (`"2026-12-31T23:59:59Z"`) | Absolute wall-clock deadline |
 
-> **Relative `scheduleEnds` is anchored to load time, not to the first execution.** `schedule: "5m"` with `scheduleEnds: "20d"` means "run every 5 minutes, stop 20 days after this file was loaded (or the process restarted)."
+**Anchoring rules for relative `scheduleEnds`:**
+
+- **Without `scheduleStarts`**: deadline is measured from **load time**. `schedule: "5m"` + `scheduleEnds: "20d"` means "run every 5 minutes, stop 20 days after this file was loaded."
+- **With a relative `scheduleStarts`**: deadline is measured from the **moment `scheduleStarts` fires**. `scheduleStarts: "5s"` + `scheduleEnds: "10s"` means "wait 5 seconds, then run for 10 seconds" (stops at T+15s from load).
+- **With an absolute `scheduleStarts`**: deadline is still measured from load time (not from the start time).
+
+> For the "run for N duration" pattern, always pair a relative `scheduleEnds` with a relative `scheduleStarts`.
 
 ### `.md` frontmatter
 
@@ -246,6 +253,15 @@ scheduleEnds: "2026-12-31T23:59:59Z"   # stop at absolute date
 ---
 ```
 
+```yaml
+---
+enabled: true
+schedule: "1s"
+scheduleStarts: "5s"   # wait 5 s before starting
+scheduleEnds: "10s"    # then run for 10 s (measured from when scheduleStarts fires)
+---
+```
+
 ### `.mjs` export
 
 `scheduleEnds` can be exported as a string (relative or ISO) or as a `Date` object:
@@ -262,11 +278,22 @@ export const scheduleEnds = "2026-12-31T23:59:59Z";  // absolute ISO string
 export const scheduleEnds = new Date("2026-12-31T23:59:59Z");  // Date object
 ```
 
+**Combined `scheduleStarts` + `scheduleEnds` (relative window):**
+
+```js
+// Wait 5 s, then run every 1 s for 10 s, then stop.
+export const enabled = true;
+export const schedule = "1s";
+export const scheduleStarts = "5s";
+export const scheduleEnds = "10s";
+```
+
 ### Behaviour
 
 - `scheduleEnds` in the past at **boot or hot reload** → job is silently skipped (debug log). Not an error.
 - `scheduleEnds` reached **mid-run** → current execution completes normally; next `scheduleNext()` call sees the deadline and stops the chain.
 - **`runAt` jobs** — `scheduleEnds` is redundant (one-off by definition) but accepted without error.
+- **With relative `scheduleStarts`** → relative `scheduleEnds` is re-evaluated at the moment `scheduleStarts` fires, so the window is measured from the actual start, not from load time.
 - **Hot reload**: if `scheduleEnds` is a relative value, it is re-evaluated from the moment the file is saved, effectively resetting the deadline clock.
 
 ---
@@ -283,7 +310,7 @@ All formats are re-evaluated when a cron file is saved:
 | `!Xs` (once) | Timer is reset; job fires once `X` after the file was saved |
 | `scheduleStarts` (relative) | Start time is re-evaluated from save time |
 | `scheduleStarts` (absolute) | Start time is unchanged unless the value itself is edited |
-| `scheduleEnds` (relative) | Deadline is re-evaluated from save time |
+| `scheduleEnds` (relative) | Deadline is re-evaluated from save time; if `scheduleStarts` is also relative, deadline is further re-evaluated when `scheduleStarts` fires |
 | `scheduleEnds` (absolute) | Deadline is unchanged unless the value itself is edited |
 
 ---
