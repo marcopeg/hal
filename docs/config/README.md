@@ -120,7 +120,7 @@ Minimal **JSONC** example (same structure with `//` comments and trailing commas
 
 ## Environment variable substitution
 
-Any string value in the config files (except inside `context` blocks — see [Context](context/README.md)) can reference an environment variable with `${VAR_NAME}` syntax. This works identically for all config formats (JSON, JSONC, YAML). Variables are resolved at boot time from **one** of two modes:
+Any string value in the config files can reference an environment variable with `${VAR_NAME}` syntax. Values inside `context` blocks support the same `${expr}` syntax but with a richer resolver (full context map + env) and two additional patterns (`#{cmd}` boot-time shell, `@{cmd}` message-time shell) — see [Context](context/README.md). This works identically for all config formats (JSON, JSONC, YAML). Variables are resolved at boot time from **one** of two modes:
 
 ### Single-source model
 

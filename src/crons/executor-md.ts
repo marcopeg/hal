@@ -5,6 +5,7 @@ import {
   buildCronContextVars,
   buildSystemContext,
   formatContextPrompt,
+  substituteMessage,
 } from "../context/resolver.js";
 import { getDefaultEngineModel } from "../default-models.js";
 import type { ProjectContext } from "../types.js";
@@ -91,7 +92,12 @@ export async function executeMdCron(
       });
       contextVars["cron.runs"] = String(state.runs);
       contextVars["cron.lastRun"] = state.lastRun?.toISOString() ?? "";
-      const contextualPrompt = formatContextPrompt(contextVars, def.prompt);
+      const resolvedPrompt = substituteMessage(
+        def.prompt,
+        contextVars,
+        pLogger,
+      );
+      const contextualPrompt = formatContextPrompt(contextVars, resolvedPrompt);
 
       const agent = createAgent(projectCtx);
       output = await agent.call(contextualPrompt);
@@ -183,7 +189,8 @@ export async function executeMdProjectCron(
     contextVars["cron.runs"] = String(state.runs);
     contextVars["cron.lastRun"] = state.lastRun?.toISOString() ?? "";
 
-    const contextualPrompt = formatContextPrompt(contextVars, def.prompt);
+    const resolvedPrompt = substituteMessage(def.prompt, contextVars, pLogger);
+    const contextualPrompt = formatContextPrompt(contextVars, resolvedPrompt);
     const agent = createAgent(projectCtx);
     output = await agent.call(contextualPrompt);
 

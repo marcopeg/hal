@@ -9,14 +9,14 @@ Jobs are defined as files — either prompt-based Markdown (`.md`) or programmat
 | Tier    | Directory                             | Who defines it | Mutable from chat |
 |---------|---------------------------------------|----------------|-------------------|
 | System  | `{configDir}/.hal/crons/`             | Operator       | No                |
-| Project | `{projectCwd}/.hal/crons/`            | Developer      | No                |
-| User    | `{dataDir}/{userId}/crons/`           | Bot user       | Yes               |
+| Project | `{projectCwd}/.hal/crons/`            | Developer      | Yes                |
+| User 🚧 | `{dataDir}/{userId}/crons/`           | Bot user       | Yes               |
 
 All tiers accept the same two file formats (`.md` and `.mjs`). All directories are hot-reloaded via file watchers — add, edit, or delete a file and the scheduler updates without a restart.
 
 - [System crons](./system/README.md) — global scheduled tasks, available across all projects
 - [Project crons](./project/README.md) — per-project scheduled tasks defined in `{projectCwd}/.hal/crons/`
-- User crons and `/cron_*` slash commands — _coming soon (032c)_
+- User crons and planned prompt — _coming soon (032c)_
 
 > **Crons are opt-in.** A job is only scheduled when `enabled: true` is explicitly set (frontmatter for `.md`, named export for `.mjs`). Omitting `enabled` or setting it to `false` loads and validates the file but never runs it — safe for committing draft crons to version control.
 
@@ -54,6 +54,22 @@ export async function handler(ctx) {
   await bot.api.sendMessage(123456789, "Still running ✓");
 }
 ```
+
+## Variable substitution in `.md` files
+
+`.md` cron files support `${}` and `@{}` substitution in two distinct places, with different resolvers:
+
+| Where | Syntax | Resolver | When |
+|-------|--------|----------|------|
+| Frontmatter fields (e.g. `runAs`, `schedule`) | `${VAR}` | Env files + `process.env` | Load time (before YAML parsing) |
+| Prompt body | `${expr}` / `@{cmd}` | Full runtime context map + `process.env` / shell | Execution time |
+
+The prompt body resolver has access to all context keys (`bot.*`, `sys.*`, `project.*`, `engine.*`, `cron.*`) plus any custom `context:` values from your config. See the tier-specific docs for examples:
+
+- [Project cron prompt body substitution](./project/README.md#prompt-body-substitution)
+- [System cron prompt body substitution](./system/README.md#prompt-body-substitution)
+
+`.mjs` files are plain JavaScript — use `process.env.VAR_NAME` or `ctx.context["key"]` directly.
 
 ## Execution logs
 

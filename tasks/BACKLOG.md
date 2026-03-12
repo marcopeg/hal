@@ -35,7 +35,6 @@ The commands in the menu should be sorted:
 - [060 — Stale session empty-response recovery](./drafts/060.stale-session-empty-response-recovery.md)
 - [063 — Shared engine progress fallback](./drafts/063.engine-progress-fallback.md)
 - [064 — CLI skill/command installer + updater](./drafts/064.cli-skill-command-installer.md)
-- [066 — Bar substitution in .md skills and crons](./drafts/066.bar-substitution-md-skills-crons.md)
 
 ## Completed
 
@@ -82,3 +81,4 @@ The commands in the menu should be sorted:
 - [058 — Fix broken session continuity across adapters](./completed/058.fix-broken-sessions-for-copilot-and-codex.md) | [plan](./completed/058.fix-broken-sessions-for-copilot-and-codex.plan.md)
 - [059 — CLI env file sourcing](./completed/059.cli-env-file-sourcing.md) | [plan](./completed/059.cli-env-file-sourcing.plan.md)
 - [032a — Core scheduler + system-level crons](./completed/032a.core-scheduler-and-system-crons.md) | [plan](./completed/032a.core-scheduler-and-system-crons.plan.md)
+- [066 — Prompt body substitution for cron .md files](./completed/066.bar-substitution-md-skills-crons.md) | [plan](./completed/066.bar-substitution-md-skills-crons.plan.md)

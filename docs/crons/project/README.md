@@ -65,6 +65,32 @@ Before calling the engine, the prompt is wrapped with a `# Context` block contai
 
 Context vars are built **fresh on every execution** — `@{}` dynamic lookups (current date/time, shell output, etc.) always reflect the time of the run. `cron.*` vars are also available for `${VAR}` substitution in frontmatter.
 
+### Prompt body substitution
+
+`${}` and `@{}` patterns in the `.md` prompt body are resolved at execution time, after the context map is fully built and before the context header is prepended.
+
+| Pattern | Evaluated | Description |
+|---------|-----------|-------------|
+| `${expr}` | Per execution | Looks up `expr` in the resolved context map, then `process.env` |
+| `@{cmd}` | Per execution | Runs a shell command fresh each time |
+
+Unresolved keys (absent from both the context map and `process.env`) expand to an empty string.
+
+**Example:**
+
+```markdown
+---
+enabled: true
+schedule: "0 8 * * 1-5"
+runAs: ${MY_USER_ID}
+---
+
+Good morning ${bot.firstName}! Today is ${sys.date}. This is run #${cron.runs}.
+Summarise yesterday's commits in this repository.
+```
+
+> **Note:** `#{cmd}` (boot-time shell) is not supported in prompt bodies — use `@{cmd}` for execution-time shell expansion.
+
 ### Examples
 
 **Silent recurring cron (log-only):**
@@ -155,7 +181,7 @@ runAs: ${MY_USER_ID}
 Summarise yesterday's commits in this repository. Include: files changed, authors, and a one-sentence summary per commit. Keep it under 10 lines.
 ```
 
-> **Note:** Variable substitution applies to `.md` frontmatter only. The prompt body is sent as-is (no `${}`, `@{}`, or bar-style `|var|` substitution). `.mjs` files are plain JavaScript — use `process.env.VAR_NAME` directly.
+> **Note:** Variable substitution in `.md` frontmatter uses the same `${VAR}` syntax but is resolved before YAML parsing (from env files and `process.env`). Prompt body substitution (see above) is resolved at execution time from the full context map. `.mjs` files are plain JavaScript — use `process.env.VAR_NAME` directly.
 
 ---
 

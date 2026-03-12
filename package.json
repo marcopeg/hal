@@ -21,6 +21,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check src",
     "lint:hard": "biome check src --error-on-warnings",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint:fix": "biome check --write src",
     "prepublishOnly": "npm run build",
     "sync-skills": "node .agents/scripts/sync-skills.mjs",
@@ -90,7 +92,8 @@
     "husky": "^9.1.7",
     "release-it": "^19.0.0",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "engines": {
     "node": ">=18"

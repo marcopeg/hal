@@ -8,17 +8,15 @@ A Telegram bot that provides access to AI coding agents as a personal assistant.
 
 ## Features
 
-- Chat with your AI coding agent via Telegram
-- Send images and documents for analysis
-- **Voice message support** with local Whisper transcription
-- **File sending** — the engine can send files back to you
-- **Multi-engine support** — use [Claude Code](docs/engines/claude/README.md), [GitHub Copilot](docs/engines/copilot/README.md), [Codex](docs/engines/codex/README.md), [OpenCode](docs/engines/opencode/README.md), [Cursor](docs/engines/cursor/README.md), or [Antigravity](docs/engines/antigravity/README.md) per project
-- **Multi-project support** — run multiple bots from a single config, each connected to a different independent directory
-- **Context injection** — every message includes system metadata (timestamps, user info, custom values) and supports custom injections via config and per-project hooks (`.mjs`) with hot-reload
-- **Custom slash commands** — add `.mjs` command files per-project or globally; hot-reloaded so the engine can create new commands at runtime
+- Chat with your AI coding agent via Telegram; supports [Claude Code](docs/engines/claude/README.md), [GitHub Copilot](docs/engines/copilot/README.md), [Codex](docs/engines/codex/README.md), [OpenCode](docs/engines/opencode/README.md), [Cursor](docs/engines/cursor/README.md), or [Antigravity](docs/engines/antigravity/README.md)
+- Send **audio, images and documents** for analysis; transcript, OCR, description extraction - the engine can send files back to you
+- **Multi-Project** — run multiple bots from a single config, each connected to a different independent directory, each with the best agent for the job
+- **Context Injection** — every message includes system metadata (timestamps, user info, custom values) and supports custom injections via config and per-project hooks (`.mjs`) with hot-reload
+- **Commands** — add Javascript commands (`.mjs`) files per-project or globally; hot-reloaded so the agent can create those at runtime
 - **Skills** — `.agents/skills/` entries can be exposed as Telegram slash commands by adding `telegram: true` to their frontmatter
-- Persistent conversation sessions per user (availability based on engine)
-- Per-project access control, rate limiting, and logging
+- **CRON Jobs & Scheduled propmps** - generate planned and repetitive tasks straight from your bot
+- **Session Control** - persistent conversation sessions per user (availability based on engine)
+- **Access Control** - per-project access control, rate limiting, and logging
 
 ## How It Works
 

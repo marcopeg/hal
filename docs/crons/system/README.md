@@ -63,6 +63,35 @@ Before calling the engine, the prompt is automatically wrapped with a `# Context
 
 Any `context:` vars defined in the project config are also merged in, and both the global and project-level `context.mjs` hooks are run. This gives the engine the same project awareness it has when responding to user messages.
 
+### Prompt body substitution
+
+`${}` and `@{}` patterns in the `.md` prompt body are resolved at execution time, after the context map is fully built and before the context header is prepended.
+
+| Pattern | Evaluated | Description |
+|---------|-----------|-------------|
+| `${expr}` | Per execution | Looks up `expr` in the resolved context map, then `process.env` |
+| `@{cmd}` | Per execution | Runs a shell command fresh each time |
+
+Unresolved keys (absent from both the context map and `process.env`) expand to an empty string.
+
+**Example:**
+
+```markdown
+---
+enabled: true
+schedule: "0 8 * * 1-5"
+targets:
+  - projectId: backend
+    userId: ${ADMIN_USER_ID}
+    flowResult: true
+---
+
+Good morning! Today is ${sys.date}. This is run #${cron.runs}.
+Summarise git commits since yesterday.
+```
+
+> **Note:** `#{cmd}` (boot-time shell) is not supported in prompt bodies — use `@{cmd}` for execution-time shell expansion.
+
 ### Examples
 
 #### Recurring daily summary with DM
@@ -484,7 +513,7 @@ targets:
 Summarise the git log from the last 24 hours. List files changed, authors, and a one-sentence summary per commit. Keep it under 10 lines.
 ```
 
-> **Note:** Variable substitution applies to `.md` frontmatter only. The prompt body is sent as-is (no `${}`, `@{}`, or bar-style `|var|` substitution). `.mjs` files are plain JavaScript — use `process.env.VAR_NAME` directly.
+> **Note:** Variable substitution in `.md` frontmatter uses the same `${VAR}` syntax but is resolved before YAML parsing (from env files and `process.env`). Prompt body substitution (see above) is resolved at execution time from the full context map. `.mjs` files are plain JavaScript — use `process.env.VAR_NAME` directly.
 
 ---
 

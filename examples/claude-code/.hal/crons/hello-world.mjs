@@ -8,7 +8,7 @@
 // ctx.context  — resolved context vars (same map as .md prompt injection)
 // ctx.call()   — call this project's AI engine
 
-export const enabled = true;
+export const enabled = false;
 // export const schedule = "*/5 * * * * *"; // every 5 seconds
 export const schedule = "1s"; // every 5 seconds
 export const scheduleStarts = "5s"; // stop after 10 seconds (for testing purposes)

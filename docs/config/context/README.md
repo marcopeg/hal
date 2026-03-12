@@ -57,13 +57,25 @@ Project context is merged on top of root — `backend` inherits `messageId`, `cu
 
 ## Variable substitution patterns
 
-Three patterns are supported in context values:
+Three patterns are supported wherever HAL resolves values against the context map:
 
 | Pattern | Evaluated | Description |
 |---------|-----------|-------------|
-| `${expr}` | Per message | Looks up `expr` in the full context map (implicit + configured keys), then env vars |
+| `${expr}` | Per message / execution | Looks up `expr` in the full context map (implicit + configured keys), then env vars. Unresolved → empty string. |
 | `#{cmd}` | Once at boot | Runs shell command, caches result for all messages |
-| `@{cmd}` | Per message | Runs shell command fresh for each message |
+| `@{cmd}` | Per message / execution | Runs shell command fresh for each message or cron execution |
+
+### Where each pattern applies
+
+| Location | `${expr}` | `#{cmd}` | `@{cmd}` |
+|----------|-----------|----------|----------|
+| Config `context:` values | ✅ | ✅ | ✅ |
+| Cron `.md` prompt body | ✅ | ✗ | ✅ |
+| Cron `.md` frontmatter | ✅ (env + process.env only, via `${VAR}`) | ✗ | ✗ |
+| Skill prompt body | ✗ | ✗ | ✗ |
+| Custom command (`.mjs`) | — (plain JS: use template literals / `process.env`) | — | — |
+
+> Cron `.md` frontmatter uses a simpler resolver (env files + `process.env`); it does not have access to the full runtime context map (`bot.*`, `sys.*`, etc.).
 
 ## Context hooks
 
