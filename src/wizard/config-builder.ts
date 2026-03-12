@@ -117,6 +117,12 @@ export function buildConfigFromResults(ctx: WizardContext): BuildResult {
     }
   }
 
+  if (results.loggingPersist !== undefined) {
+    base.globals = base.globals ?? {};
+    base.globals.logging = base.globals.logging ?? {};
+    base.globals.logging.persist = results.loggingPersist as boolean;
+  }
+
   // Secrets: bot token + user IDs can be inline or via .env placeholders
   let envEntries: Record<string, string> | undefined;
   const editedProjectKeys = Object.keys(projectEdits);

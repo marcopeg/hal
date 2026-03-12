@@ -1,4 +1,4 @@
-import { mkdirSync } from "node:fs";
+import { existsSync } from "node:fs";
 import type pino from "pino";
 import { loadMdCron, loadProjectMdCron } from "./loader-md.js";
 import { loadMjsCron, loadProjectMjsCron } from "./loader-mjs.js";
@@ -39,7 +39,6 @@ export function startCronWatcher(
 ): CronWatcher {
   const tier = options.tier ?? "system";
   const vars = options.vars;
-  mkdirSync(cronDir, { recursive: true });
 
   const DEBOUNCE_MS = 300;
   const debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -109,6 +108,14 @@ export function startCronWatcher(
 
   const watcherReady = (async () => {
     try {
+      if (!existsSync(cronDir)) {
+        logger.debug(
+          { cronDir, tier },
+          "Cron directory missing; watcher disabled",
+        );
+        return;
+      }
+
       const chokidar = await import("chokidar");
       const watcher = chokidar.watch(cronDir, {
         ignoreInitial: true,

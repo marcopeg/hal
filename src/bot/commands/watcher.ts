@@ -1,4 +1,4 @@
-import { mkdirSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { Bot } from "grammy";
 import type pino from "pino";
@@ -100,15 +100,23 @@ export function startCommandWatcher(
     try {
       const chokidar = await import("chokidar");
 
-      const watchPaths = [projectCommandDir, globalCommandDir];
+      // Do not create .hal directories at boot.
+      // Only watch command/skill directories that already exist to avoid polluting project folders.
+      const watchPaths: string[] = [];
+      if (existsSync(projectCommandDir)) watchPaths.push(projectCommandDir);
+      if (existsSync(globalCommandDir)) watchPaths.push(globalCommandDir);
       if (skillsDirs) {
-        watchPaths.push(...skillsDirs);
+        for (const dir of skillsDirs) {
+          if (existsSync(dir)) watchPaths.push(dir);
+        }
       }
 
-      // Ensure all watched directories exist so chokidar can establish
-      // real fs watches from the start (it won't detect dirs created later)
-      for (const dir of watchPaths) {
-        mkdirSync(dir, { recursive: true });
+      if (watchPaths.length === 0) {
+        logger.debug(
+          { projectCommandDir, globalCommandDir, skillsDirs },
+          "No existing command/skill directories to watch",
+        );
+        return;
       }
 
       const watcher = chokidar.watch(watchPaths, {

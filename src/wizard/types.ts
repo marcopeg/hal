@@ -12,6 +12,7 @@ export interface PartialConfig {
   globals?: {
     access?: { allowedUserIds?: unknown[] };
     engine?: { name?: string; model?: string; session?: unknown };
+    logging?: { persist?: unknown };
   };
   projects?: Record<
     string,
@@ -86,6 +87,8 @@ export interface WizardContext {
     /** Default model for globals.engine.*. */
     model?: string;
     session?: SessionMode;
+    /** Persist logs under .hal/logs. */
+    loggingPersist?: boolean;
     /** Whether to store secrets inline in config or via .env placeholders. */
     secretsMode?: "env" | "inline";
     /** set by confirm-and-write */
