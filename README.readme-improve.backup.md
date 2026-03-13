@@ -6,29 +6,7 @@
 
 **Run Claude Code, Copilot, and Codex from your phone.**
 
-HAL turns Telegram into a remote control for AI coding agents.
-
-Point a bot at a local project, pick an engine, and HAL runs the CLI while streaming results back to chat. You keep the same local setup, config files, and tool permissions. HAL just gives you a better interface when you are away from the keyboard.
-
-```text
-Telegram message
--> HAL
--> Claude / Copilot / Codex / Cursor / OpenCode / Antigravity CLI
--> streamed result back to Telegram
-```
-
-## Why HAL exists
-
-AI coding agents are useful, but they mostly live inside a terminal on your machine.
-
-If you are away from your computer, checking progress, nudging a long-running task, or handling a quick fix becomes awkward or impossible. HAL keeps the agent local, but moves the control surface to Telegram so you can interact with it from anywhere.
-
-## Who is HAL for?
-
-- Developers already using AI coding agents in the terminal
-- People managing multiple local projects with different engines
-- Developers who want mobile access to their coding workflow
-- Anyone who wants to trigger, monitor, or steer agent work without sitting at their desk
+HAL turns Telegram into a remote control for AI coding agents. Point a bot at a local project, pick an engine, and HAL runs the CLI while streaming results back to chat. Run multiple projects in parallel, each with its own bot and engine.
 
 ## Features
 
@@ -46,9 +24,12 @@ If you are away from your computer, checking progress, nudging a long-running ta
 
 HAL runs one AI coding agent subprocess per project, each in its configured working directory. You can choose your [favourite engine](./docs/engines/README.md) globally, or pick a different engine per project.
 
-HAL does not replace the engine's native setup. It reads the same config files the CLI would, from the project directory.
+> Do you already use Copilot? Cursor? Claude Code?  
+> **you are ready to go!**  
+>
+> HAL let you keep vibing on the go! 🤳
 
-That means the agent still sees the same instructions, skills, permissions, and MCP setup it would use if you launched it directly in the terminal:
+HAL does not replace the engine's native setup. It reads the same config files the CLI would, from the project directory:
 
 - `AGENTS.md` — Project-specific instructions for engines that support the `.agents` convention (Copilot, Codex, OpenCode, Cursor). Claude Code uses `CLAUDE.md` instead.
 - `.agents/skills/` — Custom skills for engines that support `.agents`. Claude Code uses `.claude/skills/` instead.
