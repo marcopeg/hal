@@ -8,7 +8,6 @@ The commands in the menu should be sorted:
 - Hal commands
 
 ## In Progress
-- [032b — Project-level crons](./032b.project-crons-and-logging.md) | [plan](./032b.project-crons-and-logging.plan.md)
 
 ## Ready Tasks
 - [046 — Codex log streaming](./ready/046.codex-log-streaming.md) | [plan](./ready/046.codex-log-streaming.plan.md)
@@ -86,3 +85,4 @@ The commands in the menu should be sorted:
 - [066 — Prompt body substitution for cron .md files](./completed/066.bar-substitution-md-skills-crons.md) | [plan](./completed/066.bar-substitution-md-skills-crons.plan.md)
 - [062 — Wizard env file precedence when both .env and .env.local exist](./completed/062.wizard-env-file-precedence.md) | [plan](./completed/062.wizard-env-file-precedence.plan.md)
 - [056 — Debounce messages (text)](./completed/056.debounce-messages.md) | [plan](./completed/056.debounce-messages.plan.md)
+- [032b — Project-level crons](./completed/032b.project-crons-and-logging.md) | [plan](./completed/032b.project-crons-and-logging.plan.md)
