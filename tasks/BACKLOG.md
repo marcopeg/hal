@@ -35,6 +35,8 @@ The commands in the menu should be sorted:
 - [063 — Shared engine progress fallback](./drafts/063.engine-progress-fallback.md)
 - [064 — CLI skill/command installer + updater](./drafts/064.cli-skill-command-installer.md)
 - [067 — Rename config-dir flag to config](./drafts/067.rename-config-dir-flag-to-config.md)
+- [068 — Voice recognition output stitching + transcript retention](./drafts/068.voice-recognition-output-stitching-and-transcript-retention.md)
+- [069 — Add system stop command that interrupts the ongoing prompt by killing the child process](./drafts/069.add-a-system-stop-command-that-interrupts-the-ongoing-prompt-by-killing-the-child-process.md)
 
 ## Completed
 

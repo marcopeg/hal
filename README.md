@@ -4,25 +4,32 @@
 
 <h1 align="center">HAL</h1>
 
-A Telegram bot that provides access to AI coding agents as a personal assistant. Run multiple engines (Claude Code, GitHub Copilot, and more) across multiple projects simultaneously, each with its own dedicated Telegram bot.
+**Run Claude Code, Copilot, and Codex from your phone.**
+
+HAL turns Telegram into a remote control for AI coding agents. Point a bot at a local project, pick an engine, and HAL runs the CLI while streaming results back to chat. Run multiple projects in parallel, each with its own bot and engine.
 
 ## Features
 
-- Chat with your AI coding agent via Telegram; supports [Claude Code](docs/engines/claude/README.md), [GitHub Copilot](docs/engines/copilot/README.md), [Codex](docs/engines/codex/README.md), [OpenCode](docs/engines/opencode/README.md), [Cursor](docs/engines/cursor/README.md), or [Antigravity](docs/engines/antigravity/README.md)
-- Send **audio, images and documents** for analysis; transcript, OCR, description extraction - the engine can send files back to you
-- **Multi-Project** — run multiple bots from a single config, each connected to a different independent directory, each with the best agent for the job
+- Chat with your AI coding agent in Telegram; supports [Claude Code](docs/engines/claude/README.md), [GitHub Copilot](docs/engines/copilot/README.md), [Codex](docs/engines/codex/README.md), [OpenCode](docs/engines/opencode/README.md), [Cursor](docs/engines/cursor/README.md), or [Antigravity](docs/engines/antigravity/README.md)
+- Send **audio, images and documents** for analysis. HAL can transcribe voice, run OCR, and return files from the engine
+- **Multi-Project** — run multiple bots from a single config, each bound to a different directory and engine
 - **Context Injection** — every message includes system metadata (timestamps, user info, custom values) and supports custom injections via config and per-project hooks (`.mjs`) with hot-reload
-- **Commands** — add Javascript commands (`.mjs`) files per-project or globally; hot-reloaded so the agent can create those at runtime
+- **Commands** — add JavaScript commands (`.mjs`) per project or globally; hot-reloaded so agents can create or update them at runtime
 - **Skills** — `.agents/skills/` entries can be exposed as Telegram slash commands by adding `telegram: true` to their frontmatter
-- **CRON Jobs & Scheduled propmps** - generate planned and repetitive tasks straight from your bot
+- **CRON Jobs & Scheduled prompts** - generate planned and repetitive tasks straight from your bot
 - **Session Control** - persistent conversation sessions per user (availability based on engine)
 - **Access Control** - per-project access control, rate limiting, and logging
 
 ## How It Works
 
-This tool runs one AI coding agent subprocess per project, each in its configured working directory. You can choose your [favourite engine](./docs/engines/README.md) globally, or each project can use a different engine.
+HAL runs one AI coding agent subprocess per project, each in its configured working directory. You can choose your [favourite engine](./docs/engines/README.md) globally, or pick a different engine per project.
 
-The engine reads its standard config files from the project directory:
+> Do you already use Copilot? Cursor? Claude Code?  
+> **you are ready to go!**  
+>
+> HAL let you keep vibing on the go! 🤳
+
+HAL does not replace the engine's native setup. It reads the same config files the CLI would, from the project directory:
 
 - `AGENTS.md` — Project-specific instructions for engines that support the `.agents` convention (Copilot, Codex, OpenCode, Cursor). Claude Code uses `CLAUDE.md` instead.
 - `.agents/skills/` — Custom skills for engines that support `.agents`. Claude Code uses `.claude/skills/` instead.
@@ -34,13 +41,13 @@ You get the full power of your chosen AI coding agent — file access, code exec
 ## Prerequisites
 
 - Node.js 18+
-- At least one supported AI coding CLI installed and authenticated - see [engines](docs/engines/README.md)
+- At least one supported AI coding CLI installed and authenticated — see [engines](docs/engines/README.md)
 - A Telegram bot token per project (from [@BotFather](https://t.me/BotFather)) — see [Telegram](docs/telegram/README.md#creating-a-telegram-bot)
-- **ffmpeg** (required for voice messages) — `brew install ffmpeg` on macOS
+- **ffmpeg** (optional, required for voice messages) — `brew install ffmpeg` on macOS
 
 ## Supported Engines 🤖
 
-This is the list of the currently supported engines (Claude Code, Copilot, Codex, OpenCode, Cursor, Antigravity):
+Supported engines include:
 
 - [OpenCode](docs/engines/opencode/README.md)
 - [Codex](docs/engines/codex/README.md)
@@ -50,7 +57,7 @@ This is the list of the currently supported engines (Claude Code, Copilot, Codex
 - [Antigravity](docs/engines/antigravity/README.md)
 
 Each engine has pros/cons and some limitations.  
-Here we try to keep updated a feature comparison table:
+The table below summarizes key capabilities:
 
 | Feature | [OpenCode](docs/engines/opencode/README.md) | [Codex](docs/engines/codex/README.md) | [Claude Code](docs/engines/claude/README.md) | [Copilot](docs/engines/copilot/README.md) | [Cursor](docs/engines/cursor/README.md) | [Antigravity](docs/engines/antigravity/README.md) |
 |--------|:--------:|:-----:|:------:|:-------:|:------:|:------------:|
@@ -95,7 +102,9 @@ Before running HAL you need a Telegram bot token and your own Telegram user ID. 
 
 ## Configuration
 
-HAL is configured via a config file in the config directory (default: the current working directory, or `--config-dir` when set). Use the **[Setup wizard](docs/setup-wizard/README.md)** to create or complete your config interactively; you can run it directly with `wiz`, and HAL will suggest it if you run `start` with no or incomplete config. **YAML** is the recommended format; JSON and JSONC are also supported. See [Configuration](docs/config/README.md) and [Configuration alternatives](docs/config/README.md#configuration-alternatives) for details. Full reference:
+HAL is configured via a config file in the config directory (default: the current working directory, or `--config-dir` when set).
+
+Use the **[Setup wizard](docs/setup-wizard/README.md)** to create or complete your config interactively; you can run it directly with `wiz`, and HAL will suggest it if you run `start` with no or incomplete config. **YAML** is the recommended format; JSON and JSONC are also supported. See [Configuration](docs/config/README.md) and [Configuration alternatives](docs/config/README.md#configuration-alternatives) for details. Full reference:
 
 - **[Setup wizard](docs/setup-wizard/README.md)** — interactive config creation and completion, start-time suggestion, pre-fill flags
 - **[Configuration](docs/config/README.md)** — config files, [reference.yaml](docs/config/reference.yaml) (all keys), [examples/hal.config.yaml](examples/hal.config.yaml), env vars, `globals`, `projects` (map), dataDir, log files
@@ -151,6 +160,8 @@ JSON and JSONC are also supported alongside YAML. For a minimal JSON/JSONC examp
 
 ## Bot Commands
 
+HAL exposes a small set of built-in commands for session and help management.
+
 | Command  | Description                                           |
 |----------|-------------------------------------------------------|
 | `/start` | Welcome message                                       |
@@ -160,7 +171,7 @@ JSON and JSONC are also supported alongside YAML. For a minimal JSON/JSONC examp
 
 ## Custom commands and skills
 
-Add your own slash commands as `.mjs` files (project or global), or use engine skill folders that HAL exposes as commands. Custom commands can override a skill with the same name. Both are hot-reloaded.
+Add your own slash commands as `.mjs` files (project or global), or expose engine skill folders as commands. Custom commands can override a skill with the same name. Both are hot-reloaded.
 
 - **[Custom commands](docs/custom-commands/README.md)** — file locations, handler arguments (`args`, `ctx`, `gram`, `agent`, `projectCtx`), examples.
 - **[Skills](docs/skills/README.md)** — SKILL.md format, per-engine directories, precedence.
