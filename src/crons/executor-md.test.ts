@@ -7,7 +7,7 @@ const logger = pino({ level: "silent" });
 describe("cron .md prompt body substitution", () => {
   it("resolves ${} references from contextVars", () => {
     const result = substituteMessage(
-      "Hello ${bot.firstName}! Today is ${sys.date}.",
+      `Hello \${bot.firstName}! Today is \${sys.date}.`,
       { "bot.firstName": "Alice", "sys.date": "2026-03-12" },
       logger,
     );
@@ -16,14 +16,14 @@ describe("cron .md prompt body substitution", () => {
 
   it("resolves ${} references from process.env when key is absent from contextVars", () => {
     process.env._TEST_HAL_TOKEN = "secret-abc";
-    const result = substituteMessage("Token: ${_TEST_HAL_TOKEN}", {}, logger);
+    const result = substituteMessage(`Token: \${_TEST_HAL_TOKEN}`, {}, logger);
     delete process.env._TEST_HAL_TOKEN;
     expect(result).toBe("Token: secret-abc");
   });
 
   it("resolves cron.* state vars injected into contextVars", () => {
     const result = substituteMessage(
-      "Run #${cron.runs}, last run: ${cron.lastRun}.",
+      `Run #\${cron.runs}, last run: \${cron.lastRun}.`,
       { "cron.runs": "3", "cron.lastRun": "2026-03-12T08:00:00.000Z" },
       logger,
     );
@@ -36,13 +36,13 @@ describe("cron .md prompt body substitution", () => {
   });
 
   it("leaves unresolved ${} keys as empty string", () => {
-    const result = substituteMessage("Val: ${missing.key}", {}, logger);
+    const result = substituteMessage(`Val: \${missing.key}`, {}, logger);
     expect(result).toBe("Val: ");
   });
 
   it("does not mutate contextVars or alter unreferenced keys", () => {
     const ctx = { "bot.firstName": "Bob", "sys.date": "2026-03-12" };
-    substituteMessage("Hi ${bot.firstName}", ctx, logger);
+    substituteMessage(`Hi \${bot.firstName}`, ctx, logger);
     expect(ctx).toEqual({ "bot.firstName": "Bob", "sys.date": "2026-03-12" });
   });
 
