@@ -1,6 +1,13 @@
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { basename, dirname, isAbsolute, join, resolve } from "node:path";
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  resolve,
+} from "node:path";
 import { parse as parseEnv } from "dotenv";
 import stripJsonComments from "strip-json-comments";
 import { parse as parseYaml } from "yaml";
@@ -1351,12 +1358,29 @@ function mergeLocalIntoBase(
 
 // ─── Phase 4: Config file loading (internal: throws on error) ──────────────────
 
-function loadMultiConfigInternal(configDir: string): LoadedConfigResult {
+function loadMultiConfigInternal(
+  configDir: string,
+  configFile?: string,
+): LoadedConfigResult {
   const loadedFiles: string[] = [];
 
   // 1. Detect and load base config
-  const baseResolved = resolveConfigFile(configDir, "hal.config");
+  let baseResolved: ResolvedConfigFile | null;
   const supportedExts = CONFIG_EXTENSIONS.map((e) => e.ext).join(", ");
+
+  if (configFile) {
+    // File mode: explicit file path derived from --config <file>
+    const ext = extname(configFile);
+    const match = CONFIG_EXTENSIONS.find((e) => e.ext === ext);
+    if (!match) {
+      throw new ConfigLoadError(
+        `Configuration error: unsupported config extension "${ext}". Supported: ${supportedExts}`,
+      );
+    }
+    baseResolved = { path: join(configDir, configFile), format: match.format };
+  } else {
+    baseResolved = resolveConfigFile(configDir, "hal.config");
+  }
 
   if (!baseResolved) {
     throw new ConfigLoadError(
@@ -1466,6 +1490,9 @@ export function loadMultiConfig(configDir: string): LoadedConfigResult {
  * Load multi-project config without exiting. Throws on error.
  * Use for hot-reload so callers can log and retry on next file change.
  */
-export function tryLoadMultiConfig(configDir: string): LoadedConfigResult {
-  return loadMultiConfigInternal(configDir);
+export function tryLoadMultiConfig(
+  configDir: string,
+  configFile?: string,
+): LoadedConfigResult {
+  return loadMultiConfigInternal(configDir, configFile);
 }

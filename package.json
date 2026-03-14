@@ -11,11 +11,11 @@
     "README.md"
   ],
   "scripts": {
-    "start": "tsx src/cli.ts start --config-dir examples",
-    "dev": "tsx watch src/cli.ts start --config-dir examples",
-    "start:test": "tsx src/cli.ts start --config-dir manual-tests",
-    "dev:test": "tsx watch src/cli.ts start --config-dir manual-tests",
-    "wiz:test": "tsx src/cli.ts wiz --config-dir manual-tests",
+    "start": "tsx src/cli.ts start --config examples",
+    "dev": "tsx watch src/cli.ts start --config examples",
+    "start:test": "tsx src/cli.ts start --config manual-tests",
+    "dev:test": "tsx watch src/cli.ts start --config manual-tests",
+    "wiz:test": "tsx src/cli.ts wiz --config manual-tests",
     "build": "tsc && cp src/init-template.yaml dist/ && chmod +x dist/cli.js",
     "typecheck": "tsc --noEmit",
     "lint": "biome check src",

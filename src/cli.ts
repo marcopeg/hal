@@ -3,7 +3,7 @@
 import { execSync, spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { basename, dirname, extname, join, resolve } from "node:path";
 import { isCancel, outro, select } from "@clack/prompts";
 import type pino from "pino";
 import { type BotHandle, startBot } from "./bot.js";
@@ -119,6 +119,7 @@ function _openFileInEditor(filePath: string, editor: string): void {
 interface ParsedArgs {
   command: "start" | "init" | "wiz";
   configDir: string;
+  configFile?: string;
   /** Project cwd for wizard config. */
   cwd?: string;
   /** Project name for wizard config. */
@@ -147,7 +148,7 @@ Commands:
   start           Start the bots (default)
 
 Options:
-  --config-dir <path> Directory to read/write hal.config.* (default: current directory)
+  --config <path>     Config directory, or explicit config file path (supported: .json, .jsonc, .yaml, .yml)
   --cwd <path>        Project cwd to write into config (wizard prefill)
   --name <value>      Project name to write into config (wizard prefill)
   --engine <name>    Engine: claude, copilot, codex, opencode, cursor, antigravity
@@ -165,9 +166,9 @@ Examples:
   npx @marcopeg/hal wiz --engine codex --model gpt-5.2-codex
   npx @marcopeg/hal init
   npx @marcopeg/hal init --engine opencode --model opencode/gpt-5-nano
-  npx @marcopeg/hal init --config-dir ./workspace
+  npx @marcopeg/hal init --config ./workspace
   npx @marcopeg/hal
-  npx @marcopeg/hal --config-dir ./workspace
+  npx @marcopeg/hal --config ./workspace
 
 Configuration (hal.config.json):
   {
@@ -196,9 +197,44 @@ const VALID_ENGINES: readonly EngineName[] = [
   "antigravity",
 ];
 
+const CONFIG_EXTENSIONS_CLI = [".json", ".jsonc", ".yaml", ".yml"] as const;
+
+export function parseConfigArg(raw: string): {
+  configDir: string;
+  configFile?: string;
+} {
+  const resolved = resolve(process.cwd(), raw);
+  const ext = extname(resolved);
+
+  if (!ext) {
+    // Directory mode
+    return { configDir: resolved };
+  }
+
+  if (
+    !CONFIG_EXTENSIONS_CLI.includes(
+      ext as (typeof CONFIG_EXTENSIONS_CLI)[number],
+    )
+  ) {
+    console.error(
+      `Error: unsupported config extension "${ext}". Supported: ${CONFIG_EXTENSIONS_CLI.join(", ")}`,
+    );
+    process.exit(1);
+  }
+
+  // File mode — must already exist
+  if (!existsSync(resolved)) {
+    console.error(`Error: config file not found: ${resolved}`);
+    process.exit(1);
+  }
+
+  return { configDir: dirname(resolved), configFile: basename(resolved) };
+}
+
 function parseArgs(): ParsedArgs {
   const args = process.argv.slice(2);
   let configDir = process.cwd();
+  let configFile: string | undefined;
   let projectCwd: string | undefined;
   let name: string | undefined;
   let command: "start" | "init" | "wiz" = "start";
@@ -213,11 +249,11 @@ function parseArgs(): ParsedArgs {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
 
-    if (arg === "--config-dir" && args[i + 1]) {
-      configDir = resolve(process.cwd(), args[i + 1]);
+    if (arg === "--config" && args[i + 1]) {
+      ({ configDir, configFile } = parseConfigArg(args[i + 1]));
       i++;
-    } else if (arg.startsWith("--config-dir=")) {
-      configDir = resolve(process.cwd(), arg.slice(13));
+    } else if (arg.startsWith("--config=")) {
+      ({ configDir, configFile } = parseConfigArg(arg.slice(9)));
     } else if (arg === "--cwd" && args[i + 1]) {
       projectCwd = args[i + 1];
       i++;
@@ -289,6 +325,7 @@ function parseArgs(): ParsedArgs {
   return {
     command,
     configDir,
+    configFile,
     cwd: projectCwd,
     name,
     engine,
@@ -581,6 +618,7 @@ function printConfigError(err: unknown): never {
 async function runStart(
   configDir: string,
   wizardPrefill: Record<string, unknown>,
+  configFile?: string,
 ): Promise<void> {
   // Always show the HAL startup banner first (even if we end up suggesting the wizard).
   printStartupBanner();
@@ -670,7 +708,7 @@ async function runStart(
 
   let loaded: LoadedConfigResult;
   try {
-    loaded = tryLoadMultiConfig(configDir);
+    loaded = tryLoadMultiConfig(configDir, configFile);
   } catch (err) {
     printConfigError(err);
   }
@@ -736,7 +774,7 @@ async function runStart(
 
         const wasDegraded = !hadBots;
         try {
-          const reloaded = tryLoadMultiConfig(configDir);
+          const reloaded = tryLoadMultiConfig(configDir, configFile);
           const nextResult = await runBotsForConfig(
             configDir,
             reloaded,
@@ -788,6 +826,7 @@ async function main(): Promise<void> {
   const {
     command,
     configDir,
+    configFile,
     cwd,
     name,
     engine,
@@ -808,16 +847,20 @@ async function main(): Promise<void> {
       { showBanner: true },
     );
     if (shouldStart) {
-      await runStart(configDir, {
-        name,
-        cwd,
-        engine,
-        model,
-        apiKey,
-        botKey,
-        userId,
-        session,
-      });
+      await runStart(
+        configDir,
+        {
+          name,
+          cwd,
+          engine,
+          model,
+          apiKey,
+          botKey,
+          userId,
+          session,
+        },
+        configFile,
+      );
     }
     return;
   }
@@ -827,16 +870,20 @@ async function main(): Promise<void> {
       showDeprecation: true,
     });
   } else {
-    await runStart(configDir, {
-      name,
-      cwd,
-      engine,
-      model,
-      apiKey,
-      botKey,
-      userId,
-      session,
-    });
+    await runStart(
+      configDir,
+      {
+        name,
+        cwd,
+        engine,
+        model,
+        apiKey,
+        botKey,
+        userId,
+        session,
+      },
+      configFile,
+    );
   }
 }
 

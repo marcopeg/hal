@@ -104,7 +104,7 @@ npx @marcopeg/hal wiz
 
 # Or just run HAL: if no config exists (or it’s incomplete), HAL will suggest running the wizard
 npx @marcopeg/hal
-npx @marcopeg/hal --config-dir ./workspace
+npx @marcopeg/hal --config ./workspace
 ```
 
 You can pre-fill some values so the wizard only asks for the rest (see [Setup wizard](docs/setup-wizard/README.md)):
@@ -125,7 +125,7 @@ Before running HAL you need a Telegram bot token and your own Telegram user ID. 
 
 ## Configuration
 
-HAL is configured via a config file in the config directory (default: the current working directory, or `--config-dir` when set).
+HAL is configured via a config file in the config directory (default: the current working directory, or `--config` when set).
 
 Use the **[Setup wizard](docs/setup-wizard/README.md)** to create or complete your config interactively; you can run it directly with `wiz`, and HAL will suggest it if you run `start` with no or incomplete config. **YAML** is the recommended format; JSON and JSONC are also supported. See [Configuration](docs/config/README.md) and [Configuration alternatives](docs/config/README.md#configuration-alternatives) for details. Full reference:
 
