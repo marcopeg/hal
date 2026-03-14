@@ -31,6 +31,32 @@ Requires a Pro, Max, Teams, Enterprise, or API Console account. Credentials are 
 - **Streaming:** JSONL output with live progress from tool-use events.
 - **Project files:** `CLAUDE.md`, `.claude/settings.json`.
 
+## Filesystem access and cwd boundary
+
+**Not sandboxed by default — user must configure.** HAL passes no path-restriction flags to the Claude CLI. Claude Code manages its own permissions through `.claude/settings.json`, which HAL does not create or manage. Without explicit configuration, Claude Code can access the full filesystem.
+
+**Why this matters:** Claude Code is git-aware. It walks up the directory tree from `cwd` to find and load `CLAUDE.md` files in every ancestor directory. This means it is aware of parent directories by design. It also has access to file tools (Read, Edit, Write, Bash) and by default can operate on any path the OS user has permission to access. If your project `cwd` is a subdirectory of a larger repository, Claude Code can reach the repository root and beyond without any prompt or warning.
+
+**HAL's role:** HAL has no CLI flag to restrict Claude Code's filesystem access. The control surface is entirely within Claude Code's own settings. There is no `engine.claude.*` equivalent of Copilot's `allowAllPaths` — the mechanism simply does not exist at the CLI level.
+
+**How to restrict access:** Add `allowedPaths` to the project's `.claude/settings.json`. This file lives in the project `cwd`:
+
+```json
+{
+  "allowedPaths": ["/absolute/path/to/your/project"]
+}
+```
+
+Or use a relative entry:
+
+```json
+{
+  "allowedPaths": ["."]
+}
+```
+
+With `allowedPaths` set, Claude Code's file tools are restricted to those directories. Shell commands via the `Bash` tool can still run arbitrary commands, so combine this with `disallowedTools: ["Bash"]` if you need strict confinement. See [Claude Code settings reference](https://docs.anthropic.com/en/docs/claude-code/settings) for the full schema.
+
 ## Available models
 
 > **Last updated:** 2026-03-03 — [source](https://docs.anthropic.com/en/docs/claude-code/model-config)

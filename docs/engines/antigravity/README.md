@@ -42,6 +42,26 @@ Free-tier access with a personal Google account (Gemini 2.5 Pro, 60 req/min, 100
 
 `approvalMode` defaults to `yolo` because HAL runs non-interactively — `default` and `auto_edit` would cause hangs or policy denials in headless mode.
 
+## Filesystem access and cwd boundary
+
+**Not sandboxed by default.** `sandbox: false` is the default, meaning the agent runs with full user-level filesystem access. Combined with `approvalMode: yolo` (also the default), every tool call is auto-approved with no confirmation prompt. This means the agent can read, write, and delete files anywhere on disk — including outside the project `cwd` — without any gate.
+
+**Why this matters:** Gemini CLI is git-aware. It traverses the directory tree upward from `cwd` to discover `GEMINI.md` context files in every ancestor (up to the git root), and it knows the repository structure. With no sandbox active and all approvals bypassed, the agent has the same filesystem access as the user who launched HAL. A prompt that asks the agent to "create a file for the project" may result in a file written at the git root rather than in the project subdirectory, just as was observed with Copilot before the path restriction fix.
+
+**HAL's mitigation (opt-in):** Set `engine.antigravity.sandbox: true` to pass `--sandbox` to Gemini CLI. This runs the agent inside a containerized or OS-level seatbelt, restricting filesystem access to the project directory.
+
+```yaml
+engine:
+  name: antigravity
+  antigravity:
+    approvalMode: yolo
+    sandbox: true
+```
+
+**Prerequisites for sandbox mode:** The `--sandbox` flag requires either Docker (cross-platform) or macOS sandbox tools. If neither is available, Gemini CLI will fail to start. Sandboxed runs are also slightly slower due to container overhead.
+
+**If sandbox is not an option:** Write an explicit instruction in `GEMINI.md` telling the agent to confine all file operations to the project `cwd`. This is a soft guard — it relies on model compliance and is not enforced at the OS level.
+
 ```yaml
 engine:
   name: antigravity

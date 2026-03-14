@@ -40,6 +40,19 @@ Supports 75+ LLM providers. Credentials are stored in `~/.local/share/opencode/a
 - **Note:** OpenCode is a basic prompt/response adapter — no streaming progress events.
 - **Project file:** `AGENTS.md`.
 
+## Filesystem access and cwd boundary
+
+**Not sandboxed — no HAL-level control available.** The OpenCode CLI (`opencode run`) has no sandbox or path-restriction flag. HAL spawns the process with `cwd` set to the project directory, but this only sets the default directory for relative paths — it does not prevent the agent from accessing files elsewhere.
+
+**Why this matters:** OpenCode is a full agentic CLI with access to file tools and shell execution. It can read, write, and delete files at any path the OS user has permission to access. It is also aware of its git repository context, so it may naturally navigate to the repository root when interpreting prompts about project-wide tasks. There is no confirmation prompt in non-interactive mode.
+
+**HAL's role:** There is no `engine.opencode.*` config flag that restricts path access. This is a limitation of the OpenCode CLI — it does not expose a sandboxing mechanism for headless use.
+
+**Mitigation options (outside HAL):**
+- Run HAL in a container or VM with limited filesystem access (Docker bind mounts scoped to the project directory are effective).
+- Write an explicit instruction in `AGENTS.md` telling the agent to only create or modify files within the project directory — this is a soft guard only and relies on model compliance.
+- Use OS-level tools (`chroot`, macOS sandbox profiles) to confine the process.
+
 ## Available models
 
 > **Last updated:** 2026-03-03 — [source](https://opencode.ai/docs/zen)

@@ -9,9 +9,6 @@ The commands in the menu should be sorted:
 
 ## In Progress
 
-- [067 — Rename config-dir flag to config](./067.rename-config-dir-flag-to-config.md) | [plan](./067.rename-config-dir-flag-to-config.plan.md)
-- [046 — Codex log streaming](./046.codex-log-streaming.md) | [plan](./046.codex-log-streaming.plan.md)
-
 ## Ready Tasks
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 - [070 — Debounce voice messages](./ready/070.debounce-voice-messages.md) | [plan](./ready/070.debounce-voice-messages.plan.md)
@@ -36,6 +33,8 @@ The commands in the menu should be sorted:
 - [064 — CLI skill/command installer + updater](./drafts/064.cli-skill-command-installer.md)
 - [068 — Voice recognition output stitching + transcript retention](./drafts/068.voice-recognition-output-stitching-and-transcript-retention.md)
 - [069 — Add system stop command that interrupts the ongoing prompt by killing the child process](./drafts/069.add-a-system-stop-command-that-interrupts-the-ongoing-prompt-by-killing-the-child-process.md)
+- [071 — Enforce project cwd in agent prompts](./drafts/071.enforce-project-cwd.md)
+- [072 — System prompt pipeline](./drafts/072.system-prompt-pipeline.md)
 
 ## Completed
 
@@ -87,3 +86,5 @@ The commands in the menu should be sorted:
 - [056 — Debounce messages (text)](./completed/056.debounce-messages.md) | [plan](./completed/056.debounce-messages.plan.md)
 - [032b — Project-level crons](./completed/032b.project-crons-and-logging.md) | [plan](./completed/032b.project-crons-and-logging.plan.md)
 - [061 — Copilot JSONL output + engine minimum version checks](./completed/061.copilot-jsonl-output.md) | [plan](./completed/061.copilot-jsonl-output.plan.md)
+- [067 — Rename config-dir flag to config](./completed/067.rename-config-dir-flag-to-config.md) | [plan](./completed/067.rename-config-dir-flag-to-config.plan.md)
+- [046 — Codex log streaming](./completed/046.codex-log-streaming.md) | [plan](./completed/046.codex-log-streaming.plan.md)

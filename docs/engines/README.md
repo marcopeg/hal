@@ -26,10 +26,20 @@ HAL supports multiple AI coding CLIs. Each engine has its own install steps, con
 | **Full disk access** | — | — | ✓ | — | — | — |
 | **YOLO mode** | — | — | ✓ | — | — | ✓ |
 | **Streaming progress** | ✓ | ✗ | ✗ | ✗ | ✗ | ✓ |
+| **cwd sandboxed by default** | via settings.json | ✓ | ✓ | ✗ | ✗ | opt-in |
 
 **Session configuration:** `engine.session` is one of: `false` (stateless), `true` (adapter default), `"shared"`, or `"user"`. See [Session configuration](../config/session/README.md). **Claude** default is per-user; `"shared"` forces `--continue`. **Antigravity** is per-user. **Codex** and **Cursor** default to shared; `"user"` enables experimental per-user. **OpenCode** and **Copilot** support only `true`/`"shared"`; `"user"` causes a **boot error**.
 
 **Network / full disk / YOLO:** Only **Codex** exposes configurable permission flags in HAL (`engine.codex.networkAccess`, `fullDiskAccess`, `dangerouslyEnableYolo`). **Antigravity** supports `engine.antigravity.approvalMode` (e.g. `yolo`) and `sandbox`; default is `yolo` for headless use. **Copilot** supports `engine.copilot.allowAllPaths` (default `false`); when false, Copilot is restricted to the project `cwd` and its subdirectories — set to `true` only if you explicitly need cross-directory access. Other engines either allow tool use by default or do not expose these knobs in HAL.
+
+**cwd boundary (path restriction):** All engines are spawned with `cwd` set to the project directory, but not all enforce that as a filesystem boundary:
+
+- **Copilot** — restricted to cwd by default (`--allow-all-paths` not passed). Set `engine.copilot.allowAllPaths: true` to opt out.
+- **Codex** — safe by default. The `--full-auto` sandbox restricts workspace write access to the `-C <cwd>` directory. Only `fullDiskAccess: true` or `dangerouslyEnableYolo: true` expand access beyond cwd.
+- **Antigravity** — `sandbox: false` by default. Without `--sandbox`, the agent can access any path on disk. Set `engine.antigravity.sandbox: true` to enable containerized/seatbelt restrictions. Note: the sandbox may require Docker or macOS sandbox tools to be installed.
+- **Claude Code** — path restrictions are managed through `.claude/settings.json` (`allowedPaths`) in the project directory, not through HAL CLI flags. HAL does not expose this. Configure `allowedPaths` directly in the project's Claude settings if you need to restrict access.
+- **Cursor** — `--workspace <cwd>` sets the project context but is not a hard filesystem sandbox. The agent can still reach outside the workspace via shell tools. No HAL-level control is available.
+- **OpenCode** — no path restriction mechanism in the CLI. The agent can access the full filesystem. No HAL-level control is available.
 
 **Streaming progress:** **Claude** and **Antigravity** stream JSONL from the CLI, so HAL can show live progress in Telegram. The others buffer output and show a single “processing” style message until the reply is ready.
 

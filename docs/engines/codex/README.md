@@ -40,6 +40,23 @@ Higher tiers supersede lower ones. **Warning:** Use `dangerouslyEnableYolo` only
 
 - **Project file:** `AGENTS.md`.
 
+## Filesystem access and cwd boundary
+
+**Safe by default.** Codex's `--full-auto` mode enforces a workspace sandbox that confines write access to the working directory passed via `-C <cwd>`. HAL always passes this flag in the default tier, so out of the box the agent cannot write files outside the project directory.
+
+**The permission tiers and what they unlock:**
+
+| Tier (config field) | CLI flags added | What it unlocks |
+|---|---|---|
+| Default (`false`/`false`/`false`) | `--full-auto` | Writes confined to `cwd`. No network in shell commands. |
+| `networkAccess: true` | `--full-auto -c sandbox_workspace_write.network_access=true` | Same write confinement, but shell commands can make outbound network requests. |
+| `fullDiskAccess: true` | `--sandbox danger-full-access` | Full read/write access to the entire filesystem. Network access implied. |
+| `dangerouslyEnableYolo: true` | `--dangerously-bypass-approvals-and-sandbox` | No sandbox, no approvals. Complete unrestricted access. |
+
+Higher tiers supersede lower ones. When `dangerouslyEnableYolo` is set, sandbox flags and approval requirements are fully bypassed — the agent can do anything the OS user can do, including deleting files, running network calls, and modifying system paths.
+
+**Recommendation:** Keep the defaults for most projects. Enable `networkAccess` only if the agent genuinely needs to fetch data during a task. Enable `fullDiskAccess` or `dangerouslyEnableYolo` only in isolated environments (Docker containers, VMs, ephemeral CI runners).
+
 ## Available models
 
 > **Last updated:** 2026-03-03 — [source](https://developers.openai.com/codex/models/)

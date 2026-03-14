@@ -28,9 +28,26 @@ Requires a Copilot Pro, Pro+, Business, or Enterprise plan. You can also authent
 
 - **Config:** `engine.name: "copilot"`. Optional: `engine.command`, `engine.model`, `engine.session` (`false` \| `true` \| `"shared"` only; see [Session configuration](../../config/session/README.md)), `engine.sessionMsg`, `engine.copilot.allowAllPaths`.
 - **Invocation:** `copilot -p <prompt> --allow-all-tools --allow-all-urls [--allow-all-paths] [--model <m>] [--continue]`
-- **Path restriction (default: cwd only):** By default HAL restricts Copilot to the project `cwd` and its subdirectories (`--allow-all-paths` is **not** set). Set `engine.copilot.allowAllPaths: true` to disable path verification and allow access to any path on disk.
 - **Sessions:** `session: true` or `"shared"` = shared (`--continue`). **`session: "user"` is not supported:** HAL fails at **boot** with a configuration error. Use `true` or `"shared"`. `/clean` sends `engine.sessionMsg` without `--continue` to start a fresh session; the engine’s reply is sent to the user.
 - **Project file:** `AGENTS.md`.
+
+## Filesystem access and cwd boundary
+
+**Safe by default.** HAL passes `--allow-all-tools` and `--allow-all-urls` but deliberately omits `--allow-all-paths`, which is Copilot’s flag to disable path verification. Without it, Copilot restricts file read/write operations to the project `cwd` and its subdirectories.
+
+**Why this matters:** Copilot is git-aware. When it runs inside a git repository, it automatically discovers the repository root (via `git rev-parse --show-toplevel`) and treats it as a natural project boundary. In the past, HAL used `--allow-all` (which bundles `--allow-all-paths`), allowing Copilot to act on its git-root knowledge and write files anywhere in the repository tree — or beyond. For example, if your project `cwd` is `examples/my-project/` inside a larger repo, Copilot could write files to the repository root without being prompted.
+
+**HAL’s mitigation:** `--allow-all-paths` is not passed. Copilot’s built-in path verification is active, and the agent is confined to `cwd` and its descendants.
+
+**Opt-out:** If you have a legitimate need to let the agent work across the repository (e.g. a monorepo setup where the agent must touch files at the root), set:
+
+```yaml
+engine:
+  copilot:
+    allowAllPaths: true
+```
+
+This re-enables `--allow-all-paths`. Use with care — it removes all filesystem boundaries.
 
 ## Available models
 

@@ -28,6 +28,19 @@ Requires a Cursor subscription. For headless mode, set `CURSOR_API_KEY` as an en
 - **Sessions:** `session: true` or `"shared"` = shared (`--continue`). `session: "user"` = **experimental** per-user: HAL parses `session_id` from Cursor CLI output and uses `--resume <session_id>` next time (flag stability not guaranteed by Cursor docs). `session: false` = stateless. `/clean` sends `engine.sessionMsg` without `--continue` to start fresh.
 - **Project file:** `AGENTS.md`.
 
+## Filesystem access and cwd boundary
+
+**Not sandboxed — no HAL-level control available.** HAL passes `--workspace <cwd>` to set the project root and `--trust` to enable full agent capabilities in that workspace, but neither flag enforces a filesystem boundary. The Cursor Agent CLI does not expose a sandbox or path-restriction flag.
+
+**Why this matters:** `--workspace` tells Cursor which directory to treat as the project context for indexing, instructions, and rules. It does not prevent the agent from reading or writing files elsewhere. With `--trust` active, all tools are enabled in the workspace. The agent can run shell commands, read arbitrary files, and write to any path the OS user has permission to access — including paths outside the project directory and outside the git repository.
+
+**HAL's role:** There is no `engine.cursor.*` config flag that can restrict path access. This is a limitation of the Cursor Agent CLI — it does not expose a sandboxing mechanism for headless use.
+
+**Mitigation options (outside HAL):**
+- Run HAL in a container or VM where the user has limited filesystem access.
+- Use OS-level tools (e.g. `chroot`, Docker bind mounts) to confine the process to the project directory.
+- Write an explicit instruction in `AGENTS.md` telling the agent to stay within the project directory — this is a soft guard only (model-level instruction, not enforced).
+
 ## Available models
 
 > **Last updated:** 2026-03-03 — [source](https://cursor.com/docs/models)
