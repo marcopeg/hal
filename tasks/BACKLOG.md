@@ -14,7 +14,6 @@ The commands in the menu should be sorted:
 ## Ready Tasks
 - [046 — Codex log streaming](./ready/046.codex-log-streaming.md) | [plan](./ready/046.codex-log-streaming.plan.md)
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
-- [061 — Copilot JSONL output + engine minimum version checks](./ready/061.copilot-jsonl-output.md) | [plan](./ready/061.copilot-jsonl-output.plan.md)
 - [070 — Debounce voice messages](./ready/070.debounce-voice-messages.md) | [plan](./ready/070.debounce-voice-messages.plan.md)
 
 
@@ -87,3 +86,4 @@ The commands in the menu should be sorted:
 - [062 — Wizard env file precedence when both .env and .env.local exist](./completed/062.wizard-env-file-precedence.md) | [plan](./completed/062.wizard-env-file-precedence.plan.md)
 - [056 — Debounce messages (text)](./completed/056.debounce-messages.md) | [plan](./completed/056.debounce-messages.plan.md)
 - [032b — Project-level crons](./completed/032b.project-crons-and-logging.md) | [plan](./completed/032b.project-crons-and-logging.plan.md)
+- [061 — Copilot JSONL output + engine minimum version checks](./completed/061.copilot-jsonl-output.md) | [plan](./completed/061.copilot-jsonl-output.plan.md)
