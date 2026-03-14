@@ -1,6 +1,6 @@
 ---
 name: promo
-description: Drafts a LinkedIn release promo from changelog + prior post (or user context), then refines and saves accepted posts to /promo/linkedin with frontmatter.
+description: Drafts a LinkedIn release promo from changelog + prior posts (or user context), persists every draft to /promo/linkedin, then refines and finalizes accepted posts.
 telegram: true
 ---
 
@@ -21,12 +21,15 @@ Examples:
 ## Core behavior
 
 1. If the user provides arguments after `/promo`, treat that text as the primary brief.
-2. If no arguments are provided, infer the brief from repository context:
+2. Always scan prior promo history before drafting:
+- Read the newest existing post file under `/promo/linkedin/` (if present) to avoid repeating the same hook, CTA, and hashtags.
+3. If no arguments are provided, infer the brief from repository context:
 - Read `CHANGELOG.md` and extract the most recent release changes.
-- Read the most recent previously accepted LinkedIn post under `/promo/linkedin/` (if present) to avoid repeating the same angle/hook.
-3. Produce one concise LinkedIn-ready post draft in chat.
-4. Ask the user for refinement or acceptance.
-5. When the user accepts, save the approved post to `/promo/linkedin/{YYMMDDhhmm}.{post-slug}.md`.
+4. Produce one concise LinkedIn-ready post draft in chat.
+5. Persist that draft immediately to `/promo/linkedin/` using a draft filename (see Draft persistence behavior).
+6. Ask the user for refinement or acceptance.
+7. On `refine` or `regenerate`, update the same draft file so the folder always reflects the latest working draft.
+8. When the user accepts, promote the draft by saving the approved post to `/promo/linkedin/{YYMMDDhhmm}.{post-slug}.md` and removing the `.draft.md` file.
 
 ## Input precedence
 
@@ -37,6 +40,26 @@ Use this strict precedence:
 3. Last saved post from `/promo/linkedin/` (style and de-duplication hints only)
 
 If user context conflicts with changelog emphasis, follow the user context.
+
+## Draft persistence behavior (mandatory)
+
+Do not keep drafts only in chat.
+
+For every `/promo` run, persist a working draft file in `/promo/linkedin/` immediately after generating the first draft.
+
+1. Ensure directory exists: `/promo/linkedin/`
+2. Build draft filename:
+- Timestamp format: `YYMMDDhhmm`
+- Slug from draft title/first meaningful phrase, kebab-case
+- Draft path: `/promo/linkedin/{YYMMDDhhmm}.{post-slug}.draft.md`
+3. Save the same frontmatter/body structure as final posts, with this additional field:
+
+```markdown
+status: draft
+```
+
+4. On each `refine` or `regenerate`, overwrite the same `.draft.md` file with the latest version.
+5. On acceptance, write the final file (without `.draft` suffix), set `status: approved`, and remove the draft file.
 
 ## Embedded best-practices knowledge base (cached)
 
@@ -64,7 +87,7 @@ When doing a refresh pass, update this section in-place with the newly validated
 
 Best-practice checklist to apply:
 
-- Make HAL's high-level goal explicit in every post: `agentic management of local folders via Telegram`.
+- Make HAL's high-level goal explicit in every post using README-aligned language: `run AI coding agents from your phone` and `Telegram as a remote control for local agent workflows`.
 - Start with a strong first line (hook) that communicates value fast.
 - Keep body concise and skimmable.
 - Focus on outcomes and user impact, not only implementation detail.
@@ -77,12 +100,40 @@ Best-practice checklist to apply:
 
 Every generated promo must be understandable as a standalone post.
 
-Always include a short phrase that makes HAL's purpose visible, such as:
+Always include a short phrase that makes HAL's purpose visible, preferring README phrasing such as:
+
+- `Run Claude Code, Copilot, and Codex from your phone.`
+- `HAL turns Telegram into a remote control for AI coding agents.`
+- `HAL keeps your agent local but lets you monitor and steer work from anywhere.`
+
+Fallback wording if needed:
 
 - `HAL applies agentic management to local folders via Telegram.`
 - `HAL lets you manage local project folders with coding agents directly from Telegram.`
 
 This line can be placed in the hook or first body paragraph, but it must appear in every draft.
+
+## README voice alignment (mandatory)
+
+Treat `README.md` as the source of truth for positioning language.
+
+Use this voice profile in promo posts:
+
+- Outcome-first and practical: stress what users can do (`run`, `monitor`, `steer`, `check progress`) more than implementation internals.
+- Mobile-control framing: mention phone/away-from-keyboard workflows when relevant.
+- Local-first trust signal: emphasize that setup, config files, instructions, and permissions stay local.
+- Engine-explicit messaging: when helpful, name supported engines directly (`Claude Code`, `Copilot`, `Codex`, `Cursor`, `OpenCode`, `Antigravity`).
+
+Prefer reusable README-aligned phrases:
+
+- `Run <engine> from your phone.`
+- `Telegram becomes your control surface for local coding agents.`
+- `Same local setup, better interface when you're away from the keyboard.`
+
+Avoid phrasing drift:
+
+- Do not lead with abstract wording if a concrete README phrasing exists.
+- Avoid hypey or generic AI-marketing language that is not present in README tone.
 
 ## Draft format (chat output)
 
@@ -150,6 +201,7 @@ When accepted:
 ```markdown
 ---
 target: linkedin
+status: approved
 date: YYYY-MM-DD HH:mm
 title: <post title>
 tags:

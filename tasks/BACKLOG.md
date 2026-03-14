@@ -35,6 +35,8 @@ The commands in the menu should be sorted:
 - [069 — Add system stop command that interrupts the ongoing prompt by killing the child process](./drafts/069.add-a-system-stop-command-that-interrupts-the-ongoing-prompt-by-killing-the-child-process.md)
 - [071 — Enforce project cwd in agent prompts](./drafts/071.enforce-project-cwd.md)
 - [072 — System prompt pipeline](./drafts/072.system-prompt-pipeline.md)
+- [073 — HAL native desktop app UI](./drafts/073.hal-native-desktop-app-ui.md)
+- [074 — CronList/CronRemove commands + cron descriptions](./drafts/074.cronlist-cronremove-and-cron-descriptions.md)
 
 ## Completed
 
