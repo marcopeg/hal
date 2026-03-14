@@ -5,7 +5,7 @@ import { substituteMessage } from "../context/resolver.js";
 const logger = pino({ level: "silent" });
 
 describe("cron .md prompt body substitution", () => {
-  it("resolves ${} references from contextVars", () => {
+  it("resolves placeholder references from contextVars", () => {
     const result = substituteMessage(
       `Hello \${bot.firstName}! Today is \${sys.date}.`,
       { "bot.firstName": "Alice", "sys.date": "2026-03-12" },
@@ -14,7 +14,7 @@ describe("cron .md prompt body substitution", () => {
     expect(result).toBe("Hello Alice! Today is 2026-03-12.");
   });
 
-  it("resolves ${} references from process.env when key is absent from contextVars", () => {
+  it("resolves placeholders from process.env when key is absent from contextVars", () => {
     process.env._TEST_HAL_TOKEN = "secret-abc";
     const result = substituteMessage(`Token: \${_TEST_HAL_TOKEN}`, {}, logger);
     delete process.env._TEST_HAL_TOKEN;
@@ -35,7 +35,7 @@ describe("cron .md prompt body substitution", () => {
     expect(result).toBe("Echo: hello");
   });
 
-  it("leaves unresolved ${} keys as empty string", () => {
+  it("leaves unresolved placeholder keys as empty string", () => {
     const result = substituteMessage(`Val: \${missing.key}`, {}, logger);
     expect(result).toBe("Val: ");
   });
