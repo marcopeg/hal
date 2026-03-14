@@ -28,6 +28,8 @@ globals:
     antigravity:  # Antigravity-only flags
       approvalMode: yolo  # default|auto_edit|yolo
       sandbox: false
+    copilot:      # Copilot-only flags
+      allowAllPaths: false  # true = allow access to any path on disk (default: cwd only)
 
   # See [Logging](logging/README.md)
   logging:

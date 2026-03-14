@@ -26,8 +26,9 @@ Requires a Copilot Pro, Pro+, Business, or Enterprise plan. You can also authent
 
 **HAL usage:**
 
-- **Config:** `engine.name: "copilot"`. Optional: `engine.command`, `engine.model`, `engine.session` (`false` \| `true` \| `"shared"` only; see [Session configuration](../../config/session/README.md)), `engine.sessionMsg`.
-- **Invocation:** `copilot -p <prompt> --allow-all [--model <m>] [--continue]`
+- **Config:** `engine.name: "copilot"`. Optional: `engine.command`, `engine.model`, `engine.session` (`false` \| `true` \| `"shared"` only; see [Session configuration](../../config/session/README.md)), `engine.sessionMsg`, `engine.copilot.allowAllPaths`.
+- **Invocation:** `copilot -p <prompt> --allow-all-tools --allow-all-urls [--allow-all-paths] [--model <m>] [--continue]`
+- **Path restriction (default: cwd only):** By default HAL restricts Copilot to the project `cwd` and its subdirectories (`--allow-all-paths` is **not** set). Set `engine.copilot.allowAllPaths: true` to disable path verification and allow access to any path on disk.
 - **Sessions:** `session: true` or `"shared"` = shared (`--continue`). **`session: "user"` is not supported:** HAL fails at **boot** with a configuration error. Use `true` or `"shared"`. `/clean` sends `engine.sessionMsg` without `--continue` to start a fresh session; the engine’s reply is sent to the user.
 - **Project file:** `AGENTS.md`.
 

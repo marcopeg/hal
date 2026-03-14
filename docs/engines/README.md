@@ -29,7 +29,7 @@ HAL supports multiple AI coding CLIs. Each engine has its own install steps, con
 
 **Session configuration:** `engine.session` is one of: `false` (stateless), `true` (adapter default), `"shared"`, or `"user"`. See [Session configuration](../config/session/README.md). **Claude** default is per-user; `"shared"` forces `--continue`. **Antigravity** is per-user. **Codex** and **Cursor** default to shared; `"user"` enables experimental per-user. **OpenCode** and **Copilot** support only `true`/`"shared"`; `"user"` causes a **boot error**.
 
-**Network / full disk / YOLO:** Only **Codex** exposes configurable permission flags in HAL (`engine.codex.networkAccess`, `fullDiskAccess`, `dangerouslyEnableYolo`). **Antigravity** supports `engine.antigravity.approvalMode` (e.g. `yolo`) and `sandbox`; default is `yolo` for headless use. Other engines either allow tool use by default or do not expose these knobs in HAL.
+**Network / full disk / YOLO:** Only **Codex** exposes configurable permission flags in HAL (`engine.codex.networkAccess`, `fullDiskAccess`, `dangerouslyEnableYolo`). **Antigravity** supports `engine.antigravity.approvalMode` (e.g. `yolo`) and `sandbox`; default is `yolo` for headless use. **Copilot** supports `engine.copilot.allowAllPaths` (default `false`); when false, Copilot is restricted to the project `cwd` and its subdirectories — set to `true` only if you explicitly need cross-directory access. Other engines either allow tool use by default or do not expose these knobs in HAL.
 
 **Streaming progress:** **Claude** and **Antigravity** stream JSONL from the CLI, so HAL can show live progress in Telegram. The others buffer output and show a single “processing” style message until the reply is ready.
 

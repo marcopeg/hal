@@ -79,12 +79,26 @@ export function createCopilotAdapter(
       const fullPrompt = await buildContextualPrompt(options, ctx);
 
       // Copilot CLI flags (confirmed via `copilot --help`):
-      //   -p <text>       Non-interactive prompt (exits after completion)
-      //   -s / --silent   Clean output for scripting (no stats banner)
-      //   --allow-all     Enable all permissions (tools + paths + urls)
-      //   --model <model> Override the AI model
-      //   --continue      Continue the most recent session
-      const args: string[] = ["-p", fullPrompt, "--allow-all"];
+      //   -p <text>             Non-interactive prompt (exits after completion)
+      //   --allow-all-tools     Allow all tools without confirmation (required for non-interactive mode)
+      //   --allow-all-urls      Allow all URL access without confirmation
+      //   --allow-all-paths     Disable path verification (access any file on disk)
+      //   --model <model>       Override the AI model
+      //   --continue            Continue the most recent session
+      //
+      // We intentionally do NOT use --allow-all (which would add --allow-all-paths).
+      // By default Copilot is restricted to the project cwd and its subdirectories.
+      // Set engine.copilot.allowAllPaths: true in config to opt into unrestricted access.
+      const args: string[] = [
+        "-p",
+        fullPrompt,
+        "--allow-all-tools",
+        "--allow-all-urls",
+      ];
+
+      if (config.copilot.allowAllPaths) {
+        args.push("--allow-all-paths");
+      }
 
       if (model) {
         args.push("--model", model);

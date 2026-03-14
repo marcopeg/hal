@@ -61,6 +61,20 @@ const AntigravityEngineConfigSchema = z
   .partial()
   .optional();
 
+const CopilotEngineConfigSchema = z
+  .object({
+    /**
+     * Allow Copilot to read/write files outside the project cwd.
+     * By default this is false: Copilot is restricted to its cwd and
+     * subdirectories. Set to true only if the agent genuinely needs to
+     * reach outside the project directory (e.g. a monorepo root layout).
+     * Corresponds to the --allow-all-paths CLI flag.
+     */
+    allowAllPaths: z.boolean(),
+  })
+  .partial()
+  .optional();
+
 /** Resolved session mode: false = stateless, true = adapter default, "shared" = force shared, "user" = force per-user (rejected at boot for OpenCode/Copilot). */
 export type SessionMode = false | true | "shared" | "user";
 
@@ -78,6 +92,7 @@ const EngineConfigSchema = z
     envFile: z.string().optional(),
     codex: CodexEngineConfigSchema,
     antigravity: AntigravityEngineConfigSchema,
+    copilot: CopilotEngineConfigSchema,
   })
   .partial()
   .optional();
@@ -363,6 +378,9 @@ export interface ResolvedProjectConfig {
   antigravity: {
     approvalMode: "default" | "auto_edit" | "yolo";
     sandbox: boolean;
+  };
+  copilot: {
+    allowAllPaths: boolean;
   };
   logging: { level: string; flow: boolean; persist: boolean };
   rateLimit: { max: number; windowMs: number };
@@ -801,6 +819,12 @@ export function resolveProjectConfig(
       sandbox:
         project.engine?.antigravity?.sandbox ??
         globals.engine?.antigravity?.sandbox ??
+        false,
+    },
+    copilot: {
+      allowAllPaths:
+        project.engine?.copilot?.allowAllPaths ??
+        globals.engine?.copilot?.allowAllPaths ??
         false,
     },
     logging: {
