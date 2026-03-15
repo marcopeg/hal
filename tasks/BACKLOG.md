@@ -7,17 +7,16 @@ The commands in the menu should be sorted:
 - system commands
 - Hal commands
 
-## In Progress
-
 ## Ready Tasks
+- [077 — Architectural refactoring for maintainability](./ready/077.architectural-refactoring-for-maintainability.md)
+- [079 — `/btw` command: fresh implementation](./079.btw-command-fresh-implementation.md)
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 - [068 — Sticky transcript with confirmation flow](./ready/068.voice-recognition-output-stitching-and-transcript-retention.md) | [plan](./ready/068.voice-recognition-output-stitching-and-transcript-retention.plan.md)
-- [069 — Add `/btw` system command that interrupts the ongoing prompt by killing the child process](./ready/069.add-a-system-stop-command-that-interrupts-the-ongoing-prompt-by-killing-the-child-process.md) | [plan](./ready/069.add-a-system-stop-command-that-interrupts-the-ongoing-prompt-by-killing-the-child-process.plan.md)
 - [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
 
 
 ## Drafts
-
+- [076 — Rename /clean command to /clear](./drafts/076.rename-clean-command-to-clear.md)
 - [075 — Handle voice messages exceeding Telegram's 20 MB download limit](./drafts/075.voice-message-20mb-limit.md)
 - [032 — Cron jobs and scheduled actions](./drafts/032.cron-jobs-and-scheduled-actions.md) (parent)
   - [032c — User-level crons + slash commands](./drafts/032c.user-crons-and-slash-commands.md)
