@@ -31,6 +31,8 @@ npm run lint:fix  # Fix linting and formatting
 ## Key Patterns
 
 - Config loaded from `hal.config.{json,yaml}` with env var overrides; `projects` is a map keyed by project key (slug), with key-derived defaults for `name` and `cwd`
+- **Config scope inheritance**: every option available at the `globals` level is also available per-project; the project-level value overrides globals when set, otherwise the global value is inherited. When adding new config options, always support both scopes.
+- **Default assumption for task refinement/planning**: do not ask whether globals-to-project inheritance applies. Assume it always applies for config options unless the task explicitly defines an exception.
 - User data stored in `.hal/users/{userId}/`
 - Claude runs as subprocess reading config from working directory
 - Streaming JSON output parsed for progress updates

@@ -11,6 +11,9 @@ The commands in the menu should be sorted:
 
 ## Ready Tasks
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
+- [068 — Sticky transcript with confirmation flow](./ready/068.voice-recognition-output-stitching-and-transcript-retention.md) | [plan](./ready/068.voice-recognition-output-stitching-and-transcript-retention.plan.md)
+- [069 — Add `/btw` system command that interrupts the ongoing prompt by killing the child process](./ready/069.add-a-system-stop-command-that-interrupts-the-ongoing-prompt-by-killing-the-child-process.md) | [plan](./ready/069.add-a-system-stop-command-that-interrupts-the-ongoing-prompt-by-killing-the-child-process.plan.md)
+- [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
 
 
 ## Drafts
@@ -31,8 +34,6 @@ The commands in the menu should be sorted:
 - [060 — Stale session empty-response recovery](./drafts/060.stale-session-empty-response-recovery.md)
 - [063 — Shared engine progress fallback](./drafts/063.engine-progress-fallback.md)
 - [064 — CLI skill/command installer + updater](./drafts/064.cli-skill-command-installer.md)
-- [068 — Voice recognition output stitching + transcript retention](./drafts/068.voice-recognition-output-stitching-and-transcript-retention.md)
-- [069 — Add system stop command that interrupts the ongoing prompt by killing the child process](./drafts/069.add-a-system-stop-command-that-interrupts-the-ongoing-prompt-by-killing-the-child-process.md)
 - [071 — Enforce project cwd in agent prompts](./drafts/071.enforce-project-cwd.md)
 - [072 — System prompt pipeline](./drafts/072.system-prompt-pipeline.md)
 - [073 — HAL native desktop app UI](./drafts/073.hal-native-desktop-app-ui.md)
