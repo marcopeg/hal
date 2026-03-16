@@ -25,3 +25,10 @@ export function shouldLoadSessionFromUserDir(
 
   return engine.sessionCapabilities.sharedContinuationRequiresMarker;
 }
+
+export function shouldPersistUserSessionToUserDir(
+  mode: SessionMode,
+  engine: EngineAdapter,
+): boolean {
+  return resolveEffectiveMode(mode, engine) === "user";
+}

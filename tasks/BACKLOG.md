@@ -32,7 +32,6 @@ The commands in the menu should be sorted:
 - [048 — Cursor log streaming](./drafts/048.cursor-log-streaming.md)
 - [049 — Antigravity log streaming](./drafts/049.antigravity-log-streaming.md)
 - [050 — Copilot log streaming](./drafts/050.copilot-log-streaming.md)
-- [060 — Stale session empty-response recovery](./drafts/060.stale-session-empty-response-recovery.md)
 - [063 — Shared engine progress fallback](./drafts/063.engine-progress-fallback.md)
 - [064 — CLI skill/command installer + updater](./drafts/064.cli-skill-command-installer.md)
 - [071 — Enforce project cwd in agent prompts](./drafts/071.enforce-project-cwd.md)
@@ -98,3 +97,4 @@ The commands in the menu should be sorted:
 - [084 — Rename /clean command to /clear](./completed/084.rename-clean-command-to-clear.md) | [plan](./completed/084.rename-clean-command-to-clear.plan.md)
 - [034 — Codex session ID investigation and user isolation](./completed/034.codex-session-id-investigation-and-user-isolation.md) | [plan](./completed/034.codex-session-id-investigation-and-user-isolation.plan.md)
 - [086 — Copilot per-user session isolation](./completed/086.copilot-user-session-isolation.md) | [plan](./completed/086.copilot-user-session-isolation.plan.md)
+- [060 — Stale session empty-response recovery](./completed/060.stale-session-empty-response-recovery.md) | [plan](./completed/060.stale-session-empty-response-recovery.plan.md)

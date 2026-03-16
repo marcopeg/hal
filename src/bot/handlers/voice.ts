@@ -15,7 +15,10 @@ import {
   getUploadsPath,
   saveSessionId,
 } from "../../user/setup.js";
-import { shouldLoadSessionFromUserDir } from "./session.js";
+import {
+  shouldLoadSessionFromUserDir,
+  shouldPersistUserSessionToUserDir,
+} from "./session.js";
 import {
   buildTranscriptConfirmationText,
   expirePending,
@@ -108,7 +111,9 @@ export function createVoiceHandler(ctx: ProjectContext) {
 
     if (config.engineSession !== false && parsed.sessionId) {
       await saveSessionId(userDir, parsed.sessionId);
-    } else if (config.engineSession === "user") {
+    } else if (
+      shouldPersistUserSessionToUserDir(config.engineSession, ctx.engine)
+    ) {
       await clearSessionData(userDir);
     }
 
