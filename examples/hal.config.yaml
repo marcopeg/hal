@@ -14,6 +14,7 @@ globals:
   access:
     allowedUserIds:
       - ${USER_MARCO_IPHONE_ID}
+      - ${USER_MARCO_ANDROID_ID}
   engine:
     name: opencode
     model: opencode/gpt-5-nano
@@ -56,6 +57,7 @@ projects:
     cwd: ./codex
     engine:
       name: codex
+      session: "user"
     telegram:
       botToken: ${HAL_CODEX_TELEGRAM_TOKEN}
   antigravity:

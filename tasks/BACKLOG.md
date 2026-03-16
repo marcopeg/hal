@@ -8,9 +8,9 @@ The commands in the menu should be sorted:
 - Hal commands
 
 ## In Progress
-- [084 — Rename /clean command to /clear](./084.rename-clean-command-to-clear.md) | [plan](./084.rename-clean-command-to-clear.plan.md)
 
 ## Ready Tasks
+- [034 — Codex session ID investigation and user isolation](./ready/034.codex-session-id-investigation-and-user-isolation.md) | [plan](./ready/034.codex-session-id-investigation-and-user-isolation.plan.md)
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 - [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
 
@@ -24,7 +24,6 @@ The commands in the menu should be sorted:
 - [075 — Handle voice messages exceeding Telegram's 20 MB download limit](./drafts/075.voice-message-20mb-limit.md)
 - [032 — Cron jobs and scheduled actions](./drafts/032.cron-jobs-and-scheduled-actions.md) (parent)
   - [032c — User-level crons + slash commands](./drafts/032c.user-crons-and-slash-commands.md)
-- [034 — Codex session ID investigation and user isolation](./drafts/034.codex-session-id-investigation-and-user-isolation.md)
 - [007 — Python commands + venv support](./drafts/007.python.md)
 - [014 — Multi-thread project isolation](./drafts/014.multi-thread.md)
 - [031 — Reset model with duration and cron scheduling](./drafts/031.reset-model-with-duration-and-cron.md)
@@ -97,3 +96,4 @@ The commands in the menu should be sorted:
 - [070 — Debounce voice messages](./completed/070.debounce-voice-messages.md) | [plan](./completed/070.debounce-voice-messages.plan.md) | [notes](./completed/070.debounce-voice-messages.notes.md) _(skipped — unnecessary)_
 - [068 — Sticky transcript with confirmation flow](./completed/068.voice-recognition-output-stitching-and-transcript-retention.md) | [plan](./completed/068.voice-recognition-output-stitching-and-transcript-retention.plan.md)
 - [083 — Fix the social card in GitHub settings and pin the project to my pinned repos on my GitHub profile](./completed/083.fix-the-social-card-in-github-settings-and-pin-the-project-to-my-pinned-repos-on-my-github-profile.md)
+- [084 — Rename /clean command to /clear](./completed/084.rename-clean-command-to-clear.md) | [plan](./completed/084.rename-clean-command-to-clear.plan.md)
