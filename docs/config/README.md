@@ -147,7 +147,7 @@ Default settings applied to all projects. Any setting defined in a project overr
 | `globals.dataDir` | Default user data directory | _(see [dataDir](#datadir-values) below)_ |
 | `globals.transcription.model` | Whisper model for voice | `"base.en"` |
 | `globals.transcription.showTranscription` | Show transcribed text | `true` |
-| `globals.transcription.sticky` | Require confirmation before sending voice transcript to engine (`Use it` / `Cancel`) | `false` |
+| `globals.transcription.sticky` | Require confirmation before sending voice transcript to engine (`Use it` / `Cancel`) | `true` |
 | `globals.commands` | Toggle and configure built-in commands | See [Commands](commands/README.md) |
 
 Per-engine options (Codex, Antigravity) are documented in [Engines](../engines/README.md).

@@ -11,7 +11,7 @@ export interface PendingTranscript {
 const pendingByUserId = new Map<number, PendingTranscript>();
 
 export function buildTranscriptConfirmationText(transcript: string): string {
-  return `Transcribed text:\n${transcript}`;
+  return `You said:\n${transcript}`;
 }
 
 export function buildTranscriptDiscardedText(transcript: string): string {

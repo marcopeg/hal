@@ -20,7 +20,6 @@ globals:
   transcription:
     model: base.en
     # showTranscription: true
-    sticky: true # Keep transcript message with Use it/Cancel confirmation before sending to engine
 projects:
   copilot:
     active: true

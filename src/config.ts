@@ -857,7 +857,7 @@ export function resolveProjectConfig(
           sticky:
             project.transcription?.sticky ??
             globals.transcription?.sticky ??
-            false,
+            true,
         }
       : undefined,
     providerModels,
