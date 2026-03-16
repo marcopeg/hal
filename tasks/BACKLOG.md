@@ -13,7 +13,6 @@ The commands in the menu should be sorted:
 
 
 ## Drafts
-- [083 — Fix the social card in GitHub settings and pin the project to my pinned repos on my GitHub profile](./drafts/083.fix-the-social-card-in-github-settings-and-pin-the-project-to-my-pinned-repos-on-my-github-profile.md)
 - [082 — Standardize /new and /clear responses](./drafts/082.new-clear-command-response-template.md)
 - [080 — Use cases documentation index and research](./drafts/080.use-cases-documentation-index-and-research.md) | [plan](./drafts/080.use-cases-documentation-index-and-research.plan.md)
 - [077 — Architectural refactoring for maintainability](./ready/077.architectural-refactoring-for-maintainability.md)
@@ -94,3 +93,4 @@ The commands in the menu should be sorted:
 - [046 — Codex log streaming](./completed/046.codex-log-streaming.md) | [plan](./completed/046.codex-log-streaming.plan.md)
 - [070 — Debounce voice messages](./completed/070.debounce-voice-messages.md) | [plan](./completed/070.debounce-voice-messages.plan.md) | [notes](./completed/070.debounce-voice-messages.notes.md) _(skipped — unnecessary)_
 - [068 — Sticky transcript with confirmation flow](./completed/068.voice-recognition-output-stitching-and-transcript-retention.md) | [plan](./completed/068.voice-recognition-output-stitching-and-transcript-retention.plan.md)
+- [083 — Fix the social card in GitHub settings and pin the project to my pinned repos on my GitHub profile](./completed/083.fix-the-social-card-in-github-settings-and-pin-the-project-to-my-pinned-repos-on-my-github-profile.md)
