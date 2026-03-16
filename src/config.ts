@@ -247,6 +247,7 @@ const GlobalsFileSchema = z
       .object({
         model: TranscriptionModelSchema,
         showTranscription: z.boolean(),
+        sticky: z.boolean(),
       })
       .partial()
       .optional(),
@@ -296,6 +297,7 @@ const ProjectFileSchema = z.object({
     .object({
       model: TranscriptionModelSchema,
       showTranscription: z.boolean(),
+      sticky: z.boolean(),
     })
     .partial()
     .optional(),
@@ -385,7 +387,9 @@ export interface ResolvedProjectConfig {
   logging: { level: string; flow: boolean; persist: boolean };
   rateLimit: { max: number; windowMs: number };
   debounce: { windowMs: number };
-  transcription: { model: string; showTranscription: boolean } | undefined;
+  transcription:
+    | { model: string; showTranscription: boolean; sticky: boolean }
+    | undefined;
   context: Record<string, string> | undefined;
   providerModels: ProviderModel[];
   providerDefaultModel: string | undefined;
@@ -850,6 +854,10 @@ export function resolveProjectConfig(
             project.transcription?.showTranscription ??
             globals.transcription?.showTranscription ??
             true,
+          sticky:
+            project.transcription?.sticky ??
+            globals.transcription?.sticky ??
+            false,
         }
       : undefined,
     providerModels,

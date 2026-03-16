@@ -23,6 +23,21 @@ export interface TranscriptionResult {
   duration?: number;
 }
 
+function normalizeTranscriptText(raw: string): string {
+  const withoutTimeRanges = raw.replace(
+    /\[?\d{2}:\d{2}:\d{2}\.\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}\.\d{3}\]?\s*/g,
+    "",
+  );
+
+  return withoutTimeRanges
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /**
  * Transcribe audio file using local Whisper model
  */
@@ -61,9 +76,11 @@ export async function transcribeAudio(
     });
 
     const duration = (Date.now() - startTime) / 1000;
-    const text = Array.isArray(transcript)
-      ? transcript.map((t) => t.speech).join(" ")
-      : String(transcript);
+    const text = normalizeTranscriptText(
+      Array.isArray(transcript)
+        ? transcript.map((t) => String(t.speech ?? "")).join(" ")
+        : String(transcript),
+    );
 
     logger.debug(
       { duration: `${duration.toFixed(2)}s`, textLength: text.length },
@@ -71,7 +88,7 @@ export async function transcribeAudio(
     );
 
     return {
-      text: text.trim(),
+      text,
       duration,
     };
   } catch (error) {

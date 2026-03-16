@@ -3,3 +3,4 @@ export { createMjsCallbackDispatcher } from "./mjs-callback.js";
 export { createPhotoHandler } from "./photo.js";
 export { createTextHandler } from "./text.js";
 export { createVoiceHandler } from "./voice.js";
+export { createVoiceCallbackHandler } from "./voice-callback.js";

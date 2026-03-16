@@ -35,8 +35,10 @@ import {
   createMjsCallbackDispatcher,
   createPhotoHandler,
   createTextHandler,
+  createVoiceCallbackHandler,
   createVoiceHandler,
 } from "./bot/handlers/index.js";
+import { expirePending, getPending } from "./bot/handlers/voice-pending.js";
 import { createAuthMiddleware } from "./bot/middleware/auth.js";
 import { createRateLimitMiddleware } from "./bot/middleware/rateLimit.js";
 import type { ProjectContext } from "./types.js";
@@ -139,8 +141,19 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
     return next();
   });
 
+  bot.on("callback_query:data", createVoiceCallbackHandler(projectCtx));
+
   // Generic callback dispatcher for .mjs commands that export `callbackHandler`
   bot.on("callback_query:data", createMjsCallbackDispatcher(projectCtx));
+
+  // Expire pending voice confirmations if a new message arrives from the same user.
+  bot.on("message", async (ctx, next) => {
+    const userId = ctx.from?.id;
+    if (userId && getPending(userId)) {
+      await expirePending(userId, ctx.api);
+    }
+    return next();
+  });
 
   // Wire handlers
   bot.on("message:text", createTextHandler(projectCtx, debounceActiveUsers));

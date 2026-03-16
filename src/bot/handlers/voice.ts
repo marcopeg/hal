@@ -2,7 +2,7 @@ import { exec } from "node:child_process";
 import { unlink, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
-import type { Context } from "grammy";
+import { type Context, InlineKeyboard } from "grammy";
 import { sendChunkedResponse } from "../../telegram/chunker.js";
 import { sendDownloadFiles } from "../../telegram/fileSender.js";
 import { transcribeAudio } from "../../transcription/whisper.js";
@@ -15,6 +15,11 @@ import {
   saveSessionId,
 } from "../../user/setup.js";
 import { shouldLoadSessionFromUserDir } from "./session.js";
+import {
+  buildTranscriptConfirmationText,
+  expirePending,
+  setPending,
+} from "./voice-pending.js";
 
 const execAsync = promisify(exec);
 
@@ -44,6 +49,74 @@ async function convertToWav(
  * Returns a handler for voice messages (transcribe + route to Claude).
  */
 export function createVoiceHandler(ctx: ProjectContext) {
+  const executeEnginePrompt = async (
+    gramCtx: Context,
+    userDir: string,
+    prompt: string,
+    statusMessageId: number,
+  ): Promise<void> => {
+    const { config, logger } = ctx;
+    const shouldLoadSession = shouldLoadSessionFromUserDir(
+      config.engineSession,
+      ctx.engine,
+    );
+    const sessionId = shouldLoadSession ? await getSessionId(userDir) : null;
+    let lastProgressUpdate = Date.now();
+    let lastProgressText = "Processing...";
+
+    const onProgress = async (message: string) => {
+      const now = Date.now();
+      if (now - lastProgressUpdate > 2000 && message !== lastProgressText) {
+        lastProgressUpdate = now;
+        lastProgressText = message;
+        try {
+          await gramCtx.api.editMessageText(
+            gramCtx.chat!.id,
+            statusMessageId,
+            `_${message}_`,
+            { parse_mode: "Markdown" },
+          );
+        } catch {
+          // Ignore edit errors
+        }
+      }
+    };
+
+    const downloadsPath = getDownloadsPath(userDir);
+
+    logger.info({ transcription: prompt }, "Executing engine query");
+    const result = await ctx.engine.execute(
+      {
+        prompt,
+        gramCtx,
+        userDir,
+        downloadsPath,
+        sessionId,
+        onProgress,
+      },
+      ctx,
+    );
+
+    try {
+      await gramCtx.api.deleteMessage(gramCtx.chat!.id, statusMessageId);
+    } catch {
+      // Ignore delete errors
+    }
+
+    const parsed = ctx.engine.parse(result);
+
+    if (config.engineSession !== false && parsed.sessionId) {
+      await saveSessionId(userDir, parsed.sessionId);
+    }
+
+    await sendChunkedResponse(gramCtx, parsed.text);
+
+    const filesSent = await sendDownloadFiles(gramCtx, userDir, ctx);
+    if (filesSent > 0) {
+      logger.info({ filesSent }, "Sent download files to user");
+    }
+  };
+
   return async (gramCtx: Context): Promise<void> => {
     const { config, logger } = ctx;
 
@@ -110,6 +183,59 @@ export function createVoiceHandler(ctx: ProjectContext) {
         return;
       }
 
+      // Clean up temporary files after transcription is available.
+      try {
+        await unlink(ogaPath);
+        await unlink(wavPath);
+      } catch {
+        // Ignore cleanup errors
+      }
+
+      if (config.transcription.sticky) {
+        try {
+          await gramCtx.api.deleteMessage(
+            gramCtx.chat!.id,
+            statusMsg.message_id,
+          );
+        } catch {
+          // Ignore delete errors
+        }
+
+        const keyboard = new InlineKeyboard()
+          .text("✅ Use it", `tc:use:${userId}`)
+          .text("❌ Cancel", `tc:cancel:${userId}`);
+
+        const confirmMessage = await gramCtx.reply(
+          buildTranscriptConfirmationText(transcription.text),
+          {
+            reply_markup: keyboard,
+          },
+        );
+
+        const timer = setTimeout(() => {
+          void expirePending(userId, gramCtx.api);
+        }, 60_000);
+
+        setPending(userId, {
+          transcript: transcription.text,
+          chatId: gramCtx.chat!.id,
+          msgId: confirmMessage.message_id,
+          timer,
+          execute: async () => {
+            const status = await gramCtx.reply("_Processing..._", {
+              parse_mode: "Markdown",
+            });
+            await executeEnginePrompt(
+              gramCtx,
+              userDir,
+              transcription.text,
+              status.message_id,
+            );
+          },
+        });
+        return;
+      }
+
       // Optionally show transcription to user
       if (config.transcription.showTranscription) {
         try {
@@ -135,76 +261,12 @@ export function createVoiceHandler(ctx: ProjectContext) {
         }
       }
 
-      // Clean up temporary files
-      try {
-        await unlink(ogaPath);
-        await unlink(wavPath);
-      } catch {
-        // Ignore cleanup errors
-      }
-
-      const shouldLoadSession = shouldLoadSessionFromUserDir(
-        config.engineSession,
-        ctx.engine,
+      await executeEnginePrompt(
+        gramCtx,
+        userDir,
+        transcription.text,
+        statusMsg.message_id,
       );
-      const sessionId = shouldLoadSession ? await getSessionId(userDir) : null;
-      let lastProgressUpdate = Date.now();
-      let lastProgressText = "Processing...";
-
-      const onProgress = async (message: string) => {
-        const now = Date.now();
-        if (now - lastProgressUpdate > 2000 && message !== lastProgressText) {
-          lastProgressUpdate = now;
-          lastProgressText = message;
-          try {
-            await gramCtx.api.editMessageText(
-              gramCtx.chat!.id,
-              statusMsg.message_id,
-              `_${message}_`,
-              { parse_mode: "Markdown" },
-            );
-          } catch {
-            // Ignore edit errors
-          }
-        }
-      };
-
-      const downloadsPath = getDownloadsPath(userDir);
-
-      logger.info(
-        { transcription: transcription.text },
-        "Executing engine query",
-      );
-      const result = await ctx.engine.execute(
-        {
-          prompt: transcription.text,
-          gramCtx,
-          userDir,
-          downloadsPath,
-          sessionId,
-          onProgress,
-        },
-        ctx,
-      );
-
-      try {
-        await gramCtx.api.deleteMessage(gramCtx.chat!.id, statusMsg.message_id);
-      } catch {
-        // Ignore delete errors
-      }
-
-      const parsed = ctx.engine.parse(result);
-
-      if (config.engineSession !== false && parsed.sessionId) {
-        await saveSessionId(userDir, parsed.sessionId);
-      }
-
-      await sendChunkedResponse(gramCtx, parsed.text);
-
-      const filesSent = await sendDownloadFiles(gramCtx, userDir, ctx);
-      if (filesSent > 0) {
-        logger.info({ filesSent }, "Sent download files to user");
-      }
     } catch (error) {
       logger.error({ error }, "Voice handler error");
       const errorMessage =

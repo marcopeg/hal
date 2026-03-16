@@ -147,6 +147,7 @@ Default settings applied to all projects. Any setting defined in a project overr
 | `globals.dataDir` | Default user data directory | _(see [dataDir](#datadir-values) below)_ |
 | `globals.transcription.model` | Whisper model for voice | `"base.en"` |
 | `globals.transcription.showTranscription` | Show transcribed text | `true` |
+| `globals.transcription.sticky` | Require confirmation before sending voice transcript to engine (`Use it` / `Cancel`) | `false` |
 | `globals.commands` | Toggle and configure built-in commands | See [Commands](commands/README.md) |
 
 Per-engine options (Codex, Antigravity) are documented in [Engines](../engines/README.md).
@@ -215,6 +216,7 @@ This validation runs at both initial boot and after config hot-reload. A reload 
 | `logging` | No | Override logging (see [Logging](logging/README.md)) |
 | `rateLimit` | No | Override rate limit (see [Rate limit](rate-limit/README.md)) |
 | `transcription.showTranscription` | No | Override transcription display |
+| `transcription.sticky` | No | Require `Use it` confirmation before sending transcribed voice text to the engine |
 | `dataDir` | No | Override user data directory (see below) |
 | `context` | No | Per-project context overrides (see [Context](context/README.md)) |
 | `commands` | No | Toggle and configure built-in commands (see [Commands](commands/README.md)) |
