@@ -12,6 +12,7 @@ The commands in the menu should be sorted:
 ## Ready Tasks
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 - [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
+- [086 — Copilot per-user session isolation](./ready/086.copilot-user-session-isolation.md) | [plan](./ready/086.copilot-user-session-isolation.plan.md)
 
 
 ## Drafts
