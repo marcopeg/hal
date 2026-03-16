@@ -19,7 +19,6 @@ globals:
     model: opencode/gpt-5-nano
   transcription:
     model: base.en
-    # mode: confirm # confirm | inline | silent
 projects:
   copilot:
     active: true

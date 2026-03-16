@@ -7,9 +7,6 @@ The commands in the menu should be sorted:
 - system commands
 - Hal commands
 
-## In Progress
-- [068 — Sticky transcript with confirmation flow](./068.voice-recognition-output-stitching-and-transcript-retention.md) | [plan](./068.voice-recognition-output-stitching-and-transcript-retention.plan.md)
-
 ## Ready Tasks
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 - [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
@@ -93,3 +90,4 @@ The commands in the menu should be sorted:
 - [067 — Rename config-dir flag to config](./completed/067.rename-config-dir-flag-to-config.md) | [plan](./completed/067.rename-config-dir-flag-to-config.plan.md)
 - [046 — Codex log streaming](./completed/046.codex-log-streaming.md) | [plan](./completed/046.codex-log-streaming.plan.md)
 - [070 — Debounce voice messages](./completed/070.debounce-voice-messages.md) | [plan](./completed/070.debounce-voice-messages.plan.md) | [notes](./completed/070.debounce-voice-messages.notes.md) _(skipped — unnecessary)_
+- [068 — Sticky transcript with confirmation flow](./completed/068.voice-recognition-output-stitching-and-transcript-retention.md) | [plan](./completed/068.voice-recognition-output-stitching-and-transcript-retention.plan.md)
