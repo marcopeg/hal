@@ -24,7 +24,7 @@ npm run lint:fix  # Fix linting and formatting
 - `src/bot.ts` - Bot initialization
 - `src/config.ts` - Configuration loading (hal.config.{json,yaml} + env vars)
 - `src/bot/handlers/` - Message handlers (text, photo, document)
-- `src/bot/commands/` - Bot commands (/start, /help, /clean, /model, /engine)
+- `src/bot/commands/` - Bot commands (/start, /help, /clear, /model, /engine)
 - `src/claude/` - Claude Code CLI integration
 - `src/user/` - User session management
 

@@ -6,6 +6,7 @@
 
 * 68 confirm transcription message ([339bdcc](https://github.com/marcopeg/hal/commit/339bdcce77c23fc5de4a43fb52275c574b507146))
 * improve voice management with mode-based transcription UX ([53f0ebe](https://github.com/marcopeg/hal/commit/53f0ebe834a0d992bf5a52958dde165ff851fd9f))
+* rename `/clean` command surface to `/clear`; only `commands.clear` is supported
 
 ## [1.4.0](https://github.com/marcopeg/hal/compare/v1.3.0...v1.4.0) (2026-03-14)
 

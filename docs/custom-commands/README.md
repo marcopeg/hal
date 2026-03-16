@@ -15,7 +15,7 @@ Project-specific commands take precedence over global ones on name collision.
 
 Slash commands are resolved in this order:
 
-1. **Built-in commands** (e.g. `/start`, `/help`, `/engine`, `/model`, `/reset`, `/clean`, `/info`, `/npm`, and `git_*`) are handled directly by the bot when enabled.
+1. **Built-in commands** (e.g. `/start`, `/help`, `/engine`, `/model`, `/reset`, `/clear`, `/info`, `/npm`, and `git_*`) are handled directly by the bot when enabled.
 2. **Custom `.mjs` commands** (project `.hal/commands/{name}.mjs`, then global `{configDir}/.hal/commands/{name}.mjs`).
 3. **Skills** with `telegram: true` in `SKILL.md`.
 4. **Fallback to the AI engine** when no command or skill matches.

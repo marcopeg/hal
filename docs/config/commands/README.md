@@ -22,7 +22,7 @@ commands:
     enabled: true
   reset:
     enabled: true
-  clean:
+  clear:
     enabled: true
   info:
     enabled: true
@@ -41,7 +41,7 @@ commands:
 
 ## Custom messages
 
-The `/start`, `/help`, `/reset`, and `/clean` commands additionally support a custom `message`:
+The `/start`, `/help`, `/reset`, and `/clear` commands additionally support a custom `message`:
 
 ```yaml
 globals:
@@ -61,7 +61,7 @@ globals:
       message:
         confirm: "This will erase everything. Proceed?"
         done: "All wiped!"
-    clean:
+    clear:
       message:
         text: "Session reset. Ready for a new conversation."
 ```
@@ -77,7 +77,7 @@ Setting both `text` and `from`, or neither, is a configuration error.
 
 ## /start
 
-The `/start` command additionally supports `session.reset` (boolean, default `false`). When `true`, the session is reset after sending the welcome message (same effect as `/clean`).
+The `/start` command additionally supports `session.reset` (boolean, default `false`). When `true`, the session is reset after sending the welcome message (same effect as `/clear`).
 
 ## /reset
 
@@ -90,9 +90,11 @@ The `/reset` command asks for confirmation before deleting user data. It sends a
 | `message.confirm` | Custom confirmation prompt text | `"This is going to delete the user data folder. Are you sure?"` |
 | `message.done` | Custom message shown after successful reset | `"done!"` |
 
-## /clean
+## /clear
 
-The `/clean` command always resets the LLM session regardless of configuration — user files (uploads, downloads) are preserved. The custom message only changes what the user sees afterward.
+The `/clear` command always resets the LLM session regardless of configuration — user files (uploads, downloads) are preserved. The custom message only changes what the user sees afterward.
+
+Only `commands.clear` is supported. `commands.clean` is invalid and causes a configuration error.
 
 ## /info
 
@@ -163,7 +165,7 @@ When no `commands` config is set:
 | `/start` | `Welcome to ${project.name}!` followed by the command list |
 | `/help` | The command list |
 | `/reset` | Confirmation prompt: `"This is going to delete the user data folder. Are you sure?"`, then `"done!"` on confirm |
-| `/clean` | `Session reset. Your next message starts a new conversation.` |
+| `/clear` | `Session reset. Your next message starts a new conversation.` |
 | `/info` | Summary info, plus context in a separate code block message (when `commands.info.context: true`) |
 
 Messages are sent with Telegram's legacy Markdown formatting. Supported syntax: `*bold*`, `_italic_`, `` `inline code` ``, ` ```code blocks``` `, `[link text](url)`.
@@ -182,7 +184,7 @@ The special **`${HAL_COMMANDS}`** placeholder expands to a formatted list of all
 - **Project Commands** — `.mjs` commands from the project's `.hal/commands/` directory
 - **Project Skills** — engine skills marked with `telegram: true` in their `SKILL.md` frontmatter
 - **System Commands** — `.mjs` commands from the global `.hal/commands/` directory (shared across projects)
-- **Hal Commands** — built-in commands (`/start`, `/help`, `/reset`, `/clean`, `/info`, `/model`, `/engine`)
+- **Hal Commands** — built-in commands (`/start`, `/help`, `/reset`, `/clear`, `/info`, `/model`, `/engine`)
 - **Versioning** — git built-in commands (`/git_init`, `/git_status`, `/git_commit`, `/git_clean`) — only when `commands.git.enabled: true`
 
 Example `WELCOME.md`:

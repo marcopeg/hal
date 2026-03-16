@@ -90,7 +90,7 @@ The `engine` object supports the fields below. Engine-specific options (e.g. Cod
 | `command` | Custom path to the CLI binary | _(engine name)_ |
 | `model` | AI model override (omit for engine or HAL default; see [Model defaults](#model-defaults)) | _(per engine)_ |
 | `session` | Session mode: `false` \| `true` \| `"shared"` \| `"user"`. See [Session configuration](../config/session/README.md). `"user"` with OpenCode/Copilot fails at boot. | `true` |
-| `sessionMsg` | Message sent when renewing session (e.g. `/clean`) | `"hi!"` |
+| `sessionMsg` | Message sent when renewing session (e.g. `/clear`) | `"hi!"` |
 
 **Per-engine setup and options:** [Claude](claude/README.md) · [Copilot](copilot/README.md) · [Codex](codex/README.md) · [OpenCode](opencode/README.md) · [Cursor](cursor/README.md) · [Antigravity](antigravity/README.md).
 

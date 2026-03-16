@@ -132,7 +132,7 @@ Use the **[Setup wizard](docs/setup-wizard/README.md)** to create or complete yo
 - **[Setup wizard](docs/setup-wizard/README.md)** — interactive config creation and completion, start-time suggestion, pre-fill flags
 - **[Configuration](docs/config/README.md)** — config files, [reference.yaml](docs/config/reference.yaml) (all keys), [examples/hal.config.yaml](examples/hal.config.yaml), env vars, `globals`, `projects` (map), dataDir, log files
 - **[Context](docs/config/context/README.md)** — context injection (implicit keys, custom context, hooks)
-- **[Commands](docs/config/commands/README.md)** — built-in command config (`/start`, `/help`, `/reset`, `/clean`, `/model`, `/engine`, `/git`)
+- **[Commands](docs/config/commands/README.md)** — built-in command config (`/start`, `/help`, `/reset`, `/clear`, `/model`, `/engine`, `/git`)
 - **[Engines](docs/engines/README.md)** — supported engines, engine config, model list, model defaults, per-engine setup
 - **[Logging](docs/config/logging/README.md)** — log level, flow, persist, log file paths
 - **[Rate limit](docs/config/rate-limit/README.md)** — max messages per user per time window
@@ -190,7 +190,7 @@ HAL exposes a small set of built-in commands for session and help management.
 | `/start` | Welcome message                                       |
 | `/help`  | Show help information                                 |
 | `/reset` | Wipes out all user data and resets the LLM session    |
-| `/clean` | Resets the LLM session                                |
+| `/clear` | Resets the LLM session                                |
 
 ## Custom commands and skills
 

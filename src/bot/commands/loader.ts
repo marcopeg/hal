@@ -23,7 +23,7 @@ export interface CommandEnabledFlags {
   start: boolean;
   help: boolean;
   reset: boolean;
-  clean: boolean;
+  clear: boolean;
   info: boolean;
   git: boolean;
   model: boolean;
@@ -314,7 +314,7 @@ export const BUILTIN_COMMANDS: CommandEntry[] = [
     source: "builtin",
   },
   {
-    command: "clean",
+    command: "clear",
     description: "Resets the LLM session",
     filePath: "",
     source: "builtin",
@@ -376,7 +376,7 @@ const BUILTIN_ENABLED_MAP: Record<string, keyof CommandEnabledFlags> = {
   start: "start",
   help: "help",
   reset: "reset",
-  clean: "clean",
+  clear: "clear",
   info: "info",
   model: "model",
   engine: "engine",

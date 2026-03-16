@@ -28,7 +28,7 @@ Requires a Copilot Pro, Pro+, Business, or Enterprise plan. You can also authent
 
 - **Config:** `engine.name: "copilot"`. Optional: `engine.command`, `engine.model`, `engine.session` (`false` \| `true` \| `"shared"` only; see [Session configuration](../../config/session/README.md)), `engine.sessionMsg`, `engine.copilot.allowAllPaths`.
 - **Invocation:** `copilot -p <prompt> --allow-all-tools --allow-all-urls [--allow-all-paths] [--model <m>] [--continue]`
-- **Sessions:** `session: true` or `"shared"` = shared (`--continue`). **`session: "user"` is not supported:** HAL fails at **boot** with a configuration error. Use `true` or `"shared"`. `/clean` sends `engine.sessionMsg` without `--continue` to start a fresh session; the engine’s reply is sent to the user.
+- **Sessions:** `session: true` or `"shared"` = shared (`--continue`). **`session: "user"` is not supported:** HAL fails at **boot** with a configuration error. Use `true` or `"shared"`. `/clear` sends `engine.sessionMsg` without `--continue` to start a fresh session; the engine’s reply is sent to the user.
 - **Project file:** `AGENTS.md`.
 
 ## Filesystem access and cwd boundary

@@ -36,7 +36,7 @@ Supports 75+ LLM providers. Credentials are stored in `~/.local/share/opencode/a
 
 - **Config:** `engine.name: "opencode"`. Optional: `engine.command`, `engine.model` (omit to use the OpenCode CLI default, or set e.g. `opencode/gpt-5-nano`), `engine.session` (`false` \| `true` \| `"shared"` only; see [Session configuration](../../config/session/README.md)), `engine.sessionMsg`.
 - **Invocation:** `opencode run [-m <model>] [-c] <prompt>` with `OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=true` env var. When `engine.model` is not set, HAL does not pass `-m`, so the CLI chooses the model.
-- **Sessions:** `session: true` or `"shared"` = shared (`-c` continue last). **`session: "user"` is not supported:** HAL fails at **boot** with a configuration error. Use `true` or `"shared"`. `/clean` sends `engine.sessionMsg` without `-c` to start a fresh session.
+- **Sessions:** `session: true` or `"shared"` = shared (`-c` continue last). **`session: "user"` is not supported:** HAL fails at **boot** with a configuration error. Use `true` or `"shared"`. `/clear` sends `engine.sessionMsg` without `-c` to start a fresh session.
 - **Note:** OpenCode is a basic prompt/response adapter — no streaming progress events.
 - **Project file:** `AGENTS.md`.
 

@@ -7,10 +7,12 @@ The commands in the menu should be sorted:
 - system commands
 - Hal commands
 
+## In Progress
+- [084 — Rename /clean command to /clear](./084.rename-clean-command-to-clear.md) | [plan](./084.rename-clean-command-to-clear.plan.md)
+
 ## Ready Tasks
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 - [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
-- [084 — Rename /clean command to /clear](./ready/084.rename-clean-command-to-clear.md) | [plan](./ready/084.rename-clean-command-to-clear.plan.md)
 
 
 ## Drafts

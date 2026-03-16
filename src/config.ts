@@ -169,6 +169,8 @@ const CommandsConfigSchema = z
     start: StartConfigSchema,
     help: SimpleCommandConfigSchema,
     reset: ResetCommandConfigSchema,
+    clear: SimpleCommandConfigSchema,
+    // Kept only to emit a clear startup error when users still configure it.
     clean: SimpleCommandConfigSchema,
     info: InfoConfigSchema,
     git: GitConfigSchema,
@@ -405,7 +407,7 @@ export interface ResolvedProjectConfig {
       message: { confirm?: string; done?: string };
       timeout: number;
     };
-    clean: { enabled: boolean; message?: string };
+    clear: { enabled: boolean; message?: string };
     info: {
       enabled: boolean;
       cwd: boolean;
@@ -621,7 +623,7 @@ export function resolveProjectConfig(
   const rawStart = project.commands?.start ?? globals.commands?.start;
   const rawHelp = project.commands?.help ?? globals.commands?.help;
   const rawReset = project.commands?.reset ?? globals.commands?.reset;
-  const rawClean = project.commands?.clean ?? globals.commands?.clean;
+  const rawClear = project.commands?.clear ?? globals.commands?.clear;
 
   // Enable /model when we have a config list, or when the engine supports self-discovery and its CLI is available
   const effectiveEngineCommand =
@@ -683,13 +685,13 @@ export function resolveProjectConfig(
       },
       timeout: rawReset?.timeout ?? 60,
     },
-    clean: {
+    clear: {
       enabled:
-        project.commands?.clean?.enabled ??
-        globals.commands?.clean?.enabled ??
+        project.commands?.clear?.enabled ??
+        globals.commands?.clear?.enabled ??
         true,
-      message: rawClean?.message
-        ? resolveMessageTemplate(rawClean.message, "commands.clean")
+      message: rawClear?.message
+        ? resolveMessageTemplate(rawClear.message, "commands.clear")
         : undefined,
     },
     info: {

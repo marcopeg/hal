@@ -70,7 +70,7 @@ globals:
         confirm: ""
         done: ""
       timeout: 300000
-    clean:
+    clear:
       enabled: true
       message: {}
     info:

@@ -47,7 +47,7 @@ export async function clearUserData(userDir: string): Promise<void> {
 }
 
 /**
- * Clear only the session data (for /clean command).
+ * Clear only the session data (for /clear command).
  * Deletes session.json without touching uploads/downloads.
  */
 export async function clearSessionData(userDir: string): Promise<void> {

@@ -136,7 +136,7 @@ Default settings applied to all projects. Any setting defined in a project overr
 | `globals.engine.command` | Override the CLI command path | _(engine name)_ |
 | `globals.engine.model` | Override the AI model (see [Engines](../engines/README.md#model-defaults)) | _(per engine)_ |
 | `globals.engine.session` | Session mode: `false` (stateless), `true` (adapter default, omit = same), `"shared"`, or `"user"`. See [Session configuration](session/README.md). **`"user"` with OpenCode/Copilot fails at boot.** | `true` |
-| `globals.engine.sessionMsg` | Message sent when renewing session (e.g. `/clean`) | `"hi!"` |
+| `globals.engine.sessionMsg` | Message sent when renewing session (e.g. `/clear`) | `"hi!"` |
 | `globals.engine.envFile` | Path to an env file sourced before running the engine CLI (child process only; not for HAL config substitution). Relative to project `cwd`; absolute paths used as-is. Active projects with a missing/unreadable file fail at boot. | _(none)_ |
 | `globals.engine.codex.*` | Codex permission flags | See [Codex](../engines/codex/README.md) |
 | `globals.engine.antigravity.*` | Antigravity flags | See [Antigravity](../engines/antigravity/README.md) |
@@ -288,7 +288,7 @@ With a config at `~/workspace/hal.config.yaml` (or `.json` / `.jsonc`):
 | [Env files](env-files/README.md) | Env file loading, wizard file selection, custom `env` path, `.gitignore` |
 | [Session](session/README.md) | Session mode: `false` \| `true` \| `"shared"` \| `"user"`; per-engine support and boot errors |
 | [Context](context/README.md) | Context injection — implicit keys, custom context, variable patterns, hooks |
-| [Commands](commands/README.md) | Built-in command config — `/start`, `/help`, `/reset`, `/clean`, `/model`, `/engine`, `/git` |
+| [Commands](commands/README.md) | Built-in command config — `/start`, `/help`, `/reset`, `/clear`, `/model`, `/engine`, `/git` |
 | [Logging](logging/README.md) | Log level, flow, persist, log file paths |
 | [Rate limit](rate-limit/README.md) | Max messages per user per window (`max`, `windowMs`) |
 | [Engines](../engines/README.md) | Supported engines, engine config, model list, model defaults, per-engine setup |

@@ -29,7 +29,7 @@ async function buildHalCommands(ctx: ProjectContext): Promise<string> {
     start: config.commands.start.enabled,
     help: config.commands.help.enabled,
     reset: config.commands.reset.enabled,
-    clean: config.commands.clean.enabled,
+    clear: config.commands.clear.enabled,
     info: config.commands.info.enabled,
     git: config.commands.git.enabled,
     model: config.commands.model.enabled,
@@ -89,7 +89,7 @@ async function buildHalCommands(ctx: ProjectContext): Promise<string> {
 
 /**
  * Resolve a message template with context variable substitution and
- * the HAL_COMMANDS placeholder. Shared by /start, /help, /reset, and /clean.
+ * the HAL_COMMANDS placeholder. Shared by /start, /help, /reset, and /clear.
  */
 export async function resolveCommandMessage(
   template: string,

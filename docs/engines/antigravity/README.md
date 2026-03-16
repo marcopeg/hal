@@ -29,7 +29,7 @@ Free-tier access with a personal Google account (Gemini 2.5 Pro, 60 req/min, 100
 
 - **Config:** `engine.name: "antigravity"`. Optional: `engine.command`, `engine.model` (e.g. `gemini-2.5-pro`, passed as `--model`; default: `auto`), `engine.session` (`false` \| `true` \| `"shared"` \| `"user"`; see [Session configuration](../../config/session/README.md)), `engine.sessionMsg`, and the flags under `engine.antigravity` (see table below).
 - **Invocation:** `gemini -p <prompt> --output-format stream-json --approval-mode <mode> [--model <m>] [--resume <sessionId>] [--sandbox]`
-- **Sessions:** `session: true`, `"shared"`, or `"user"` = per-user (`--resume {sessionId}`). `session: false` = stateless. `/clean` clears the stored session and replies with a static message (no engine call — same as Claude).
+- **Sessions:** `session: true`, `"shared"`, or `"user"` = per-user (`--resume {sessionId}`). `session: false` = stateless. `/clear` clears the stored session and replies with a static message (no engine call — same as Claude).
 - **Streaming:** JSONL output with live progress from tool-use events.
 - **Project files:** `GEMINI.md`, `.agent/skills/`.
 

@@ -25,7 +25,7 @@ Requires a Cursor subscription. For headless mode, set `CURSOR_API_KEY` as an en
 
 - **Config:** `engine.name: "cursor"`. Optional: `engine.command`, `engine.model` (default: `auto`), `engine.session` (`false` \| `true` \| `"shared"` \| `"user"`; see [Session configuration](../../config/session/README.md)), `engine.sessionMsg`.
 - **Invocation:** `agent --print --workspace <cwd> --trust --force --model <m> [--continue] [--resume <session_id>] <prompt>`
-- **Sessions:** `session: true` or `"shared"` = shared (`--continue`). `session: "user"` = **experimental** per-user: HAL parses `session_id` from Cursor CLI output and uses `--resume <session_id>` next time (flag stability not guaranteed by Cursor docs). `session: false` = stateless. `/clean` sends `engine.sessionMsg` without `--continue` to start fresh.
+- **Sessions:** `session: true` or `"shared"` = shared (`--continue`). `session: "user"` = **experimental** per-user: HAL parses `session_id` from Cursor CLI output and uses `--resume <session_id>` next time (flag stability not guaranteed by Cursor docs). `session: false` = stateless. `/clear` sends `engine.sessionMsg` without `--continue` to start fresh.
 - **Project file:** `AGENTS.md`.
 
 ## Filesystem access and cwd boundary

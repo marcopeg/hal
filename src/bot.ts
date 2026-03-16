@@ -27,7 +27,7 @@ import {
   createResetHandler,
 } from "./bot/commands/reset.js";
 import { clearAllPrompts } from "./bot/commands/resetPrompt.js";
-import { createCleanHandler } from "./bot/commands/session.js";
+import { createClearHandler } from "./bot/commands/session.js";
 import { createStartHandler } from "./bot/commands/start.js";
 import { startCommandWatcher } from "./bot/commands/watcher.js";
 import {
@@ -88,7 +88,7 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
     bot.command("reset", createResetHandler(projectCtx, bot.api));
     bot.on("callback_query:data", createResetCallbackHandler(projectCtx));
   }
-  if (cmd.clean.enabled) bot.command("clean", createCleanHandler(projectCtx));
+  if (cmd.clear.enabled) bot.command("clear", createClearHandler(projectCtx));
   if (cmd.info.enabled) bot.command("info", createInfoHandler(projectCtx));
 
   if (cmd.git.enabled) {
@@ -197,7 +197,7 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
     start: cmd.start.enabled,
     help: cmd.help.enabled,
     reset: cmd.reset.enabled,
-    clean: cmd.clean.enabled,
+    clear: cmd.clear.enabled,
     info: cmd.info.enabled,
     git: cmd.git.enabled,
     model: cmd.model.enabled,

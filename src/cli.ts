@@ -461,6 +461,12 @@ async function runBotsForConfig(
 
   const globals = multiConfig.globals ?? {};
 
+  if (multiConfig.globals?.commands?.clean !== undefined) {
+    throw new Error(
+      "Configuration error: `globals.commands.clean` is not supported. Use `globals.commands.clear`.",
+    );
+  }
+
   // Only run CLI discovery when the config has no `providers` key at all.
   // `providers: {}` (empty) means engine/model switching disabled — do not discover.
   const hasProvidersKey = multiConfig.providers !== undefined;
@@ -477,6 +483,13 @@ async function runBotsForConfig(
   // Resolve all project configs, skip inactive ones (stable order: sorted keys)
   const rootContext = multiConfig.context;
   const projectKeys = Object.keys(multiConfig.projects).sort();
+  for (const key of projectKeys) {
+    if (multiConfig.projects[key].commands?.clean !== undefined) {
+      throw new Error(
+        `Configuration error: projects.${key}.commands.clean is not supported. Use projects.${key}.commands.clear.`,
+      );
+    }
+  }
   const allProjects = projectKeys.map((key) =>
     resolveProjectConfig(
       key,

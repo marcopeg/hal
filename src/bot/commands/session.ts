@@ -6,11 +6,11 @@ import type { ProjectContext } from "../../types.js";
 import { clearSessionData } from "../../user/setup.js";
 import { resolveCommandMessage } from "./message.js";
 
-const DEFAULT_CLEAN_TEMPLATE =
+const DEFAULT_CLEAR_TEMPLATE =
   "Session reset. Your next message starts a new conversation.";
 
 /**
- * Shared session-reset logic used by /clean and /start (when configured).
+ * Shared session-reset logic used by /clear and /start (when configured).
  *
  * - Always clears local session state (session.json).
  * - For active-reset engines (copilot, codex, opencode, cursor): sends sessionMsg
@@ -84,16 +84,16 @@ export async function resetSession(
 }
 
 /**
- * Returns a handler for the /clean command.
+ * Returns a handler for the /clear command.
  * Resets the session, then sends a customizable confirmation message.
  */
-export function createCleanHandler(ctx: ProjectContext) {
+export function createClearHandler(ctx: ProjectContext) {
   return async (gramCtx: Context): Promise<void> => {
     try {
       await resetSession(ctx, gramCtx, { silent: true });
 
       const template =
-        ctx.config.commands.clean.message ?? DEFAULT_CLEAN_TEMPLATE;
+        ctx.config.commands.clear.message ?? DEFAULT_CLEAR_TEMPLATE;
       const message = await resolveCommandMessage(template, ctx, gramCtx);
       await gramCtx.reply(message, { parse_mode: "Markdown" });
     } catch (error) {

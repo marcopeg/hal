@@ -27,7 +27,7 @@ Requires a Pro, Max, Teams, Enterprise, or API Console account. Credentials are 
 
 - **Config:** `engine.name: "claude"`. Optional: `engine.command`, `engine.model` (passed as `--model`), `engine.session` (`false` \| `true` \| `"shared"` \| `"user"`; see [Session configuration](../../config/session/README.md)), `engine.sessionMsg`.
 - **Invocation:** `claude -p <prompt> --output-format stream-json --verbose [--model <m>] [--resume <sessionId>]` or `claude -c -p <prompt> ...` for shared mode.
-- **Sessions:** `session: true` or `"user"` = per-user (`--resume {sessionId}`). `session: "shared"` = shared (`--continue`, all users in project `cwd`). `session: false` = stateless. `/clean` with shared mode sends the session message without `--continue` to start fresh; with per-user it clears the stored session and replies with a static message (no engine call).
+- **Sessions:** `session: true` or `"user"` = per-user (`--resume {sessionId}`). `session: "shared"` = shared (`--continue`, all users in project `cwd`). `session: false` = stateless. `/clear` with shared mode sends the session message without `--continue` to start fresh; with per-user it clears the stored session and replies with a static message (no engine call).
 - **Streaming:** JSONL output with live progress from tool-use events.
 - **Project files:** `CLAUDE.md`, `.claude/settings.json`.
 
