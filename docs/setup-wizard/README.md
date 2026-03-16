@@ -42,7 +42,7 @@ You can skip steps by providing values on the command line. When a flag is set a
 | `--user-id <value>` | Telegram user ID |
 | `--session <mode>` | Session configuration (`true`, `false`, `shared`, `user`) |
 
-Session note: `true` means the engine default. For Codex, that now means per-user mode; use `shared` only if you explicitly want project-level shared continuation.
+Session note: `true` means the engine default. For Codex and Copilot, that now means per-user mode; use `shared` only if you explicitly want project-level shared continuation.
 
 Examples:
 

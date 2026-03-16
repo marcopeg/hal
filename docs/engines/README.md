@@ -21,14 +21,14 @@ HAL supports multiple AI coding CLIs. Each engine has its own install steps, con
 |--------|:------:|:-------:|:-----:|:--------:|:------:|:------------:|
 | **Instruction file** | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` | `AGENTS.md` | `AGENTS.md` | `GEMINI.md` |
 | **Main skills folder** | `.claude/skills/` | `.agents/skills/` | `.agents/skills/` | `.agents/skills/` | `.agents/skills/` | `.agent/skills/` |
-| **Per-user session** | ✓ | ✗ | ✓ | ✗ | ✗ | ✓ |
+| **Per-user session** | ✓ | ✓ | ✓ | ✗ | ✗ | ✓ |
 | **Network access** | — | — | ✓ | — | — | — |
 | **Full disk access** | — | — | ✓ | — | — | — |
 | **YOLO mode** | — | — | ✓ | — | — | ✓ |
 | **Streaming progress** | ✓ | ✗ | ✓ | ✗ | ✗ | ✓ |
 | **cwd sandboxed by default** | via settings.json | ✓ | ✓ | ✗ | ✗ | opt-in |
 
-**Session configuration:** `engine.session` is one of: `false` (stateless), `true` (adapter default), `"shared"`, or `"user"`. See [Session configuration](../config/session/README.md). **Claude** default is per-user; `"shared"` forces `--continue`. **Antigravity** is per-user. **Codex** now defaults to experimental per-user isolation; `"shared"` opts back into project-level `resume --last`. **Cursor** defaults to shared and `"user"` enables experimental per-user mode. **OpenCode** and **Copilot** support only `true`/`"shared"`; `"user"` causes a **boot error**.
+**Session configuration:** `engine.session` is one of: `false` (stateless), `true` (adapter default), `"shared"`, or `"user"`. See [Session configuration](../config/session/README.md). **Claude** default is per-user; `"shared"` forces `--continue`. **Antigravity** is per-user. **Codex** and **Copilot** now default to experimental per-user isolation; `"shared"` opts back into project-level shared continuation. **Cursor** defaults to shared and `"user"` enables experimental per-user mode. **OpenCode** still rejects `"user"` at boot.
 
 **Network / full disk / YOLO:** Only **Codex** exposes configurable permission flags in HAL (`engine.codex.networkAccess`, `fullDiskAccess`, `dangerouslyEnableYolo`). **Antigravity** supports `engine.antigravity.approvalMode` (e.g. `yolo`) and `sandbox`; default is `yolo` for headless use. **Copilot** supports `engine.copilot.allowAllPaths` (default `false`); when false, Copilot is restricted to the project `cwd` and its subdirectories — set to `true` only if you explicitly need cross-directory access. Other engines either allow tool use by default or do not expose these knobs in HAL.
 
@@ -89,7 +89,7 @@ The `engine` object supports the fields below. Engine-specific options (e.g. Cod
 | `name` | **Required.** Engine: `claude`, `copilot`, `codex`, `opencode`, `cursor`, `antigravity`. Must be set in globals or per-project; no default. | — |
 | `command` | Custom path to the CLI binary | _(engine name)_ |
 | `model` | AI model override (omit for engine or HAL default; see [Model defaults](#model-defaults)) | _(per engine)_ |
-| `session` | Session mode: `false` \| `true` \| `"shared"` \| `"user"`. See [Session configuration](../config/session/README.md). `"user"` with OpenCode/Copilot fails at boot. `true` means the engine default, so Codex resolves to per-user while Cursor still resolves to shared. | `true` |
+| `session` | Session mode: `false` \| `true` \| `"shared"` \| `"user"`. See [Session configuration](../config/session/README.md). `"user"` with OpenCode fails at boot. `true` means the engine default, so Codex and Copilot resolve to per-user while Cursor still resolves to shared. | `true` |
 | `sessionMsg` | Message sent when renewing session (e.g. `/clear`) | `"hi!"` |
 
 **Per-engine setup and options:** [Claude](claude/README.md) · [Copilot](copilot/README.md) · [Codex](codex/README.md) · [OpenCode](opencode/README.md) · [Cursor](cursor/README.md) · [Antigravity](antigravity/README.md).

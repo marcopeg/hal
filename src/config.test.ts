@@ -46,6 +46,48 @@ describe("resolveProjectConfig session modes", () => {
     expect(result.engineSession).toBe("shared");
   });
 
+  it("defaults Copilot to per-user mode when session is omitted", () => {
+    const result = resolveProjectConfig(
+      "copilot-project",
+      {
+        telegram: { botToken: "token" },
+        engine: { name: "copilot" },
+      } as never,
+      {} as never,
+      configDir,
+    );
+
+    expect(result.engineSession).toBe("user");
+  });
+
+  it("treats explicit true for Copilot as per-user mode", () => {
+    const result = resolveProjectConfig(
+      "copilot-project",
+      {
+        telegram: { botToken: "token" },
+        engine: { name: "copilot", session: true },
+      } as never,
+      {} as never,
+      configDir,
+    );
+
+    expect(result.engineSession).toBe("user");
+  });
+
+  it("preserves explicit shared mode for Copilot", () => {
+    const result = resolveProjectConfig(
+      "copilot-project",
+      {
+        telegram: { botToken: "token" },
+        engine: { name: "copilot", session: "shared" },
+      } as never,
+      {} as never,
+      configDir,
+    );
+
+    expect(result.engineSession).toBe("shared");
+  });
+
   it("still rejects unsupported per-user mode for OpenCode", () => {
     expect(() =>
       resolveProjectConfig(

@@ -63,13 +63,13 @@ Not all engines work the same way inside HAL:
 | Feature | Claude | Copilot | Codex | OpenCode | Cursor | Antigravity |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
 | Live streaming progress | ✓ | — | — | — | — | ✓ |
-| Per-user session | ✓ | — | — | — | — | ✓ |
+| Per-user session | ✓ | ✓ | ✓ | — | — | ✓ |
 | Network access flag | — | — | ✓ | — | — | — |
 | Full disk access flag | — | — | ✓ | — | — | — |
 
 **Streaming progress** means HAL forwards tool calls and intermediate steps to Telegram as they happen. With Claude and Antigravity you see the agent "thinking" in real time. With the others, you get a single reply when the run is done.
 
-**Per-user session** means each Telegram user gets their own conversation context. Claude uses `--resume` per user; Antigravity does the same. The others default to a single shared session across all users.
+**Per-user session** means each Telegram user gets their own conversation context. Claude uses `--resume` per user; Copilot now recovers a resumable UUID from its structured JSON output, Codex recovers one from its CLI state, and Antigravity also resumes per user. OpenCode remains shared-only, and Cursor still defaults to a shared session unless you explicitly enable its experimental user mode.
 
 ---
 

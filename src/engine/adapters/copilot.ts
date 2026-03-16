@@ -1,6 +1,7 @@
 import { execSync } from "node:child_process";
 import { join } from "node:path";
 import type { ProjectContext } from "../../types.js";
+import { parseCopilotStructuredOutput } from "../copilot-output.js";
 import { buildContextualPrompt } from "../prompt.js";
 import { spawnEngineProcess } from "../spawn.js";
 import type {
@@ -11,15 +12,17 @@ import type {
 } from "../types.js";
 
 const DEFAULT_COMMAND = "copilot";
+const PLACEHOLDER_SESSION_ID = "active";
+
+const COPILOT_SESSION_DISCOVERY_WARNING =
+  "Warning: HAL could not recover your Copilot session ID. This reply was processed, but future messages will start fresh sessions until session recovery works again.";
+
+const COPILOT_STALE_RESUME_WARNING =
+  "Warning: HAL could not resume your previous Copilot session, so this reply was processed in a fresh session. Session continuity was reset for future messages.";
 
 /**
- * Best-effort extraction of the final answer when Copilot (e.g. with Codex-style
- * model) outputs reasoning/tool runs followed by a clear answer. Codex CLI with
- * --json emits item.type === "agent_message" for the final message; Copilot
- * streams plain text, so we approximate by finding the last line that matches
- * common "final answer" lead-ins (headers, bold labels, or natural-language
- * phrases) and return from that line to the end.
- * Returns undefined if no such line is found, so callers fall back to full output.
+ * Best-effort extraction of the final answer when Copilot falls back to plain
+ * text instead of the expected JSONL event stream.
  */
 function extractFinalAnswer(output: string): string | undefined {
   const lines = output.split(/\r?\n/);
@@ -43,6 +46,30 @@ function extractFinalAnswer(output: string): string | undefined {
   return slice.length > 20 ? slice : undefined;
 }
 
+interface CopilotProcessResult {
+  code: number | null;
+  stdout: string;
+  stderr: string;
+}
+
+function isCopilotResumeRecoveryError(stderr: string, stdout: string): boolean {
+  const text = `${stderr}\n${stdout}`.toLowerCase();
+  const referencesResume =
+    text.includes("resume") ||
+    text.includes("session") ||
+    text.includes("uuid");
+  const indicatesMissingState =
+    text.includes("not found") ||
+    text.includes("no such") ||
+    text.includes("invalid") ||
+    text.includes("unknown") ||
+    text.includes("expired") ||
+    text.includes("does not exist") ||
+    text.includes("unable to") ||
+    text.includes("cannot");
+  return referencesResume && indicatesMissingState;
+}
+
 export function createCopilotAdapter(
   command?: string,
   model?: string,
@@ -53,8 +80,8 @@ export function createCopilotAdapter(
     name: "GitHub Copilot",
     command: cmd,
     sessionCapabilities: {
-      supportsUserIsolation: false,
-      defaultMode: "shared",
+      supportsUserIsolation: true,
+      defaultMode: "user",
       sharedContinuationRequiresMarker: true,
     },
 
@@ -85,104 +112,214 @@ export function createCopilotAdapter(
       //   --allow-all-paths     Disable path verification (access any file on disk)
       //   --model <model>       Override the AI model
       //   --continue            Continue the most recent session
+      //   --output-format json  Emit JSONL events, including a final result object
+      //   --stream off          Return completed JSONL output instead of live streaming
       //
       // We intentionally do NOT use --allow-all (which would add --allow-all-paths).
       // By default Copilot is restricted to the project cwd and its subdirectories.
       // Set engine.copilot.allowAllPaths: true in config to opt into unrestricted access.
-      const args: string[] = [
-        "-p",
-        fullPrompt,
-        "--allow-all-tools",
-        "--allow-all-urls",
-      ];
-
-      if (config.copilot.allowAllPaths) {
-        args.push("--allow-all-paths");
-      }
-
-      if (model) {
-        args.push("--model", model);
-      }
-
-      const hasActiveSession = sessionId != null;
-      if (
-        config.engineSession !== false &&
-        hasActiveSession &&
-        continueSession !== false
-      ) {
-        args.push("--continue");
-      }
-
       const cwd = config.cwd;
-      const willContinue = args.includes("--continue");
-      logger.info(
-        { command: cmd, cwd, continue: willContinue },
-        "Executing Copilot CLI",
-      );
+      const sessionEnabled = config.engineSession !== false;
+      const useResumeByUuid =
+        sessionEnabled &&
+        config.engineSession === "user" &&
+        continueSession !== false &&
+        typeof sessionId === "string" &&
+        sessionId !== PLACEHOLDER_SESSION_ID;
+      const useSharedContinue =
+        sessionEnabled &&
+        config.engineSession !== "user" &&
+        sessionId != null &&
+        continueSession !== false;
 
-      return new Promise((resolve) => {
-        const proc = spawnEngineProcess(
-          cmd,
-          args,
-          { cwd, env: process.env, stdio: ["ignore", "pipe", "pipe"] },
-          config.engineEnvFile,
-        );
+      const runCopilotProcess = async (copilotArgs: string[]) =>
+        new Promise<CopilotProcessResult>((resolve) => {
+          logger.info(
+            {
+              command: cmd,
+              cwd,
+              resume: copilotArgs.includes("--resume")
+                ? "uuid"
+                : copilotArgs.includes("--continue")
+                  ? "shared"
+                  : "none",
+            },
+            "Executing Copilot CLI",
+          );
 
-        let stdout = "";
-        let stderrOutput = "";
+          const proc = spawnEngineProcess(
+            cmd,
+            copilotArgs,
+            { cwd, env: process.env, stdio: ["ignore", "pipe", "pipe"] },
+            config.engineEnvFile,
+          );
 
-        proc.stdout.on("data", (data: Buffer) => {
-          const chunk = data.toString();
-          stdout += chunk;
+          let stdout = "";
+          let stderrOutput = "";
 
-          // Copilot in silent mode outputs plain text.
-          // Send incremental progress if a callback is provided.
-          if (onProgress && chunk.trim()) {
-            onProgress("Copilot is responding...");
-          }
-        });
+          proc.stdout.on("data", (data: Buffer) => {
+            const chunk = data.toString();
+            stdout += chunk;
 
-        proc.stderr.on("data", (data: Buffer) => {
-          const chunk = data.toString().trim();
-          if (chunk) {
-            stderrOutput += `${chunk}\n`;
-            logger.info({ stderr: chunk }, "Copilot stderr");
-          }
-        });
+            if (onProgress && chunk.trim()) {
+              onProgress("Copilot is responding...");
+            }
+          });
 
-        proc.on("close", (code) => {
-          logger.info({ code }, "Copilot process closed");
+          proc.stderr.on("data", (data: Buffer) => {
+            const chunk = data.toString().trim();
+            if (chunk) {
+              stderrOutput += `${chunk}\n`;
+              logger.info({ stderr: chunk }, "Copilot stderr");
+            }
+          });
 
-          if (code === 0) {
+          proc.on("close", (code) => {
+            logger.info({ code }, "Copilot process closed");
             resolve({
-              success: true,
-              output: stdout.trim() || "No response received",
-              sessionId: config.engineSession !== false ? "active" : undefined,
+              code,
+              stdout: stdout.trim(),
+              stderr: stderrOutput.trim(),
             });
-          } else {
-            const errorMsg =
-              stderrOutput.trim() || `Copilot exited with code ${code}`;
-            logger.error(
-              { code, stderr: stderrOutput },
-              "Copilot process failed",
-            );
-            resolve({
-              success: false,
-              output: stdout.trim(),
-              error: errorMsg,
-            });
-          }
-        });
+          });
 
-        proc.on("error", (err) => {
-          logger.error({ error: err.message }, "Copilot process error");
-          resolve({
-            success: false,
-            output: "",
-            error: `Failed to start ${cmd}: ${err.message}`,
+          proc.on("error", (err) => {
+            logger.error({ error: err.message }, "Copilot process error");
+            resolve({
+              code: -1,
+              stdout: "",
+              stderr: `Failed to start ${cmd}: ${err.message}`,
+            });
           });
         });
-      });
+
+      const buildArgs = (sessionFlags?: string[]): string[] => {
+        const args: string[] = [];
+
+        if (sessionFlags) {
+          args.push(...sessionFlags);
+        }
+
+        args.push("-p", fullPrompt, "--allow-all-tools", "--allow-all-urls");
+
+        args.push("--output-format", "json", "--stream", "off");
+
+        if (config.copilot.allowAllPaths) {
+          args.push("--allow-all-paths");
+        }
+
+        if (model) {
+          args.push("--model", model);
+        }
+
+        return args;
+      };
+
+      const finalizeFreshSuccess = (
+        processResult: CopilotProcessResult,
+        warning?: string,
+      ): EngineResult => {
+        const structured = parseCopilotStructuredOutput(processResult.stdout);
+        let resultSessionId: string | undefined;
+        let nextWarning = warning;
+
+        if (sessionEnabled) {
+          if (config.engineSession === "user") {
+            resultSessionId = structured.sessionId;
+
+            if (!resultSessionId) {
+              logger.warn(
+                { cwd },
+                "Copilot user session ID recovery failed from structured output",
+              );
+              nextWarning = nextWarning
+                ? `${nextWarning} HAL could not recover a new Copilot session ID from Copilot's structured output for future continuity.`
+                : COPILOT_SESSION_DISCOVERY_WARNING;
+            }
+          } else {
+            resultSessionId = PLACEHOLDER_SESSION_ID;
+          }
+        }
+
+        return {
+          success: true,
+          output:
+            structured.responseText ||
+            processResult.stdout ||
+            "No response received",
+          sessionId: resultSessionId,
+          warning: nextWarning,
+        };
+      };
+
+      if (useResumeByUuid && sessionId) {
+        const resumed = await runCopilotProcess(
+          buildArgs(["--resume", sessionId]),
+        );
+        const structured = parseCopilotStructuredOutput(resumed.stdout);
+
+        if (resumed.code === 0) {
+          return {
+            success: true,
+            output:
+              structured.responseText ||
+              resumed.stdout ||
+              "No response received",
+            sessionId: structured.sessionId || sessionId,
+          };
+        }
+
+        if (!isCopilotResumeRecoveryError(resumed.stderr, resumed.stdout)) {
+          logger.error(
+            { code: resumed.code, stderr: resumed.stderr },
+            "Copilot process failed",
+          );
+          return {
+            success: false,
+            output: resumed.stdout,
+            error: resumed.stderr || `Copilot exited with code ${resumed.code}`,
+          };
+        }
+
+        logger.warn(
+          { cwd, sessionId, stderr: resumed.stderr },
+          "Copilot user session resume failed; retrying fresh run",
+        );
+
+        const retried = await runCopilotProcess(buildArgs());
+
+        if (retried.code === 0) {
+          return finalizeFreshSuccess(retried, COPILOT_STALE_RESUME_WARNING);
+        }
+
+        logger.error(
+          { code: retried.code, stderr: retried.stderr },
+          "Copilot process failed after stale-session retry",
+        );
+        return {
+          success: false,
+          output: retried.stdout,
+          error: retried.stderr || `Copilot exited with code ${retried.code}`,
+        };
+      }
+
+      const result = await runCopilotProcess(
+        buildArgs(useSharedContinue ? ["--continue"] : undefined),
+      );
+
+      if (result.code === 0) {
+        return finalizeFreshSuccess(result);
+      }
+
+      logger.error(
+        { code: result.code, stderr: result.stderr },
+        "Copilot process failed",
+      );
+      return {
+        success: false,
+        output: result.stdout,
+        error: result.stderr || `Copilot exited with code ${result.code}`,
+      };
     },
 
     parse(result: EngineResult): ParsedResponse {

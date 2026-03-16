@@ -12,7 +12,6 @@ The commands in the menu should be sorted:
 ## Ready Tasks
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 - [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
-- [086 — Copilot per-user session isolation](./ready/086.copilot-user-session-isolation.md) | [plan](./ready/086.copilot-user-session-isolation.plan.md)
 
 
 ## Drafts
@@ -98,3 +97,4 @@ The commands in the menu should be sorted:
 - [083 — Fix the social card in GitHub settings and pin the project to my pinned repos on my GitHub profile](./completed/083.fix-the-social-card-in-github-settings-and-pin-the-project-to-my-pinned-repos-on-my-github-profile.md)
 - [084 — Rename /clean command to /clear](./completed/084.rename-clean-command-to-clear.md) | [plan](./completed/084.rename-clean-command-to-clear.plan.md)
 - [034 — Codex session ID investigation and user isolation](./completed/034.codex-session-id-investigation-and-user-isolation.md) | [plan](./completed/034.codex-session-id-investigation-and-user-isolation.plan.md)
+- [086 — Copilot per-user session isolation](./completed/086.copilot-user-session-isolation.md) | [plan](./completed/086.copilot-user-session-isolation.plan.md)

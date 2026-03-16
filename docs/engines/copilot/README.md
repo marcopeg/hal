@@ -26,10 +26,33 @@ Requires a Copilot Pro, Pro+, Business, or Enterprise plan. You can also authent
 
 **HAL usage:**
 
-- **Config:** `engine.name: "copilot"`. Optional: `engine.command`, `engine.model`, `engine.session` (`false` \| `true` \| `"shared"` only; see [Session configuration](../../config/session/README.md)), `engine.sessionMsg`, `engine.copilot.allowAllPaths`.
-- **Invocation:** `copilot -p <prompt> --allow-all-tools --allow-all-urls [--allow-all-paths] [--model <m>] [--continue]`
-- **Sessions:** `session: true` or `"shared"` = shared (`--continue`). **`session: "user"` is not supported:** HAL fails at **boot** with a configuration error. Use `true` or `"shared"`. `/clear` sends `engine.sessionMsg` without `--continue` to start a fresh session; the engine’s reply is sent to the user.
+- **Config:** `engine.name: "copilot"`. Optional: `engine.command`, `engine.model`, `engine.session` (`false` \| `true` \| `"shared"` \| `"user"`; see [Session configuration](../../config/session/README.md)), `engine.sessionMsg`, `engine.copilot.allowAllPaths`.
+- **Invocation:** `copilot -p <prompt> --allow-all-tools --allow-all-urls [--allow-all-paths] [--model <m>] [--resume <UUID> | --continue]`
+- **Sessions:** `session: true` or omitted = **experimental per-user** mode. HAL runs Copilot with `--output-format json`, reads the session UUID from the final JSON `result` event, and resumes with `copilot --resume <UUID>`. `session: "shared"` keeps the old shared `--continue` behavior. `session: false` is stateless.
+- **`/clear` behavior:** in Copilot `"user"` mode, `/clear` only deletes the user’s local `session.json`. In Copilot `"shared"` mode, `/clear` still sends `engine.sessionMsg` without `--continue` to start a fresh shared session.
 - **Project file:** `AGENTS.md`.
+
+## Per-user Copilot session recovery
+
+Copilot can emit structured JSONL output in non-interactive mode. HAL uses `--output-format json --stream off` and reads the session UUID from the final `result` event.
+
+In Copilot `"user"` mode HAL does the following:
+
+- execute the prompt with structured JSON output enabled
+- parse the final `result` event for `sessionId`
+- persist that UUID in the Telegram user’s `session.json`
+- resume later turns with `copilot --resume <UUID>`
+
+This is more reliable than guessing from Copilot's local session-state directory layout.
+
+If HAL cannot recover a new Copilot UUID after a fresh run:
+
+- HAL does **not** fall back to shared `--continue` continuation
+- HAL warns the Telegram user that continuity is temporarily unavailable
+- HAL logs the failure for the operator
+- future messages run fresh until HAL can recover a real UUID again
+
+If a previously stored UUID becomes stale and Copilot can no longer resume it, HAL clears the stale local session, retries the current prompt as a fresh run, warns the Telegram user that continuity was reset, and attempts to discover a new UUID for future turns
 
 ## Filesystem access and cwd boundary
 

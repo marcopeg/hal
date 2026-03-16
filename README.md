@@ -86,7 +86,7 @@ The table below summarizes key capabilities:
 |--------|:--------:|:-----:|:------:|:-------:|:------:|:------------:|
 | **Instruction file** | `AGENTS.md` | `AGENTS.md` | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` | `GEMINI.md` |
 | **Main skills folder** | `.agents/skills/` | `.agents/skills/` | `.claude/skills/` | `.agents/skills/` | `.agents/skills/` | `.agent/skills/` |
-| **Per-user session** | ✗ | ✓ | ✓ | ✗ | ✗ | ✓ |
+| **Per-user session** | ✗ | ✓ | ✓ | ✓ | ✗ | ✓ |
 | **Network access** | — | ✓ | — | — | — | — |
 | **Full disk access** | — | ✓ | — | — | — | — |
 | **YOLO mode** | — | ✓ | — | — | — | ✓ |

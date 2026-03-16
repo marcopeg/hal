@@ -77,7 +77,7 @@ const CopilotEngineConfigSchema = z
   .partial()
   .optional();
 
-/** Resolved session mode: false = stateless, true = adapter default, "shared" = force shared, "user" = force per-user (rejected at boot for OpenCode/Copilot). */
+/** Resolved session mode: false = stateless, true = adapter default, "shared" = force shared, "user" = force per-user (rejected at boot for OpenCode only). */
 export type SessionMode = false | true | "shared" | "user";
 
 const SessionSchema = z

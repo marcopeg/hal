@@ -8,6 +8,7 @@
 * improve voice management with mode-based transcription UX ([53f0ebe](https://github.com/marcopeg/hal/commit/53f0ebe834a0d992bf5a52958dde165ff851fd9f))
 * rename `/clean` command surface to `/clear`; only `commands.clear` is supported
 * Codex now defaults to per-user session isolation; shared mode remains explicit via `engine.session: "shared"`
+* Copilot now defaults to experimental per-user session isolation, resumes with `--resume <UUID>`, and keeps shared mode explicit via `engine.session: "shared"`
 
 ## [1.4.0](https://github.com/marcopeg/hal/compare/v1.3.0...v1.4.0) (2026-03-14)
 

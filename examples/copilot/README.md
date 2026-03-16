@@ -11,10 +11,11 @@ Example project using the GitHub Copilot adapter — Microsoft's AI coding agent
 
 ## HAL Capabilities
 
-- **Per-user sessions:** no — shared session only
-- **Session continuation:** yes — shared session via `--continue`
+- **Per-user sessions:** yes — default behavior (experimental; backed by Copilot JSON output)
+- **Shared sessions:** yes — opt in with `engine.session: "shared"`
+- **Session continuation:** yes — per-user via `--resume <UUID>` or shared via `--continue`
 - **Streaming progress:** no — full response returned on completion
 
 ## Notes
 
-Does not support per-user isolation; all Telegram users share the same session. Configuring `session: "user"` will cause a boot error. Instruction files can also use path-specific rules via `.github/instructions/*.instructions.md`.
+Copilot now defaults to experimental per-user isolation in HAL. A real session UUID is recovered from Copilot's structured JSON output and stored in each Telegram user’s `session.json`. If you explicitly want all users to share one Copilot conversation, configure `engine.session: "shared"`. Instruction files can also use path-specific rules via `.github/instructions/*.instructions.md`.

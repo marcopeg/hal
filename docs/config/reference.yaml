@@ -18,7 +18,7 @@ globals:
     name: claude  # required unless each project sets its own; claude|copilot|codex|opencode|cursor|antigravity
     command: ""   # override CLI path
     model: ""     # override model (see engine docs)
-    session: true # optional; false = stateless, true = adapter default, "shared" = force shared, "user" = per-user (OpenCode/Copilot reject "user" at boot). Codex default/true = per-user; Cursor default/true = shared.
+    session: true # optional; false = stateless, true = adapter default, "shared" = force shared, "user" = per-user (OpenCode rejects "user" at boot). Codex/Copilot default/true = per-user; Cursor default/true = shared.
     sessionMsg: "hi!"
     # envFile: ".env"  # optional; path to env file sourced before running engine CLI (relative to project cwd, or absolute)
     codex:        # Codex-only flags

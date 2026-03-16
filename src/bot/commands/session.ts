@@ -42,7 +42,7 @@ export async function resetSession(
   const effectiveMode = resolveEffectiveMode(config.engineSession, ctx.engine);
   const needsActiveReset =
     sessionEnabled &&
-    (config.engine === "copilot" ||
+    ((config.engine === "copilot" && effectiveMode === "shared") ||
       (config.engine === "codex" && effectiveMode === "shared") ||
       config.engine === "opencode" ||
       config.engine === "cursor" ||
