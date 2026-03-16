@@ -32,3 +32,6 @@ data/
 **/.hal/cache/
 
 manual-tests
+
+# Local notes
+NOTES.local.md

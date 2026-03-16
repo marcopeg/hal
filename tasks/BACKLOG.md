@@ -13,6 +13,9 @@ The commands in the menu should be sorted:
 
 
 ## Drafts
+- [083 — Fix the social card in GitHub settings and pin the project to my pinned repos on my GitHub profile](./drafts/083.fix-the-social-card-in-github-settings-and-pin-the-project-to-my-pinned-repos-on-my-github-profile.md)
+- [082 — Standardize /new and /clear responses](./drafts/082.new-clear-command-response-template.md)
+- [080 — Use cases documentation index and research](./drafts/080.use-cases-documentation-index-and-research.md) | [plan](./drafts/080.use-cases-documentation-index-and-research.plan.md)
 - [077 — Architectural refactoring for maintainability](./ready/077.architectural-refactoring-for-maintainability.md)
 - [079 — `/btw` command: fresh implementation](./079.btw-command-fresh-implementation.md)
 - [076 — Rename /clean command to /clear](./drafts/076.rename-clean-command-to-clear.md)
