@@ -10,14 +10,15 @@ The commands in the menu should be sorted:
 ## Ready Tasks
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 - [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
+- [084 — Rename /clean command to /clear](./ready/084.rename-clean-command-to-clear.md) | [plan](./ready/084.rename-clean-command-to-clear.plan.md)
 
 
 ## Drafts
+- [085 — List project on awesome-* repositories](./drafts/085.list-project-on-awesome-repositories.md)
 - [082 — Standardize /new and /clear responses](./drafts/082.new-clear-command-response-template.md)
 - [080 — Use cases documentation index and research](./drafts/080.use-cases-documentation-index-and-research.md) | [plan](./drafts/080.use-cases-documentation-index-and-research.plan.md)
 - [077 — Architectural refactoring for maintainability](./ready/077.architectural-refactoring-for-maintainability.md)
 - [079 — `/btw` command: fresh implementation](./079.btw-command-fresh-implementation.md)
-- [076 — Rename /clean command to /clear](./drafts/076.rename-clean-command-to-clear.md)
 - [075 — Handle voice messages exceeding Telegram's 20 MB download limit](./drafts/075.voice-message-20mb-limit.md)
 - [032 — Cron jobs and scheduled actions](./drafts/032.cron-jobs-and-scheduled-actions.md) (parent)
   - [032c — User-level crons + slash commands](./drafts/032c.user-crons-and-slash-commands.md)
