@@ -45,7 +45,10 @@ globals:
   # Voice transcription (Whisper)
   transcription:
     model: base.en
-    showTranscription: true
+    mode: confirm  # confirm|inline|silent
+    # Legacy compatibility flags (deprecated):
+    # sticky: true
+    # showTranscription: true
 
   dataDir: ""     # default: project-cwd/.hal/users; see dataDir values in README
 
@@ -116,7 +119,10 @@ projects:
     logging: {}
     rateLimit: {}
     transcription:
-      showTranscription: true
+      mode: confirm
+      # Legacy compatibility flags (deprecated):
+      # sticky: true
+      # showTranscription: true
     dataDir: ""
     # See [Context](context/README.md)
     context: {}

@@ -31,6 +31,8 @@ const TranscriptionModelSchema = z.enum([
   "large-v3-turbo",
 ]);
 
+const TranscriptionModeSchema = z.enum(["confirm", "inline", "silent"]);
+
 const LogLevelSchema = z.enum(["debug", "info", "warn", "error"]);
 
 // ─── Globals schema (all fields optional) ─────────────────────────────────────
@@ -246,6 +248,7 @@ const GlobalsFileSchema = z
     transcription: z
       .object({
         model: TranscriptionModelSchema,
+        mode: TranscriptionModeSchema,
         showTranscription: z.boolean(),
         sticky: z.boolean(),
       })
@@ -296,6 +299,7 @@ const ProjectFileSchema = z.object({
   transcription: z
     .object({
       model: TranscriptionModelSchema,
+      mode: TranscriptionModeSchema,
       showTranscription: z.boolean(),
       sticky: z.boolean(),
     })
@@ -387,9 +391,7 @@ export interface ResolvedProjectConfig {
   logging: { level: string; flow: boolean; persist: boolean };
   rateLimit: { max: number; windowMs: number };
   debounce: { windowMs: number };
-  transcription:
-    | { model: string; showTranscription: boolean; sticky: boolean }
-    | undefined;
+  transcription: { model: string; mode: "confirm" | "inline" | "silent" };
   context: Record<string, string> | undefined;
   providerModels: ProviderModel[];
   providerDefaultModel: string | undefined;
@@ -557,9 +559,6 @@ export function resolveProjectConfig(
     configDir,
     slug,
   );
-
-  const hasTranscription =
-    project.transcription !== undefined || globals.transcription !== undefined;
 
   const hasContext = rootContext !== undefined || project.context !== undefined;
 
@@ -844,22 +843,33 @@ export function resolveProjectConfig(
     debounce: {
       windowMs: project.debounce?.windowMs ?? globals.debounce?.windowMs ?? 300,
     },
-    transcription: hasTranscription
-      ? {
-          model:
-            project.transcription?.model ??
-            globals.transcription?.model ??
-            "base.en",
-          showTranscription:
-            project.transcription?.showTranscription ??
-            globals.transcription?.showTranscription ??
-            true,
-          sticky:
-            project.transcription?.sticky ??
-            globals.transcription?.sticky ??
-            true,
+    transcription: {
+      model:
+        project.transcription?.model ??
+        globals.transcription?.model ??
+        "base.en",
+      mode: (() => {
+        const mode = project.transcription?.mode ?? globals.transcription?.mode;
+        if (mode) {
+          return mode;
         }
-      : undefined,
+
+        // Backward compatibility: derive mode from legacy booleans.
+        const sticky =
+          project.transcription?.sticky ??
+          globals.transcription?.sticky ??
+          true;
+        if (sticky) {
+          return "confirm";
+        }
+
+        const showTranscription =
+          project.transcription?.showTranscription ??
+          globals.transcription?.showTranscription ??
+          true;
+        return showTranscription ? "inline" : "silent";
+      })(),
+    },
     providerModels,
     providerDefaultModel,
     availableEngines,

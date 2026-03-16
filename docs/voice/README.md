@@ -9,7 +9,9 @@ Transcription is configured under `globals.transcription` and can be overridden 
 | Key | Description | Default |
 |-----|-------------|---------|
 | `model` | Whisper model name (see [Whisper models](#whisper-models) below). | `"base.en"` |
-| `showTranscription` | If `true`, the bot sends the transcribed text as a message before the engine reply. | `true` |
+| `mode` | Transcript UX mode: `confirm` (transcript + Use it/Cancel), `inline` (show transcript while processing), `silent` (no transcript shown). | `"confirm"` |
+
+Legacy compatibility (deprecated): `sticky` and `showTranscription` are still accepted and mapped to a mode when `mode` is not set.
 
 Example — global defaults:
 
@@ -17,7 +19,7 @@ Example — global defaults:
 globals:
   transcription:
     model: base.en
-    showTranscription: true
+    mode: confirm
 ```
 
 Example — override for one project (e.g. use a larger model and hide transcription):
@@ -30,7 +32,7 @@ projects:
       botToken: "${BACKEND_BOT_TOKEN}"
     transcription:
       model: small
-      showTranscription: false
+      mode: silent
 ```
 
 For where these keys sit in the full config (globals table, projects table), see [Configuration](../config/README.md).

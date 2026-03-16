@@ -146,8 +146,9 @@ Default settings applied to all projects. Any setting defined in a project overr
 | `globals.access.dangerouslyAllowUnrestrictedAccess` | Allow all users without a whitelist (must be explicitly `true`) | `false` |
 | `globals.dataDir` | Default user data directory | _(see [dataDir](#datadir-values) below)_ |
 | `globals.transcription.model` | Whisper model for voice | `"base.en"` |
-| `globals.transcription.showTranscription` | Show transcribed text | `true` |
-| `globals.transcription.sticky` | Require confirmation before sending voice transcript to engine (`Use it` / `Cancel`) | `true` |
+| `globals.transcription.mode` | Voice transcript UX mode: `confirm` (buttons + confirm/cancel), `inline` (show transcript while processing), `silent` (no transcript shown) | `"confirm"` |
+| `globals.transcription.showTranscription` | Legacy compatibility flag (maps to `mode: inline` when `sticky: false`) | _(deprecated)_ |
+| `globals.transcription.sticky` | Legacy compatibility flag (maps to `mode: confirm` when `true`) | _(deprecated)_ |
 | `globals.commands` | Toggle and configure built-in commands | See [Commands](commands/README.md) |
 
 Per-engine options (Codex, Antigravity) are documented in [Engines](../engines/README.md).
@@ -215,8 +216,9 @@ This validation runs at both initial boot and after config hot-reload. A reload 
 | `providers` | No | Override the top-level model list for this project; entries may include `default: true` (at most one per list). See [Engines](../engines/README.md#model-list-providers-key). |
 | `logging` | No | Override logging (see [Logging](logging/README.md)) |
 | `rateLimit` | No | Override rate limit (see [Rate limit](rate-limit/README.md)) |
-| `transcription.showTranscription` | No | Override transcription display |
-| `transcription.sticky` | No | Require `Use it` confirmation before sending transcribed voice text to the engine |
+| `transcription.mode` | No | Override voice transcript UX mode: `confirm` \| `inline` \| `silent` |
+| `transcription.showTranscription` | No | Legacy compatibility flag (deprecated) |
+| `transcription.sticky` | No | Legacy compatibility flag (deprecated) |
 | `dataDir` | No | Override user data directory (see below) |
 | `context` | No | Per-project context overrides (see [Context](context/README.md)) |
 | `commands` | No | Toggle and configure built-in commands (see [Commands](commands/README.md)) |

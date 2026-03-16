@@ -191,7 +191,7 @@ export function createVoiceHandler(ctx: ProjectContext) {
         // Ignore cleanup errors
       }
 
-      if (config.transcription.sticky) {
+      if (config.transcription.mode === "confirm") {
         try {
           await gramCtx.api.deleteMessage(
             gramCtx.chat!.id,
@@ -237,7 +237,7 @@ export function createVoiceHandler(ctx: ProjectContext) {
       }
 
       // Optionally show transcription to user
-      if (config.transcription.showTranscription) {
+      if (config.transcription.mode === "inline") {
         try {
           await gramCtx.api.editMessageText(
             gramCtx.chat!.id,

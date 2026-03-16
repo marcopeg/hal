@@ -201,7 +201,7 @@ Add your own slash commands as `.mjs` files (project or global), or expose engin
 
 ## Voice messages
 
-Voice messages are transcribed locally with [Whisper](https://github.com/openai/whisper) (no audio sent to external services). **[Voice messages](docs/voice/README.md)** — setup (ffmpeg, CMake, nodejs-whisper), model options.
+Voice messages are transcribed locally with [Whisper](https://github.com/openai/whisper) (no audio sent to external services). `transcription.mode` controls UX (`confirm` by default, or `inline` / `silent`). **[Voice messages](docs/voice/README.md)** — setup (ffmpeg, CMake, nodejs-whisper), model options, transcript UX modes.
 
 ## Sending Files to Users
 
