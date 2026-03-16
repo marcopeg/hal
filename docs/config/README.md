@@ -135,7 +135,7 @@ Default settings applied to all projects. Any setting defined in a project overr
 | `globals.engine.name` | **Required** (unless every project sets its own). Engine: `claude`, `copilot`, `codex`, `opencode`, `cursor`, `antigravity` | — |
 | `globals.engine.command` | Override the CLI command path | _(engine name)_ |
 | `globals.engine.model` | Override the AI model (see [Engines](../engines/README.md#model-defaults)) | _(per engine)_ |
-| `globals.engine.session` | Session mode: `false` (stateless), `true` (adapter default, omit = same), `"shared"`, or `"user"`. See [Session configuration](session/README.md). **`"user"` with OpenCode/Copilot fails at boot.** | `true` |
+| `globals.engine.session` | Session mode: `false` (stateless), `true` (adapter default, omit = same), `"shared"`, or `"user"`. See [Session configuration](session/README.md). **`"user"` with OpenCode/Copilot fails at boot.** For Codex, `true` now resolves to per-user mode. | `true` |
 | `globals.engine.sessionMsg` | Message sent when renewing session (e.g. `/clear`) | `"hi!"` |
 | `globals.engine.envFile` | Path to an env file sourced before running the engine CLI (child process only; not for HAL config substitution). Relative to project `cwd`; absolute paths used as-is. Active projects with a missing/unreadable file fail at boot. | _(none)_ |
 | `globals.engine.codex.*` | Codex permission flags | See [Codex](../engines/codex/README.md) |
@@ -156,6 +156,8 @@ Per-engine options (Codex, Antigravity) are documented in [Engines](../engines/R
 ### Session configuration
 
 `engine.session` is a single value: `false` (stateless), `true` (adapter default), `"shared"`, or `"user"`. Full reference, per-engine behaviour, and boot-error rules: [Session configuration](session/README.md).
+
+Important: `true` means the engine default, not the same behavior for every engine. In particular, Codex now defaults to per-user mode, while Cursor still defaults to shared mode.
 
 ## providers
 
@@ -208,7 +210,7 @@ This validation runs at both initial boot and after config hot-reload. A reload 
 | `engine.name` | No | Override the engine for this project (required if globals does not set one) |
 | `engine.command` | No | Override the CLI command path |
 | `engine.model` | No | Override the AI model (see [Engines](../engines/README.md#model-defaults)) |
-| `engine.session` | No | Session mode for this project: `false` \| `true` \| `"shared"` \| `"user"` (see [Session configuration](session/README.md)) |
+| `engine.session` | No | Session mode for this project: `false` \| `true` \| `"shared"` \| `"user"` (see [Session configuration](session/README.md)). For Codex, omitted or `true` now means per-user mode. |
 | `engine.sessionMsg` | No | Message used when renewing session |
 | `engine.envFile` | No | Path to an env file sourced before running the engine CLI (child process only). Relative to this project's `cwd` or absolute. Missing/unreadable at boot causes boot failure for this project. |
 | `engine.codex.*` | No | Codex permission flags (see [Codex](../engines/codex/README.md)) |

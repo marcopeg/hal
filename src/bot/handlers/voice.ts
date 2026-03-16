@@ -8,6 +8,7 @@ import { sendDownloadFiles } from "../../telegram/fileSender.js";
 import { transcribeAudio } from "../../transcription/whisper.js";
 import type { ProjectContext } from "../../types.js";
 import {
+  clearSessionData,
   ensureUserSetup,
   getDownloadsPath,
   getSessionId,
@@ -107,6 +108,12 @@ export function createVoiceHandler(ctx: ProjectContext) {
 
     if (config.engineSession !== false && parsed.sessionId) {
       await saveSessionId(userDir, parsed.sessionId);
+    } else if (config.engineSession === "user") {
+      await clearSessionData(userDir);
+    }
+
+    if (parsed.warning) {
+      await gramCtx.reply(parsed.warning);
     }
 
     await sendChunkedResponse(gramCtx, parsed.text);

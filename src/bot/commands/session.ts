@@ -4,6 +4,7 @@ import { createAgent } from "../../agent/index.js";
 import { sendChunkedResponse } from "../../telegram/chunker.js";
 import type { ProjectContext } from "../../types.js";
 import { clearSessionData } from "../../user/setup.js";
+import { resolveEffectiveMode } from "../handlers/session.js";
 import { resolveCommandMessage } from "./message.js";
 
 const DEFAULT_CLEAR_TEMPLATE =
@@ -38,13 +39,14 @@ export async function resetSession(
   logger.info({ userId }, "Session data cleared");
 
   const sessionEnabled = config.engineSession !== false;
+  const effectiveMode = resolveEffectiveMode(config.engineSession, ctx.engine);
   const needsActiveReset =
     sessionEnabled &&
     (config.engine === "copilot" ||
-      config.engine === "codex" ||
+      (config.engine === "codex" && effectiveMode === "shared") ||
       config.engine === "opencode" ||
       config.engine === "cursor" ||
-      (config.engine === "claude" && config.engineSession === "shared"));
+      (config.engine === "claude" && effectiveMode === "shared"));
 
   if (needsActiveReset) {
     const statusMsg = await gramCtx.reply("_Starting new session..._", {

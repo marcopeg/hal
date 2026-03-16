@@ -1,7 +1,7 @@
 import type { SessionMode } from "../../config.js";
 import type { EngineAdapter } from "../../engine/types.js";
 
-function resolveEffectiveMode(
+export function resolveEffectiveMode(
   mode: SessionMode,
   engine: EngineAdapter,
 ): "user" | "shared" | false {

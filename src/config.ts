@@ -789,9 +789,12 @@ export function resolveProjectConfig(
       return undefined;
     })(),
     engineSession: (() => {
-      const raw = project.engine?.session ?? globals.engine?.session ?? true;
-      const mode: SessionMode = raw === undefined ? true : (raw as SessionMode);
       const sessionCaps = getEngineSessionCapabilities(engineName);
+      const raw = project.engine?.session ?? globals.engine?.session;
+      const mode: SessionMode =
+        raw === undefined || raw === true
+          ? sessionCaps.defaultMode
+          : (raw as SessionMode);
       if (mode === "user" && !sessionCaps.supportsUserIsolation) {
         throw new ConfigLoadError(
           `Configuration error: engine.session "user" is not supported by the ${engineName} adapter. ` +

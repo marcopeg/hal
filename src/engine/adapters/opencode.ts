@@ -142,7 +142,11 @@ export function createOpencodeAdapter(
       if (!result.success) {
         return { text: result.error || "An unknown error occurred" };
       }
-      return { text: result.output || "No response received" };
+      return {
+        text: result.output || "No response received",
+        sessionId: result.sessionId,
+        warning: result.warning,
+      };
     },
 
     skillsDirs(projectCwd: string): string[] {

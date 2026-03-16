@@ -1,7 +1,10 @@
 import { execSync } from "node:child_process";
 import { join } from "node:path";
 import type { ProjectContext } from "../../types.js";
-import { findLatestCodexSessionUuidForCwd } from "../codex-sessions.js";
+import {
+  findLatestCodexSessionForCwd,
+  snapshotCodexSessionPathsForCwd,
+} from "../codex-sessions.js";
 import { buildContextualPrompt } from "../prompt.js";
 import { spawnEngineProcess } from "../spawn.js";
 import type {
@@ -46,7 +49,7 @@ export function createCodexAdapter(
     command: cmd,
     sessionCapabilities: {
       supportsUserIsolation: true,
-      defaultMode: "shared",
+      defaultMode: "user",
       sharedContinuationRequiresMarker: true,
     },
 
@@ -79,9 +82,14 @@ export function createCodexAdapter(
         sessionId !== PLACEHOLDER_SESSION_ID;
       const useResumeLast =
         sessionEnabled &&
+        config.engineSession !== "user" &&
         hasActiveSession &&
-        continueSession !== false &&
-        !useResumeByUuid;
+        continueSession !== false;
+
+      const sessionDiscoveryBaseline =
+        sessionEnabled && config.engineSession === "user" && !useResumeByUuid
+          ? snapshotCodexSessionPathsForCwd(cwd)
+          : undefined;
 
       // Non-interactive: `codex exec` for fresh; `codex exec resume --last` or `resume <UUID>` for continue.
       // Permission flags must come right after "exec" (before "resume"/"-C") or Codex rejects them.
@@ -290,10 +298,30 @@ export function createCodexAdapter(
 
           if (code === 0) {
             let resultSessionId: string | undefined;
+            let warning: string | undefined;
             if (config.engineSession !== false) {
               if (config.engineSession === "user") {
-                const discovered = findLatestCodexSessionUuidForCwd(cwd);
-                resultSessionId = discovered ?? undefined;
+                if (useResumeByUuid && sessionId) {
+                  resultSessionId = sessionId;
+                } else {
+                  const discovered = findLatestCodexSessionForCwd(
+                    cwd,
+                    sessionDiscoveryBaseline,
+                  );
+                  resultSessionId = discovered?.sessionId;
+
+                  if (!resultSessionId) {
+                    logger.warn(
+                      {
+                        cwd,
+                        knownSessions: sessionDiscoveryBaseline?.size ?? 0,
+                      },
+                      "Codex user session ID recovery failed after fresh run",
+                    );
+                    warning =
+                      "Warning: HAL could not recover your Codex session ID. This reply was processed, but future messages will start fresh anonymous sessions until session recovery works again.";
+                  }
+                }
               } else {
                 resultSessionId = "active";
               }
@@ -324,6 +352,7 @@ export function createCodexAdapter(
               success: true,
               output: output || stdout.trim() || "No response received",
               sessionId: resultSessionId,
+              warning,
             });
           } else {
             resolve({
@@ -350,7 +379,11 @@ export function createCodexAdapter(
       if (!result.success) {
         return { text: result.error || "An unknown error occurred" };
       }
-      return { text: result.output || "No response received" };
+      return {
+        text: result.output || "No response received",
+        sessionId: result.sessionId,
+        warning: result.warning,
+      };
     },
 
     skillsDirs(projectCwd: string): string[] {

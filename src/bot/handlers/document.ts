@@ -5,6 +5,7 @@ import { sendChunkedResponse } from "../../telegram/chunker.js";
 import { sendDownloadFiles } from "../../telegram/fileSender.js";
 import type { ProjectContext } from "../../types.js";
 import {
+  clearSessionData,
   ensureUserSetup,
   getDownloadsPath,
   getSessionId,
@@ -154,6 +155,12 @@ export function createDocumentHandler(ctx: ProjectContext) {
 
       if (config.engineSession !== false && parsed.sessionId) {
         await saveSessionId(userDir, parsed.sessionId);
+      } else if (config.engineSession === "user") {
+        await clearSessionData(userDir);
+      }
+
+      if (parsed.warning) {
+        await gramCtx.reply(parsed.warning);
       }
 
       await sendChunkedResponse(gramCtx, parsed.text);

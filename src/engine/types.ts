@@ -40,12 +40,14 @@ export interface EngineResult {
   success: boolean;
   output: string;
   sessionId?: string;
+  warning?: string;
   error?: string;
 }
 
 export interface ParsedResponse {
   text: string;
   sessionId?: string;
+  warning?: string;
   costUsd?: number;
   inputTokens?: number;
   outputTokens?: number;

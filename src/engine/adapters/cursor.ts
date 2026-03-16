@@ -182,6 +182,8 @@ export function createCursorAdapter(
       }
       return {
         text: result.output || "No response received",
+        sessionId: result.sessionId,
+        warning: result.warning,
       };
     },
 

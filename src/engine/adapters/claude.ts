@@ -280,7 +280,8 @@ export function createClaudeAdapter(
 
         return {
           text: text || "No response received",
-          sessionId: parsed.session_id,
+          sessionId: result.sessionId ?? parsed.session_id,
+          warning: result.warning,
           costUsd: parsed.cost_usd,
           inputTokens: parsed.input_tokens,
           outputTokens: parsed.output_tokens,
@@ -288,6 +289,8 @@ export function createClaudeAdapter(
       } catch {
         return {
           text: result.output || "No response received",
+          sessionId: result.sessionId,
+          warning: result.warning,
         };
       }
     },

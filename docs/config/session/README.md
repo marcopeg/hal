@@ -14,7 +14,7 @@
 ## Support and boot errors
 
 - **Claude, Antigravity:** Support `"user"` (Claude and Antigravity are per-user by default when `session: true`).
-- **Codex, Cursor:** Support `"user"` via experimental per-user session ID (filesystem/CLI behaviour; see engine docs).
+- **Codex, Cursor:** Support `"user"` via experimental per-user session ID (filesystem/CLI behaviour; see engine docs). Codex now defaults to per-user mode when `session` is omitted or set to `true`.
 - **OpenCode, Copilot:** Do **not** support `"user"`. If you set `engine.session: "user"` for a project using the **opencode** or **copilot** engine, HAL fails at **boot** with a configuration error and does not start. Use `true` or `"shared"` instead.
 
 There is no silent fallback: invalid combinations are rejected so misconfiguration is visible immediately.
@@ -25,7 +25,7 @@ There is no silent fallback: invalid combinations are rejected so misconfigurati
 |--------|------------------|------------|-------------|
 | **Claude** | Per-user (`--resume <id>`) | Shared (`--continue`) | Per-user (same as default) |
 | **Antigravity** | Per-user | Per-user (no shared mode) | Per-user |
-| **Codex** | Shared (`resume --last`) | Shared | **Experimental** per-user UUID ([Codex](../../engines/codex/README.md)) |
+| **Codex** | **Experimental** per-user UUID ([Codex](../../engines/codex/README.md)) | Shared (`resume --last`) | **Experimental** per-user UUID ([Codex](../../engines/codex/README.md)) |
 | **Cursor** | Shared (`--continue`) | Shared | **Experimental** per-user ([Cursor](../../engines/cursor/README.md)) |
 | **OpenCode** | Shared (`-c`) | Shared | **Boot error** (not supported) |
 | **Copilot** | Shared (`--continue`) | Shared | **Boot error** (not supported) |
@@ -51,13 +51,25 @@ globals:
     name: claude
     session: shared
 
-# Codex: per-user session (experimental; requires Codex CLI session layout)
+# Codex: per-user session (experimental; default Codex behavior)
 projects:
   myproject:
     engine:
       name: codex
       session: user
 ```
+
+## Codex failure behavior in `"user"` mode
+
+When Codex runs in per-user mode, HAL stores a real Codex session ID in each user's `session.json` and resumes with `codex exec resume <SESSION_ID>`.
+
+If HAL cannot recover a user-specific Codex session ID after a fresh run:
+
+- HAL does **not** fall back to shared `resume --last` continuation for that user.
+- HAL warns the Telegram user that continuity is unavailable and future messages will run as fresh anonymous sessions until recovery succeeds.
+- HAL logs the same failure in normal logs for operator visibility.
+
+This keeps `"user"` mode isolated by default, even when Codex session discovery is temporarily unavailable.
 
 ## Invalid configuration
 

@@ -193,6 +193,8 @@ export function createCopilotAdapter(
       const extracted = extractFinalAnswer(raw);
       return {
         text: extracted ?? raw,
+        sessionId: result.sessionId,
+        warning: result.warning,
       };
     },
 

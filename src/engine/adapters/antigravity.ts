@@ -295,12 +295,15 @@ export function createAntigravityAdapter(
         return {
           text: text || "No response received",
           sessionId: result.sessionId,
+          warning: result.warning,
           inputTokens,
           outputTokens,
         };
       } catch {
         return {
           text: result.output || "No response received",
+          sessionId: result.sessionId,
+          warning: result.warning,
         };
       }
     },

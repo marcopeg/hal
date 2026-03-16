@@ -10,7 +10,6 @@ The commands in the menu should be sorted:
 ## In Progress
 
 ## Ready Tasks
-- [034 — Codex session ID investigation and user isolation](./ready/034.codex-session-id-investigation-and-user-isolation.md) | [plan](./ready/034.codex-session-id-investigation-and-user-isolation.plan.md)
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 - [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
 
@@ -97,3 +96,4 @@ The commands in the menu should be sorted:
 - [068 — Sticky transcript with confirmation flow](./completed/068.voice-recognition-output-stitching-and-transcript-retention.md) | [plan](./completed/068.voice-recognition-output-stitching-and-transcript-retention.plan.md)
 - [083 — Fix the social card in GitHub settings and pin the project to my pinned repos on my GitHub profile](./completed/083.fix-the-social-card-in-github-settings-and-pin-the-project-to-my-pinned-repos-on-my-github-profile.md)
 - [084 — Rename /clean command to /clear](./completed/084.rename-clean-command-to-clear.md) | [plan](./completed/084.rename-clean-command-to-clear.plan.md)
+- [034 — Codex session ID investigation and user isolation](./completed/034.codex-session-id-investigation-and-user-isolation.md) | [plan](./completed/034.codex-session-id-investigation-and-user-isolation.plan.md)

@@ -27,8 +27,19 @@ Requires a ChatGPT Plus, Pro, Business, Edu, or Enterprise plan — or an OpenAI
 
 - **Config:** `engine.name: "codex"`. Optional: `engine.command`, `engine.model` (e.g. `gpt-5.1-codex-mini`), `engine.session` (`false` \| `true` \| `"shared"` \| `"user"`; see [Session configuration](../../config/session/README.md)), `engine.sessionMsg`, and the permission flags under `engine.codex` (see table below).
 - **Invocation:** `codex exec -C <cwd> ...` for fresh, or `codex exec resume --last` / `codex exec resume <UUID>` for session continuation.
-- **Sessions:** `session: true` or `"shared"` = shared (`resume --last`). `session: "user"` = **experimental** per-user: HAL scans `~/.codex/sessions/` after each run, extracts the session UUID for the project `cwd`, and uses `codex exec resume <UUID>` next time (relies on Codex’s internal layout). `session: false` = stateless. `/clear` sends `engine.sessionMsg` without resuming.
+- **Sessions:** `session: true` or omitted = **experimental per-user** mode. HAL stores the user's Codex session ID in `session.json`, resumes with `codex exec resume <UUID>`, and discovers new session IDs from `~/.codex/sessions/` JSONL transcripts. `session: "shared"` = shared (`resume --last`). `session: false` = stateless. In `"user"` mode, `/clear` only deletes the user's local `session.json`; in `"shared"` mode, `/clear` still starts a fresh shared Codex session.
 - **Permission flags:** HAL always passes `--skip-git-repo-check` so Codex runs without the trusted-directory check. You can escalate via `engine.codex`:
+
+### Per-user Codex session recovery
+
+HAL relies on Codex's local session files under `~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl`.
+
+- Codex writes JSONL transcript files for each session.
+- HAL matches sessions by the transcript `cwd` field.
+- HAL reads the real session identifier from the JSONL `session_meta` record when available, falling back to the rollout filename UUID only if needed.
+- On a fresh per-user run, HAL snapshots the existing matching session files before execution and then stores the newly created matching session ID after the run completes.
+
+If HAL cannot recover a session ID after a fresh per-user run, it does **not** fall back to shared `resume --last` continuation. Instead it warns the Telegram user and keeps later messages stateless until recovery succeeds.
 
 | Field | Description | Default |
 |-------|-------------|---------|

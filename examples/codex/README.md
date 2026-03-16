@@ -11,9 +11,10 @@ Example project using the Codex adapter — OpenAI's terminal-based coding agent
 
 ## HAL Capabilities
 
-- **Per-user sessions:** no — shared session by default (experimental user mode available)
-- **Session continuation:** yes — resumes via `--last`
-- **Streaming progress:** no — full response returned on completion
+- **Per-user sessions:** yes — default behavior (experimental; backed by local Codex session files)
+- **Shared sessions:** yes — opt in with `engine.session: "shared"`
+- **Session continuation:** yes — resumes via stored Codex session UUIDs in per-user mode, or `resume --last` in shared mode
+- **Streaming progress:** yes
 
 ## Notes
 

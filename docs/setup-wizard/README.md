@@ -42,6 +42,8 @@ You can skip steps by providing values on the command line. When a flag is set a
 | `--user-id <value>` | Telegram user ID |
 | `--session <mode>` | Session configuration (`true`, `false`, `shared`, `user`) |
 
+Session note: `true` means the engine default. For Codex, that now means per-user mode; use `shared` only if you explicitly want project-level shared continuation.
+
 Examples:
 
 ```bash
@@ -50,6 +52,9 @@ npx @marcopeg/hal wiz --engine cursor
 
 # Pre-fill engine and model
 npx @marcopeg/hal wiz --engine codex --model gpt-5.2-codex
+
+# Pre-fill Codex shared mode explicitly
+npx @marcopeg/hal wiz --engine codex --session shared
 
 # Pre-fill bot token and user ID (e.g. for scripts)
 npx @marcopeg/hal wiz --api-key 123:ABC... --user-id 7974709349

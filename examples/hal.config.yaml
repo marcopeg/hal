@@ -57,7 +57,7 @@ projects:
     cwd: ./codex
     engine:
       name: codex
-      session: "user"
+      # session: "user"
     telegram:
       botToken: ${HAL_CODEX_TELEGRAM_TOKEN}
   antigravity:
