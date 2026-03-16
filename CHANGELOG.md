@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.6.0](https://github.com/marcopeg/hal/compare/v1.5.0...v1.6.0) (2026-03-16)
+
+### Features
+
+* 34 support user session in codex ([0c59dc2](https://github.com/marcopeg/hal/commit/0c59dc22e130b493540ae7e758040ec025a90e71))
+* 86 support user session in copilot ([04e8d38](https://github.com/marcopeg/hal/commit/04e8d386c007a87b88a0ba227c4aa02eb2e7fa0d))
+
+### Bug Fixes
+
+* 60 claude code stale session resiliency ([9895228](https://github.com/marcopeg/hal/commit/98952288a6cda0957aa6eaf3d0a427c9e7cc817a))
+* 71 enforce project cwd ([62d0cfe](https://github.com/marcopeg/hal/commit/62d0cfe360a9a0fd593fd604fd9fefc85ed2c39c))
+
 ## [1.5.0](https://github.com/marcopeg/hal/compare/v1.4.0...v1.5.0) (2026-03-16)
 
 ### Features
