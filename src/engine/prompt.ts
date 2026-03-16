@@ -34,7 +34,10 @@ export async function buildContextualPrompt(
       engineModel: config.engineModel,
       engineDefaultModel: defaultModel,
     });
-    contextualPrompt = formatContextPrompt(resolvedCtx, prompt);
+    contextualPrompt = formatContextPrompt(resolvedCtx, prompt, {
+      cwd: config.cwd,
+      enforceCwd: config.engineEnforceCwd,
+    });
   }
 
   if (downloadsPath) {

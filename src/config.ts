@@ -89,6 +89,7 @@ const EngineConfigSchema = z
     name: EngineNameSchema,
     command: z.string(),
     model: z.string(),
+    enforceCwd: z.boolean(),
     session: SessionSchema,
     sessionMsg: z.string(),
     envFile: z.string().optional(),
@@ -375,6 +376,7 @@ export interface ResolvedProjectConfig {
   engine: EngineName;
   engineCommand: string | undefined;
   engineModel: string | undefined;
+  engineEnforceCwd: boolean;
   engineEnvFile: string | undefined;
   engineSession: SessionMode;
   engineSessionMsg: string;
@@ -788,6 +790,8 @@ export function resolveProjectConfig(
       }
       return undefined;
     })(),
+    engineEnforceCwd:
+      project.engine?.enforceCwd ?? globals.engine?.enforceCwd ?? true,
     engineSession: (() => {
       const sessionCaps = getEngineSessionCapabilities(engineName);
       const raw = project.engine?.session ?? globals.engine?.session;

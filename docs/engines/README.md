@@ -41,6 +41,8 @@ HAL supports multiple AI coding CLIs. Each engine has its own install steps, con
 - **Cursor** — `--workspace <cwd>` sets the project context but is not a hard filesystem sandbox. The agent can still reach outside the workspace via shell tools. No HAL-level control is available.
 - **OpenCode** — no path restriction mechanism in the CLI. The agent can access the full filesystem. No HAL-level control is available.
 
+HAL also injects a prompt-level cwd instruction by default (`engine.enforceCwd: true`) for every engine and for markdown cron prompts. That instruction complements, but does not replace, the hard path controls described above.
+
 **Streaming progress:** **Claude**, **Codex**, and **Antigravity** stream JSONL or progress events from the CLI, so HAL can show live progress in Telegram. The others buffer output and show a single “processing” style message until the reply is ready.
 
 ---
@@ -89,6 +91,7 @@ The `engine` object supports the fields below. Engine-specific options (e.g. Cod
 | `name` | **Required.** Engine: `claude`, `copilot`, `codex`, `opencode`, `cursor`, `antigravity`. Must be set in globals or per-project; no default. | — |
 | `command` | Custom path to the CLI binary | _(engine name)_ |
 | `model` | AI model override (omit for engine or HAL default; see [Model defaults](#model-defaults)) | _(per engine)_ |
+| `enforceCwd` | Inject HAL's cwd boundary instruction at the top of prompts and markdown cron executions. This is prompt-level guidance, not a hard sandbox; disable only for intentional cross-directory workflows. | `true` |
 | `session` | Session mode: `false` \| `true` \| `"shared"` \| `"user"`. See [Session configuration](../config/session/README.md). `"user"` with OpenCode fails at boot. `true` means the engine default, so Codex and Copilot resolve to per-user while Cursor still resolves to shared. | `true` |
 | `sessionMsg` | Message sent when renewing session (e.g. `/clear`) | `"hi!"` |
 

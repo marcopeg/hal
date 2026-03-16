@@ -1,6 +1,6 @@
 import pino from "pino";
 import { describe, expect, it } from "vitest";
-import { substituteMessage } from "../context/resolver.js";
+import { formatContextPrompt, substituteMessage } from "../context/resolver.js";
 
 const logger = pino({ level: "silent" });
 
@@ -50,5 +50,24 @@ describe("cron .md prompt body substitution", () => {
     const prompt = "Check git status and summarise what changed.";
     const result = substituteMessage(prompt, {}, logger);
     expect(result).toBe(prompt);
+  });
+
+  it("formats cron prompts with the cwd system instruction when enabled", () => {
+    const result = formatContextPrompt(
+      {
+        "project.cwd": "/repo/examples/copilot",
+        "cron.runs": "3",
+      },
+      "Run the sync.",
+      {
+        cwd: "/repo/examples/copilot",
+        enforceCwd: true,
+      },
+    );
+
+    expect(result).toBe(
+      "[System: Your working directory is /repo/examples/copilot. All file read and write operations must be relative to this path. Do not create, edit, or delete files outside this directory unless the user explicitly provides an absolute path outside it.]\n\n# Context\n- project.cwd: /repo/examples/copilot\n- cron.runs: 3\n\n# User Message\nRun the sync.",
+    );
+    expect(result).not.toContain("bot.messageId");
   });
 });

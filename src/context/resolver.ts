@@ -384,7 +384,15 @@ export function substituteMessage(
 export function formatContextPrompt(
   context: Record<string, string>,
   userMessage: string,
+  options?: {
+    cwd?: string;
+    enforceCwd?: boolean;
+  },
 ): string {
+  const cwdInstruction =
+    options?.cwd && options.enforceCwd !== false
+      ? `[System: Your working directory is ${options.cwd}. All file read and write operations must be relative to this path. Do not create, edit, or delete files outside this directory unless the user explicitly provides an absolute path outside it.]\n\n`
+      : "";
   const lines = Object.entries(context).map(([k, v]) => `- ${k}: ${v}`);
-  return `# Context\n${lines.join("\n")}\n\n# User Message\n${userMessage}`;
+  return `${cwdInstruction}# Context\n${lines.join("\n")}\n\n# User Message\n${userMessage}`;
 }

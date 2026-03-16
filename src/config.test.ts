@@ -101,4 +101,64 @@ describe("resolveProjectConfig session modes", () => {
       ),
     ).toThrow(ConfigLoadError);
   });
+
+  it("defaults engineEnforceCwd to true", () => {
+    const result = resolveProjectConfig(
+      "copilot-project",
+      {
+        telegram: { botToken: "token" },
+        engine: { name: "copilot" },
+      } as never,
+      {} as never,
+      configDir,
+    );
+
+    expect(result.engineEnforceCwd).toBe(true);
+  });
+
+  it("inherits a globals-level enforceCwd disable", () => {
+    const result = resolveProjectConfig(
+      "copilot-project",
+      {
+        telegram: { botToken: "token" },
+        engine: { name: "copilot" },
+      } as never,
+      {
+        engine: { enforceCwd: false },
+      } as never,
+      configDir,
+    );
+
+    expect(result.engineEnforceCwd).toBe(false);
+  });
+
+  it("preserves a project-level enforceCwd disable", () => {
+    const result = resolveProjectConfig(
+      "copilot-project",
+      {
+        telegram: { botToken: "token" },
+        engine: { name: "copilot", enforceCwd: false },
+      } as never,
+      {} as never,
+      configDir,
+    );
+
+    expect(result.engineEnforceCwd).toBe(false);
+  });
+
+  it("allows project-level enforceCwd true to override disabled globals", () => {
+    const result = resolveProjectConfig(
+      "copilot-project",
+      {
+        telegram: { botToken: "token" },
+        engine: { name: "copilot", enforceCwd: true },
+      } as never,
+      {
+        engine: { enforceCwd: false },
+      } as never,
+      configDir,
+    );
+
+    expect(result.engineEnforceCwd).toBe(true);
+  });
 });

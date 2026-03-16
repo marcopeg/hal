@@ -103,9 +103,11 @@ export default async (context) => ({
 
 ## Prompt format
 
-The resolved context is prepended to the user message before passing to the engine:
+The resolved context is prepended to the user message before passing to the engine. By default HAL also inserts a leading cwd boundary instruction based on `engine.enforceCwd` so the agent is explicitly told to keep file operations inside the resolved project directory. This applies to normal Telegram prompts and markdown cron prompts alike.
 
 ```
+[System: Your working directory is /projects/backend. All file read and write operations must be relative to this path. Do not create, edit, or delete files outside this directory unless the user explicitly provides an absolute path outside it.]
+
 # Context
 - bot.messageId: 12345
 - sys.datetime: 2026-02-26 14:30:00 UTC+1
@@ -114,5 +116,7 @@ The resolved context is prepended to the user message before passing to the engi
 # User Message
 What files changed today?
 ```
+
+Set `engine.enforceCwd: false` at globals or project scope if you intentionally want HAL to stop injecting this instruction.
 
 [← Back to Configuration](../README.md)

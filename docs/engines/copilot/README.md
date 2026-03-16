@@ -62,15 +62,18 @@ If a previously stored UUID becomes stale and Copilot can no longer resume it, H
 
 **HAL’s mitigation:** `--allow-all-paths` is not passed. Copilot’s built-in path verification is active, and the agent is confined to `cwd` and its descendants.
 
+**Additional HAL guidance:** HAL also prepends a cwd system instruction to prompts by default (`engine.enforceCwd: true`). This complements Copilot's built-in path checks by explicitly telling the model to treat the resolved project `cwd` as the working boundary even when its own git-root discovery points higher in the repository tree.
+
 **Opt-out:** If you have a legitimate need to let the agent work across the repository (e.g. a monorepo setup where the agent must touch files at the root), set:
 
 ```yaml
 engine:
+  enforceCwd: false
   copilot:
     allowAllPaths: true
 ```
 
-This re-enables `--allow-all-paths`. Use with care — it removes all filesystem boundaries.
+This disables HAL's cwd prompt instruction and re-enables `--allow-all-paths`. Use with care — it removes both HAL's prompt-level guidance and Copilot's filesystem boundary.
 
 ## Available models
 

@@ -97,7 +97,14 @@ export async function executeMdCron(
         contextVars,
         pLogger,
       );
-      const contextualPrompt = formatContextPrompt(contextVars, resolvedPrompt);
+      const contextualPrompt = formatContextPrompt(
+        contextVars,
+        resolvedPrompt,
+        {
+          cwd: config.cwd,
+          enforceCwd: config.engineEnforceCwd,
+        },
+      );
 
       const agent = createAgent(projectCtx);
       output = await agent.call(contextualPrompt);
@@ -190,7 +197,10 @@ export async function executeMdProjectCron(
     contextVars["cron.lastRun"] = state.lastRun?.toISOString() ?? "";
 
     const resolvedPrompt = substituteMessage(def.prompt, contextVars, pLogger);
-    const contextualPrompt = formatContextPrompt(contextVars, resolvedPrompt);
+    const contextualPrompt = formatContextPrompt(contextVars, resolvedPrompt, {
+      cwd: config.cwd,
+      enforceCwd: config.engineEnforceCwd,
+    });
     const agent = createAgent(projectCtx);
     output = await agent.call(contextualPrompt);
 

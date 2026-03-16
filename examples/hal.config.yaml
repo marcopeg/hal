@@ -18,6 +18,7 @@ globals:
   engine:
     name: opencode
     model: opencode/gpt-5-nano
+    # enforceCwd: false  # optional; default true. Disable only for intentional cross-directory workflows.
   transcription:
     model: base.en
 projects:
