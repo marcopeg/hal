@@ -209,9 +209,6 @@ export function createVoiceHandler(ctx: ProjectContext) {
           buildTranscriptConfirmationText(transcription.text),
           {
             reply_markup: keyboard,
-            reply_parameters: {
-              message_id: gramCtx.message!.message_id,
-            },
           },
         );
 

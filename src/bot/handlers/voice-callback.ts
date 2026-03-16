@@ -2,6 +2,7 @@ import type { Context, NextFunction } from "grammy";
 import type { ProjectContext } from "../../types.js";
 import {
   buildTranscriptDiscardedText,
+  buildTranscriptFinalText,
   clearPending,
   getPending,
 } from "./voice-pending.js";
@@ -97,6 +98,17 @@ export function createVoiceCallbackHandler(projectCtx: ProjectContext) {
         // Ignore races against expiry edits.
       }
       return;
+    }
+
+    try {
+      await ctx.api.editMessageText(
+        pending.chatId,
+        pending.msgId,
+        buildTranscriptFinalText(pending.transcript),
+        { reply_markup: undefined },
+      );
+    } catch {
+      // Ignore races against expiry edits.
     }
 
     try {

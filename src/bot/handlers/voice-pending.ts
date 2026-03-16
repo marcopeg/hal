@@ -11,11 +11,15 @@ export interface PendingTranscript {
 const pendingByUserId = new Map<number, PendingTranscript>();
 
 export function buildTranscriptConfirmationText(transcript: string): string {
+  return transcript;
+}
+
+export function buildTranscriptFinalText(transcript: string): string {
   return `You said:\n${transcript}`;
 }
 
 export function buildTranscriptDiscardedText(transcript: string): string {
-  return `${buildTranscriptConfirmationText(transcript)}\n\n(discarded by user)`;
+  return `${buildTranscriptFinalText(transcript)}\n\n(discarded by user)`;
 }
 
 export function setPending(userId: number, data: PendingTranscript): void {
@@ -53,7 +57,7 @@ export async function expirePending(userId: number, api: Api): Promise<void> {
     await api.editMessageText(
       pending.chatId,
       pending.msgId,
-      `${buildTranscriptConfirmationText(pending.transcript)}\n\n[expired]`,
+      `${buildTranscriptFinalText(pending.transcript)}\n\n[expired]`,
     );
   } catch {
     // Ignore races when the message was already edited/removed.
