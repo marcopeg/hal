@@ -12,10 +12,10 @@ The commands in the menu should be sorted:
 ## Ready Tasks
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 - [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
+- [087 — Fix stitched text debounce for long transcripts](./ready/087.fix-stitched-text-debounce-for-long-transcripts.md) | [plan](./ready/087.fix-stitched-text-debounce-for-long-transcripts.plan.md)
 
 
 ## Drafts
-- [087 — Fix stitched text debounce for long transcripts](./drafts/087.fix-stitched-text-debounce-for-long-transcripts.md) | [plan](./drafts/087.fix-stitched-text-debounce-for-long-transcripts.plan.md)
 - [085 — List project on awesome-* repositories](./drafts/085.list-project-on-awesome-repositories.md)
 - [082 — Standardize /new and /clear responses](./drafts/082.new-clear-command-response-template.md)
 - [080 — Use cases documentation index and research](./drafts/080.use-cases-documentation-index-and-research.md) | [plan](./drafts/080.use-cases-documentation-index-and-research.plan.md)
