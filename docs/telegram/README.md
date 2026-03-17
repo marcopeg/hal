@@ -34,10 +34,10 @@ You get a bot token from **BotFather**, Telegram’s official bot for creating a
 ### Step 4: Add the token to HAL
 
 - **Do not** put the token directly in your config file if it is committed to git.
-- Put it in a **`.env.local`** file in the same directory as your config (the directory where you run the HAL CLI). Example:
+- Put it in a **`.env`** file in the same directory as your config (the directory where you run the HAL CLI), and **do not commit that file**. Example:
 
   ```bash
-  # .env.local  (create this file next to hal.config.yaml)
+  # .env  (create this file next to hal.config.yaml, keep it out of git)
   BACKEND_BOT_TOKEN=7123456789:AAHxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   ```
 
@@ -51,7 +51,7 @@ You get a bot token from **BotFather**, Telegram’s official bot for creating a
         botToken: "${BACKEND_BOT_TOKEN}"
   ```
 
-- HAL resolves `${BACKEND_BOT_TOKEN}` at startup from `.env.local` (or `.env` or the shell environment). See [Env files](../config/env-files/README.md) for details on loading precedence and `.gitignore` guidance.
+- HAL resolves `${BACKEND_BOT_TOKEN}` at startup from `.env` (or `.env.local` if you use it, or the shell environment). See [Env files](../config/env-files/README.md) for details on loading precedence and `.gitignore` guidance.
 
 ### One bot per project
 
@@ -94,7 +94,7 @@ HAL uses your **Telegram user ID** (a numeric ID) for access control and per-use
   ```
 
 - Use your **numeric** ID (no quotes). You can add multiple IDs: `[123456789, 987654321]`.
-- You can also use **strings** so the value comes from the environment: e.g. `["${TELEGRAM_USER_ID}"]` in config and set `TELEGRAM_USER_ID=123456789` in `.env.local`. See [Env files](../config/env-files/README.md) and [Access control](../config/README.md#access-control).
+- You can also use **strings** so the value comes from the environment: e.g. `["${TELEGRAM_USER_ID}"]` in config and set `TELEGRAM_USER_ID=123456789` in `.env`. Keep that file out of git. See [Env files](../config/env-files/README.md) and [Access control](../config/README.md#access-control).
 - Users whose ID is not in the list will not be able to use that bot when the allowlist is enabled.
 
 ### Why use allowedUserIds?

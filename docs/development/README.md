@@ -16,16 +16,16 @@ npm install
 npm start
 ```
 
-The `start` script runs the bot with `--config examples`, so HAL uses the config and env from the `examples/` folder. You must create your own env file there before it will work.
+The `start` script runs the bot with `--config examples`, so HAL uses the config and env from the `examples/` folder. You must create your own `.env` there before it will work, and you should not commit that file.
 
 ## Examples folder and `.env`
 
 The `examples/` folder contains a sample config (`hal.config.yaml`) that uses `${VAR_NAME}` placeholders for secrets (bot tokens, user IDs, etc.). HAL loads env from the config directory at boot:
 
 - `examples/.env`
-- `examples/.env.local` (overrides `.env`, both are gitignored)
+- `examples/.env.local` (optional override for `examples/.env`; both are gitignored)
 
-**You need to create `examples/.env`** (or `examples/.env.local`) with the variables referenced in `examples/hal.config.yaml`. For example:
+**Create `examples/.env`** with the variables referenced in `examples/hal.config.yaml`. Do not commit it. For example:
 
 ```bash
 # examples/.env
@@ -38,7 +38,7 @@ OBSIDIAN_TELEGRAM_TOKEN=7123456789:AAHActual-token-here
 TIMETRACKER_TELEGRAM_TOKEN=7123456789:AAHAnother-token-here
 ```
 
-Replace the placeholder names and values with your own. See [Telegram](../telegram/README.md) for creating a bot and finding your user ID. The config structure is in [Configuration](../config/README.md).
+Replace the placeholder names and values with your own. See [Telegram](../telegram/README.md) for creating a bot and finding your user ID. The config structure is in [Configuration](../config/README.md). If you need an extra local override layer, you can also add `examples/.env.local`.
 
 ## Release and publish
 

@@ -1,19 +1,19 @@
 # Env files
 
-HAL uses env files to load environment variables for config substitution (`${VAR_NAME}` syntax). This page is the single canonical reference for everything related to env files: the two standard files and their roles, runtime loading precedence, wizard file selection, the custom `env` config key, and `.gitignore` guidance.
+HAL uses env files to load environment variables for config substitution (`${VAR_NAME}` syntax). This page is the single canonical reference for everything related to env files: the standard env files and their roles, runtime loading precedence, wizard file selection, the custom `env` config key, and `.gitignore` guidance.
 
 ---
 
 ## Overview
 
-Two env-file slots are available by default:
+HAL supports two env-file slots by default, but the docs and examples use **`.env` as the standard file**. Treat `.env` as local secret material and **do not commit it**.
 
 | File | Purpose |
 |------|---------|
-| `.env` | Variable declarations without real values — safe to commit |
-| `.env.local` | Actual secret values (tokens, keys, IDs) — **gitignored** |
+| `.env` | Recommended default file for tokens, keys, IDs, and other local values — **gitignored, do not commit** |
+| `.env.local` | Optional local override file when you want a second layer on top of `.env` — **gitignored, do not commit** |
 
-Both files live next to your config file (the config directory; default: the current working directory, or `--config` when set). At runtime `.env.local` overrides `.env` for the same key, so you can keep `.env` as a template with placeholder values and put real values only in `.env.local`.
+Both files live next to your config file (the config directory; default: the current working directory, or `--config` when set). At runtime `.env.local` overrides `.env` for the same key. Most users only need `.env`; use `.env.local` only if you intentionally want an extra local override layer.
 
 ---
 
@@ -62,13 +62,12 @@ When `env` is set, the config watcher also watches the custom env path and its `
 ### Example (default mode)
 
 ```bash
-# {config-dir}/.env  (safe to commit — variable declarations, no real secrets)
-BACKEND_BOT_TOKEN=
-FRONTEND_BOT_TOKEN=
-
-# {config-dir}/.env.local  (gitignored — actual secret values go here)
+# {config-dir}/.env  (gitignored — local secrets, do not commit)
 BACKEND_BOT_TOKEN=7123456789:AAHActual-token-here
 FRONTEND_BOT_TOKEN=7987654321:AAHAnother-token-here
+
+# {config-dir}/.env.local  (optional extra override layer)
+# BACKEND_BOT_TOKEN=7123456789:AAHOverride-token-here
 ```
 
 On every boot an `info`-level log lists all config and env files that were loaded, in order.
@@ -114,17 +113,19 @@ See [Runtime loading precedence](#runtime-loading-precedence) above for full det
 
 ## `.gitignore` guidance {#gitignore}
 
-Add `.env.local` to your `.gitignore` to prevent committing real secrets. If your `.env` also contains real values (not just declarations), add that too.
+Add both `.env` and `.env.local` to your `.gitignore` to prevent committing real secrets. Even if you mainly use `.env`, keep both ignored so local overrides stay private too.
 
 Recommended `.gitignore` entries:
 
 ```
 .env.local
 *.env.local
+.env
+*.env
 ```
 
 Example workflow:
 
-1. Commit `.env` with empty or placeholder values — it documents what variables are needed.
-2. Keep `.env.local` gitignored — it holds the actual values on each machine.
-3. Team members copy `.env` → `.env.local` and fill in their own credentials.
+1. Create a local `.env` next to your config and put the real values there.
+2. Do not commit `.env`; keep it gitignored.
+3. If you need an extra machine-specific override layer, add `.env.local` on top.

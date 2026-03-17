@@ -21,7 +21,7 @@ This section is the index for all configuration options; detailed subsections ar
 
 ### hal.config.{json,jsonc,yaml}
 
-Create a config file in your config directory (default: the current working directory, or `--config` when set). Secrets like bot tokens should be kept out of this file — use `${VAR_NAME}` placeholders and store the values in `.env.local` or the shell environment instead (see [Env files](env-files/README.md)).
+Create a config file in your config directory (default: the current working directory, or `--config` when set). Secrets like bot tokens should be kept out of this file — use `${VAR_NAME}` placeholders and store the values in `.env` or the shell environment instead. Keep `.env` out of git (see [Env files](env-files/README.md)).
 
 **YAML** is the recommended format for examples and for configs with comments. A full key reference (all options, with links to doc pages) is [reference.yaml](reference.yaml). A short copy-paste example is [examples/hal.config.yaml](../../examples/hal.config.yaml). JSON and JSONC are also supported — see [Configuration alternatives](#configuration-alternatives) below.
 
@@ -122,7 +122,7 @@ Minimal **JSONC** example (same structure with `//` comments and trailing commas
 
 Any string value in the config files can reference an environment variable with `${VAR_NAME}` syntax. Values inside `context` blocks support the same `${expr}` syntax but with a richer resolver (full context map + env) and two additional patterns (`#{cmd}` boot-time shell, `@{cmd}` message-time shell) — see [Context](context/README.md). This works identically for all config formats (JSON, JSONC, YAML).
 
-Variables are resolved at boot from env files next to your config (`.env` and `.env.local`). For full details on loading modes, precedence, the `env` config key, wizard file selection, and `.gitignore` guidance, see **[Env files](env-files/README.md)**.
+Variables are resolved at boot from env files next to your config (`.env` and `.env.local`). The docs use `.env` as the standard file; `.env.local` is an optional override. For full details on loading modes, precedence, the `env` config key, wizard file selection, and `.gitignore` guidance, see **[Env files](env-files/README.md)**.
 
 If a referenced variable cannot be resolved from any source the bot exits at boot with a clear error message naming the variable and the config field that references it.
 
@@ -260,8 +260,8 @@ With a config at `~/workspace/hal.config.yaml` (or `.json` / `.jsonc`):
 │       │   └── 2026-02-26.txt     (when persist: true)
 │       └── frontend/
 │           └── 2026-02-26.txt
-├── .env                     (variable declarations, safe to commit)
-├── .env.local               (gitignored — actual secret values)
+├── .env                     (gitignored — local secrets, do not commit)
+├── .env.local               (optional gitignored override)
 ├── backend/
 │   ├── CLAUDE.md
 │   ├── .claude/

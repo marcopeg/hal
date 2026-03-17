@@ -15,6 +15,7 @@ The commands in the menu should be sorted:
 
 
 ## Drafts
+- [087 — Fix stitched text debounce for long transcripts](./drafts/087.fix-stitched-text-debounce-for-long-transcripts.md) | [plan](./drafts/087.fix-stitched-text-debounce-for-long-transcripts.plan.md)
 - [085 — List project on awesome-* repositories](./drafts/085.list-project-on-awesome-repositories.md)
 - [082 — Standardize /new and /clear responses](./drafts/082.new-clear-command-response-template.md)
 - [080 — Use cases documentation index and research](./drafts/080.use-cases-documentation-index-and-research.md) | [plan](./drafts/080.use-cases-documentation-index-and-research.plan.md)
