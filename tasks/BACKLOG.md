@@ -10,13 +10,13 @@ The commands in the menu should be sorted:
 ## In Progress
 
 ## Ready Tasks
-- [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
-- [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
 
 
 ## Drafts
+- [082 — Built-in command visibility and enabled semantics](./drafts/082.command-visibility-and-enabled-semantics.md)
+- [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
+- [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
 - [085 — List project on awesome-* repositories](./drafts/085.list-project-on-awesome-repositories.md)
-- [082 — Standardize /new and /clear responses](./drafts/082.new-clear-command-response-template.md)
 - [080 — Use cases documentation index and research](./drafts/080.use-cases-documentation-index-and-research.md) | [plan](./drafts/080.use-cases-documentation-index-and-research.plan.md)
 - [077 — Architectural refactoring for maintainability](./ready/077.architectural-refactoring-for-maintainability.md)
 - [079 — `/btw` command: fresh implementation](./079.btw-command-fresh-implementation.md)
