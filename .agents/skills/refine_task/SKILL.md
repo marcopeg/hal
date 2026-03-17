@@ -7,6 +7,8 @@ Task ID resolution (mandatory):
 - If the user provides only a number (e.g. `38`) or a number plus optional text (e.g. `38` or `38 clarify scope`), treat that number as the task ID.
 - Resolve the task ID to the task file: zero-pad the ID to 3 digits (e.g. 38 → 038), then find the task file under `tasks/` that matches `**/038.*.md` and is not a plan file (exclude `*.plan.md`). The task may live in `tasks/drafts/`, `tasks/ready/`, or `tasks/` (in progress). Use that task file as the task to refine.
 
+Never modify `CHANGELOG.md` — changelog entries are managed exclusively by the release tooling, not by task refinement.
+
 Focus on the task provided by the user. Read the task description and any related files (code, config, prompts, etc.) to fully understand the context and the requirements.
 
 Analyze the project's context and codebase to identify any ambiguities or unclear requirements in the task description. The goal is to ensure a clear and actionable task definition for development.

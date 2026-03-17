@@ -9,8 +9,9 @@ The commands in the menu should be sorted:
 
 ## In Progress
 
+- [082 — Built-in command visibility and enabled semantics](./082.command-visibility-and-enabled-semantics.md) | [plan](./082.command-visibility-and-enabled-semantics.plan.md) | [notes](./082.command-visibility-and-enabled-semantics.notes.md)
+
 ## Ready Tasks
-- [082 — Built-in command visibility and enabled semantics](./ready/082.command-visibility-and-enabled-semantics.md) | [plan](./ready/082.command-visibility-and-enabled-semantics.plan.md)
 
 
 ## Drafts
