@@ -161,4 +161,69 @@ describe("resolveProjectConfig session modes", () => {
 
     expect(result.engineEnforceCwd).toBe(true);
   });
+
+  it("defaults telegram.message.debounceMs to 1000ms", () => {
+    const result = resolveProjectConfig(
+      "copilot-project",
+      {
+        telegram: { botToken: "token" },
+        engine: { name: "copilot" },
+      } as never,
+      {} as never,
+      configDir,
+    );
+
+    expect(result.telegram.message.debounceMs).toBe(1000);
+    expect(result.debounce.windowMs).toBe(1000);
+  });
+
+  it("inherits globals telegram.message.debounceMs", () => {
+    const result = resolveProjectConfig(
+      "copilot-project",
+      {
+        telegram: { botToken: "token" },
+        engine: { name: "copilot" },
+      } as never,
+      {
+        telegram: { message: { debounceMs: 750 } },
+      } as never,
+      configDir,
+    );
+
+    expect(result.telegram.message.debounceMs).toBe(750);
+    expect(result.debounce.windowMs).toBe(750);
+  });
+
+  it("allows project telegram.message.debounceMs to override globals", () => {
+    const result = resolveProjectConfig(
+      "copilot-project",
+      {
+        telegram: { botToken: "token", message: { debounceMs: 450 } },
+        engine: { name: "copilot" },
+      } as never,
+      {
+        telegram: { message: { debounceMs: 750 } },
+      } as never,
+      configDir,
+    );
+
+    expect(result.telegram.message.debounceMs).toBe(450);
+    expect(result.debounce.windowMs).toBe(450);
+  });
+
+  it("falls back to legacy debounce.windowMs when telegram.message.debounceMs is unset", () => {
+    const result = resolveProjectConfig(
+      "copilot-project",
+      {
+        telegram: { botToken: "token" },
+        engine: { name: "copilot" },
+        debounce: { windowMs: 525 },
+      } as never,
+      {} as never,
+      configDir,
+    );
+
+    expect(result.telegram.message.debounceMs).toBe(525);
+    expect(result.debounce.windowMs).toBe(525);
+  });
 });

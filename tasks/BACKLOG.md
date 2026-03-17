@@ -12,7 +12,6 @@ The commands in the menu should be sorted:
 ## Ready Tasks
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 - [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
-- [087 — Fix stitched text debounce for long transcripts](./ready/087.fix-stitched-text-debounce-for-long-transcripts.md) | [plan](./ready/087.fix-stitched-text-debounce-for-long-transcripts.plan.md)
 
 
 ## Drafts
@@ -99,3 +98,4 @@ The commands in the menu should be sorted:
 - [086 — Copilot per-user session isolation](./completed/086.copilot-user-session-isolation.md) | [plan](./completed/086.copilot-user-session-isolation.plan.md)
 - [060 — Stale session empty-response recovery](./completed/060.stale-session-empty-response-recovery.md) | [plan](./completed/060.stale-session-empty-response-recovery.plan.md)
 - [071 — Enforce project cwd in agent prompts](./completed/071.enforce-project-cwd.md) | [plan](./completed/071.enforce-project-cwd.plan.md)
+- [087 — Fix stitched text debounce for long transcripts](./completed/087.fix-stitched-text-debounce-for-long-transcripts.md) | [plan](./completed/087.fix-stitched-text-debounce-for-long-transcripts.plan.md)

@@ -19,6 +19,132 @@ import {
   shouldPersistUserSessionToUserDir,
 } from "./session.js";
 
+export interface BufferedTextPart {
+  text: string;
+  messageId: number;
+}
+
+export interface BufferedTextResolution {
+  mode: "fragment" | "burst" | "hybrid";
+  text: string;
+}
+
+function isHighConfidenceBurstBoundary(
+  previousText: string,
+  nextText: string,
+): boolean {
+  const previousTrimmed = previousText.trimEnd();
+  const nextTrimmed = nextText.trimStart();
+
+  if (!previousTrimmed || !nextTrimmed) {
+    return false;
+  }
+
+  const previousLooksComplete =
+    previousTrimmed.endsWith("\n") || /[.!?…]["')\]]*$/.test(previousTrimmed);
+  if (!previousLooksComplete) {
+    return false;
+  }
+
+  return /^(?:[A-Z]|["'([]|[-*]\s|\d+[.)\]]\s)/.test(nextTrimmed);
+}
+
+function shouldUseLeadInBoundary(
+  previousText: string,
+  nextText: string,
+): boolean {
+  const previousTrimmed = previousText.trimEnd();
+  const nextTrimmed = nextText.trimStart();
+
+  if (!previousTrimmed || !nextTrimmed) {
+    return false;
+  }
+
+  return (
+    previousTrimmed.length <= 120 &&
+    /[:.!?]$/.test(previousTrimmed) &&
+    nextTrimmed.length >= 1000
+  );
+}
+
+function shouldInsertSoftSpace(
+  previousPart: BufferedTextPart,
+  nextPart: BufferedTextPart,
+): boolean {
+  const previousText = previousPart.text;
+  const nextText = nextPart.text;
+  if (!previousText || !nextText) {
+    return false;
+  }
+
+  const previousChar = previousText.at(-1) ?? "";
+  const nextChar = nextText[0] ?? "";
+
+  if (/\s/.test(previousChar) || /\s/.test(nextChar)) {
+    return false;
+  }
+
+  if (!/[A-Za-z0-9]$/.test(previousChar) || !/^[A-Za-z0-9]/.test(nextChar)) {
+    return false;
+  }
+
+  return previousPart.text.length >= 3500 || nextPart.text.length >= 3500;
+}
+
+function getBoundarySeparator(
+  previousPart: BufferedTextPart,
+  nextPart: BufferedTextPart,
+): "" | " " | "\n" {
+  if (shouldUseLeadInBoundary(previousPart.text, nextPart.text)) {
+    return "\n";
+  }
+
+  if (isHighConfidenceBurstBoundary(previousPart.text, nextPart.text)) {
+    return "\n";
+  }
+
+  if (shouldInsertSoftSpace(previousPart, nextPart)) {
+    return " ";
+  }
+
+  return "";
+}
+
+export function classifyBufferedTextParts(
+  parts: BufferedTextPart[],
+): BufferedTextResolution {
+  const sortedParts = [...parts].sort((a, b) => a.messageId - b.messageId);
+
+  if (sortedParts.length <= 1) {
+    return {
+      mode: "fragment",
+      text: sortedParts.map((part) => part.text).join(""),
+    };
+  }
+
+  const separators = sortedParts
+    .slice(1)
+    .map((part, index) => getBoundarySeparator(sortedParts[index], part));
+
+  const uniqueSeparators = new Set(separators);
+  const mode: BufferedTextResolution["mode"] =
+    uniqueSeparators.size === 1 && uniqueSeparators.has("\n")
+      ? "burst"
+      : uniqueSeparators.size === 1 && uniqueSeparators.has("")
+        ? "fragment"
+        : "hybrid";
+
+  let text = sortedParts[0]?.text ?? "";
+  for (let index = 1; index < sortedParts.length; index += 1) {
+    text += separators[index - 1] + sortedParts[index].text;
+  }
+
+  return {
+    mode,
+    text,
+  };
+}
+
 /**
  * Returns a handler for text messages.
  */
@@ -27,15 +153,23 @@ export function createTextHandler(
   debounceActiveUsers: Set<number>,
 ) {
   const { config, logger } = ctx;
-  const windowMs = config.debounce.windowMs;
+  const windowMs = config.telegram.message.debounceMs;
 
   interface BufferEntry {
-    parts: Array<{ text: string; messageId: number }>;
+    parts: BufferedTextPart[];
     timer: ReturnType<typeof setTimeout>;
     gramCtx: Context;
-    statusMsgId: number;
+    statusMsgId?: number;
+    lastActivityAt: number;
   }
   const buffers = new Map<number, BufferEntry>();
+
+  function scheduleFlush(
+    userId: number,
+    delayMs = windowMs,
+  ): ReturnType<typeof setTimeout> {
+    return setTimeout(() => flush(userId), delayMs);
+  }
 
   async function dispatchMessage(
     gramCtx: Context,
@@ -156,13 +290,26 @@ export function createTextHandler(
   function flush(userId: number): void {
     const buf = buffers.get(userId);
     if (!buf) return;
+
+    const remainingMs = buf.lastActivityAt + windowMs - Date.now();
+    if (remainingMs > 0) {
+      clearTimeout(buf.timer);
+      buf.timer = scheduleFlush(userId, remainingMs);
+      return;
+    }
+
     buffers.delete(userId);
     debounceActiveUsers.delete(userId);
-    const sorted = [...buf.parts].sort((a, b) => a.messageId - b.messageId);
-    const combined = sorted.map((p) => p.text).join("");
-    dispatchMessage(buf.gramCtx, combined, buf.statusMsgId).catch((err) => {
-      logger.error({ err }, "Debounce flush error");
-    });
+    const resolved = classifyBufferedTextParts(buf.parts);
+    logger.debug(
+      { userId, parts: buf.parts.length, mode: resolved.mode },
+      "Flushing buffered text",
+    );
+    dispatchMessage(buf.gramCtx, resolved.text, buf.statusMsgId).catch(
+      (err) => {
+        logger.error({ err }, "Debounce flush error");
+      },
+    );
   }
 
   return async (gramCtx: Context): Promise<void> => {
@@ -318,34 +465,39 @@ export function createTextHandler(
     }
     // ── End slash command interception ────────────────────────────────────────
 
-    const existing = buffers.get(userId);
-
-    if (messageText.length >= 4096 || existing) {
-      if (!existing) {
-        // First part of a Telegram split — start buffering
-        const statusMsg = await gramCtx.reply("_Buffering..._", {
-          parse_mode: "Markdown",
-        });
-        debounceActiveUsers.add(userId);
-        buffers.set(userId, {
-          parts: [{ text: messageText, messageId: messageId ?? 0 }],
-          timer: setTimeout(() => flush(userId), windowMs),
-          gramCtx,
-          statusMsgId: statusMsg.message_id,
-        });
-      } else {
-        // Subsequent part — reset timer
-        clearTimeout(existing.timer);
-        existing.parts.push({ text: messageText, messageId: messageId ?? 0 });
-        existing.gramCtx = gramCtx;
-        existing.timer = setTimeout(() => flush(userId), windowMs);
+    if (messageText.startsWith("/")) {
+      try {
+        await dispatchMessage(gramCtx, messageText);
+      } catch (error) {
+        logger.error({ error }, "Text handler error");
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        await gramCtx.reply(`An error occurred: ${errorMessage}`);
       }
       return;
     }
 
-    // Normal message (< 4096 chars, no active buffer) — dispatch immediately
+    const existing = buffers.get(userId);
+
     try {
-      await dispatchMessage(gramCtx, messageText);
+      if (!existing) {
+        const now = Date.now();
+        debounceActiveUsers.add(userId);
+        const buffer: BufferEntry = {
+          parts: [{ text: messageText, messageId: messageId ?? 0 }],
+          timer: scheduleFlush(userId),
+          gramCtx,
+          lastActivityAt: now,
+        };
+        buffers.set(userId, buffer);
+      } else {
+        const now = Date.now();
+        clearTimeout(existing.timer);
+        existing.parts.push({ text: messageText, messageId: messageId ?? 0 });
+        existing.gramCtx = gramCtx;
+        existing.lastActivityAt = now;
+        existing.timer = scheduleFlush(userId);
+      }
     } catch (error) {
       logger.error({ error }, "Text handler error");
       const errorMessage =

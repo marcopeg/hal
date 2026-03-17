@@ -228,8 +228,28 @@ const AccessSchema = z
   .partial()
   .optional();
 
+const TelegramMessageSchema = z
+  .object({
+    debounceMs: z.number().positive(),
+  })
+  .partial()
+  .optional();
+
+const GlobalsTelegramSchema = z
+  .object({
+    message: TelegramMessageSchema,
+  })
+  .partial()
+  .optional();
+
+const ProjectTelegramSchema = z.object({
+  botToken: z.string().min(1, "project.telegram.botToken is required"),
+  message: TelegramMessageSchema,
+});
+
 const GlobalsFileSchema = z
   .object({
+    telegram: GlobalsTelegramSchema,
     access: AccessSchema,
     engine: EngineConfigSchema,
     logging: z
@@ -280,9 +300,7 @@ const ProjectFileSchema = z.object({
   name: z.string().optional(),
   active: z.boolean().optional(),
   cwd: z.string().min(1, "project.cwd must be non-empty when set").optional(),
-  telegram: z.object({
-    botToken: z.string().min(1, "project.telegram.botToken is required"),
-  }),
+  telegram: ProjectTelegramSchema,
   access: AccessSchema,
   engine: EngineConfigSchema,
   providers: ProvidersConfigSchema,
@@ -368,7 +386,7 @@ export interface ResolvedProjectConfig {
   configDir: string;
   dataDir: string;
   logDir: string;
-  telegram: { botToken: string };
+  telegram: { botToken: string; message: { debounceMs: number } };
   access: {
     allowedUserIds: number[];
     dangerouslyAllowUnrestrictedAccess: boolean;
@@ -751,6 +769,13 @@ export function resolveProjectConfig(
     },
   };
 
+  const resolvedDebounceMs =
+    project.telegram.message?.debounceMs ??
+    globals.telegram?.message?.debounceMs ??
+    project.debounce?.windowMs ??
+    globals.debounce?.windowMs ??
+    1000;
+
   return {
     slug,
     name,
@@ -758,7 +783,10 @@ export function resolveProjectConfig(
     configDir,
     dataDir,
     logDir,
-    telegram: { botToken: project.telegram.botToken },
+    telegram: {
+      botToken: project.telegram.botToken,
+      message: { debounceMs: resolvedDebounceMs },
+    },
     access: {
       allowedUserIds: ((project.access !== undefined
         ? project.access.allowedUserIds
@@ -850,7 +878,7 @@ export function resolveProjectConfig(
         project.rateLimit?.windowMs ?? globals.rateLimit?.windowMs ?? 60000,
     },
     debounce: {
-      windowMs: project.debounce?.windowMs ?? globals.debounce?.windowMs ?? 300,
+      windowMs: resolvedDebounceMs,
     },
     transcription: {
       model:

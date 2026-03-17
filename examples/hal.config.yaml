@@ -11,6 +11,11 @@ providers:
     - name: gpt-5.1-codex-mini
     - name: gpt-5.3-codex
 globals:
+  telegram:
+    message:
+      # Optional inbound text quiet window for Telegram message stitching.
+      # The task-087 baseline is 1000ms; tune per project if needed.
+      debounceMs: 1000
   access:
     allowedUserIds:
       - ${USER_MARCO_IPHONE_ID}
