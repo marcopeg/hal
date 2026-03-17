@@ -2,7 +2,12 @@ import type { Context } from "grammy";
 import { resolveContext, substituteMessage } from "../../context/resolver.js";
 import { getDefaultEngineModel } from "../../default-models.js";
 import type { ProjectContext } from "../../types.js";
-import { type CommandEntry, loadCommands } from "./loader.js";
+import {
+  type CommandEntry,
+  type CommandVisibility,
+  commandsForHelp,
+  loadCommands,
+} from "./loader.js";
 
 function escapeMarkdown(text: string): string {
   return text.replace(/[_*`[]/g, "\\$&").replace(/@/g, "@\u200B");
@@ -24,17 +29,32 @@ function formatCommandList(entries: CommandEntry[]): string {
 async function buildHalCommands(ctx: ProjectContext): Promise<string> {
   const { config, logger, engine } = ctx;
   const skillsDirs = engine.skillsDirs(config.cwd);
+  const cmd = config.commands;
 
   const enabled = {
-    start: config.commands.start.enabled,
-    help: config.commands.help.enabled,
-    reset: config.commands.reset.enabled,
-    clear: config.commands.clear.enabled,
-    info: config.commands.info.enabled,
-    git: config.commands.git.enabled,
-    model: config.commands.model.enabled,
-    engine: config.commands.engine.enabled,
-    npm: config.commands.npm.enabled,
+    start: cmd.start.enabled,
+    help: cmd.help.enabled,
+    reset: cmd.reset.enabled,
+    clear: cmd.clear.enabled,
+    info: cmd.info.enabled,
+    git: cmd.git.enabled,
+    model: cmd.model.enabled,
+    engine: cmd.engine.enabled,
+    npm: cmd.npm.enabled,
+  };
+
+  const visibility: CommandVisibility = {
+    start: { showInHelp: cmd.start.showInHelp },
+    help: { showInHelp: cmd.help.showInHelp },
+    reset: { showInHelp: cmd.reset.showInHelp },
+    clear: { showInHelp: cmd.clear.showInHelp },
+    info: { showInHelp: cmd.info.showInHelp },
+    git_init: { showInHelp: cmd.git.showInHelp },
+    git_status: { showInHelp: cmd.git.showInHelp },
+    git_commit: { showInHelp: cmd.git.showInHelp },
+    git_clean: { showInHelp: cmd.git.showInHelp },
+    model: { showInHelp: cmd.model.showInHelp },
+    engine: { showInHelp: cmd.engine.showInHelp },
   };
 
   const all = await loadCommands(
@@ -43,7 +63,16 @@ async function buildHalCommands(ctx: ProjectContext): Promise<string> {
     logger,
     skillsDirs,
     enabled,
+    cmd.npm.enabled
+      ? {
+          whitelist: cmd.npm.whitelist,
+          blacklist: cmd.npm.blacklist,
+          showInHelp: cmd.npm.showInHelp,
+        }
+      : undefined,
   );
+
+  const filtered = commandsForHelp(all, visibility);
 
   const projectCommands: CommandEntry[] = [];
   const skills: CommandEntry[] = [];
@@ -51,7 +80,7 @@ async function buildHalCommands(ctx: ProjectContext): Promise<string> {
   const halCommands: CommandEntry[] = [];
   const gitCommands: CommandEntry[] = [];
 
-  for (const entry of all) {
+  for (const entry of filtered) {
     switch (entry.source) {
       case "project":
         projectCommands.push(entry);

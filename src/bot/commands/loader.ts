@@ -2,6 +2,11 @@ import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import type pino from "pino";
+import {
+  NpmScriptError,
+  readPackageScripts,
+  resolveAllowedScripts,
+} from "./npm/scripts.js";
 
 /** Telegram API limit for setMyCommands description length (codepoints). */
 export const TELEGRAM_MAX_DESCRIPTION_LENGTH = 256;
@@ -29,6 +34,23 @@ export interface CommandEnabledFlags {
   model: boolean;
   engine: boolean;
   npm: boolean;
+}
+
+/**
+ * Per-command visibility flags for Telegram menu and HAL help.
+ * Missing entries default to visible (true).
+ */
+export type CommandVisibility = Partial<
+  Record<string, { showInMenu?: boolean; showInHelp?: boolean }>
+>;
+
+/** Options forwarded to npm script derivation in loadCommands. */
+export interface NpmCommandOptions {
+  whitelist?: string[];
+  blacklist?: string[];
+  /** When true, show npm-derived entries; otherwise omit even if npm is enabled. */
+  showInMenu?: boolean;
+  showInHelp?: boolean;
 }
 
 // Canonical display/menu order for command sources
@@ -337,13 +359,23 @@ export const BUILTIN_COMMANDS: CommandEntry[] = [
     filePath: "",
     source: "builtin",
   },
-  {
-    command: "npm",
-    description: "Run an npm script",
-    filePath: "",
-    source: "builtin",
-  },
 ];
+
+/**
+ * Sanitize an npm script name into a valid Telegram command name (lowercase,
+ * non-alphanumeric chars replaced with underscores, truncated to 32 chars).
+ * Returns null when the result is empty or otherwise invalid.
+ */
+export function sanitizeNpmScriptName(scriptName: string): string | null {
+  const sanitized = scriptName
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "")
+    .slice(0, 32);
+  if (!sanitized || !TELEGRAM_COMMAND_RE.test(sanitized)) return null;
+  return sanitized;
+}
 
 export const GIT_COMMANDS: CommandEntry[] = [
   {
@@ -380,7 +412,6 @@ const BUILTIN_ENABLED_MAP: Record<string, keyof CommandEnabledFlags> = {
   info: "info",
   model: "model",
   engine: "engine",
-  npm: "npm",
 };
 
 // ─── Public API ──────────────────────────────────────────────────────────────
@@ -388,9 +419,11 @@ const BUILTIN_ENABLED_MAP: Record<string, keyof CommandEnabledFlags> = {
 /**
  * Scan command directories and optionally the skills dir, then return the merged list.
  * When `enabled` flags are provided, disabled built-in/git commands are excluded.
+ * When `npmOpts` is provided and npm is enabled, npm-derived script entries are appended
+ * for each allowed script name that doesn't conflict with a higher-precedence command.
  *
  * Precedence (lowest → highest):
- *   engine skills  <  global .hal/commands  <  project .hal/commands
+ *   npm scripts  <  engine skills  <  global .hal/commands  <  project .hal/commands
  */
 export async function loadCommands(
   projectCwd: string,
@@ -398,6 +431,7 @@ export async function loadCommands(
   logger: pino.Logger,
   skillsDirs?: string[],
   enabled?: CommandEnabledFlags,
+  npmOpts?: NpmCommandOptions,
 ): Promise<CommandEntry[]> {
   const globalDir = globalCommandDir(configDir);
   const projectDir = projectCommandDir(projectCwd);
@@ -449,17 +483,98 @@ export async function loadCommands(
     }
   }
 
+  // Derive npm script entries when npm is enabled.
+  // package.json is the source of truth for available scripts; the whitelist
+  // filters that set and warns about entries that don't exist in package.json.
+  // Only add a script entry when the sanitized name is not already occupied by a
+  // higher-precedence command (custom command, skill, or enabled built-in).
+  if (enabled?.npm && npmOpts) {
+    try {
+      const scripts = readPackageScripts(projectCwd);
+      const available = Object.keys(scripts);
+      const allowed = resolveAllowedScripts(
+        available,
+        npmOpts.whitelist,
+        npmOpts.blacklist,
+      );
+
+      // Warn about whitelist entries that don't exist in package.json
+      if (npmOpts.whitelist) {
+        for (const entry of npmOpts.whitelist) {
+          if (!available.includes(entry)) {
+            logger.warn(
+              { script: entry, cwd: projectCwd },
+              "npm whitelist entry not found in package.json — skipping",
+            );
+          }
+        }
+      }
+
+      for (const script of allowed) {
+        const cmdName = sanitizeNpmScriptName(script);
+        if (cmdName && !map.has(cmdName)) {
+          map.set(cmdName, {
+            command: cmdName,
+            description: `npm run ${script}`,
+            filePath: "",
+            source: "builtin",
+          });
+        }
+      }
+    } catch (err) {
+      if (!(err instanceof NpmScriptError)) {
+        logger.warn(
+          { error: err instanceof Error ? err.message : String(err) },
+          "Unexpected error reading npm scripts for command list — skipping",
+        );
+      }
+      // NpmScriptError (missing/empty package.json) → silent omission
+    }
+  }
+
   return Array.from(map.values()).sort(sortBySource);
 }
 
 /**
- * Return the subset of commands that should be shown in the Telegram slash menu and in /help.
- * Non-skill commands are always included; skills are included only when `telegram: true`.
+ * Return the subset of commands that should be shown in the Telegram slash menu.
+ * - Built-in/git commands are filtered by showInMenu (defaults to true when not set in visibility).
+ * - Skills are included only when `telegram: true`.
+ * - Project/system custom commands are always included.
  */
 export function commandsForTelegramMenu(
   commands: CommandEntry[],
+  visibility?: CommandVisibility,
 ): CommandEntry[] {
-  return commands.filter((c) => c.source !== "skill" || c.telegram === true);
+  return commands.filter((c) => {
+    if (c.source === "skill") return c.telegram === true;
+    if (c.source === "builtin" || c.source === "git") {
+      if (visibility) {
+        return visibility[c.command]?.showInMenu !== false;
+      }
+    }
+    return true;
+  });
+}
+
+/**
+ * Return the subset of commands that should be shown in HAL help output (${HAL_COMMANDS}).
+ * - Built-in/git commands are filtered by showInHelp (defaults to true when not set in visibility).
+ * - Skills are included only when `telegram: true`.
+ * - Project/system custom commands are always included.
+ */
+export function commandsForHelp(
+  commands: CommandEntry[],
+  visibility?: CommandVisibility,
+): CommandEntry[] {
+  return commands.filter((c) => {
+    if (c.source === "skill") return c.telegram === true;
+    if (c.source === "builtin" || c.source === "git") {
+      if (visibility) {
+        return visibility[c.command]?.showInHelp !== false;
+      }
+    }
+    return true;
+  });
 }
 
 /**

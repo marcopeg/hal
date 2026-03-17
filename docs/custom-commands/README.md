@@ -15,12 +15,15 @@ Project-specific commands take precedence over global ones on name collision.
 
 Slash commands are resolved in this order:
 
-1. **Built-in commands** (e.g. `/start`, `/help`, `/engine`, `/model`, `/reset`, `/clear`, `/info`, `/npm`, and `git_*`) are handled directly by the bot when enabled.
-2. **Custom `.mjs` commands** (project `.hal/commands/{name}.mjs`, then global `{configDir}/.hal/commands/{name}.mjs`).
-3. **Skills** with `telegram: true` in `SKILL.md`.
-4. **Fallback to the AI engine** when no command or skill matches.
+1. **Enabled built-in commands** (e.g. `/start`, `/help`, `/engine`, `/model`, `/clear`, `/info`, and `git_*`) are handled directly by the bot when `enabled: true`. Disabled built-ins are skipped at this step and do not block lower-precedence handlers.
+2. **Project custom `.mjs` commands** — `{project.cwd}/.hal/commands/{name}.mjs`.
+3. **Global custom `.mjs` commands** — `{configDir}/.hal/commands/{name}.mjs`.
+4. **Skills** with `telegram: true` in `SKILL.md`.
+5. **Fallback to the AI engine** when no command or skill matches.
 
-Custom command files can shadow skills with the same name. If you want a custom command to be reachable, avoid naming it after a built-in command that is enabled.
+When a built-in is **disabled** (`enabled: false`), a same-name project custom command, global custom command, or skill can intercept it instead. Only when none of those match does the slash command text reach the agent.
+
+Custom command files can shadow skills with the same name. If you want a custom command to be reachable, avoid naming it after an **enabled** built-in command.
 
 ## Command file format
 

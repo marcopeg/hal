@@ -112,6 +112,8 @@ const CommandMessageSchema = z
 const StartConfigSchema = z
   .object({
     enabled: z.boolean().optional(),
+    showInMenu: z.boolean().optional(),
+    showInHelp: z.boolean().optional(),
     session: z.object({ reset: z.boolean() }).partial().optional(),
     message: CommandMessageSchema.optional(),
   })
@@ -120,6 +122,8 @@ const StartConfigSchema = z
 const SimpleCommandConfigSchema = z
   .object({
     enabled: z.boolean().optional(),
+    showInMenu: z.boolean().optional(),
+    showInHelp: z.boolean().optional(),
     message: CommandMessageSchema.optional(),
   })
   .optional();
@@ -127,6 +131,8 @@ const SimpleCommandConfigSchema = z
 const ResetCommandConfigSchema = z
   .object({
     enabled: z.boolean().optional(),
+    showInMenu: z.boolean().optional(),
+    showInHelp: z.boolean().optional(),
     session: z.object({ reset: z.boolean() }).partial().optional(),
     message: z
       .object({
@@ -141,12 +147,16 @@ const ResetCommandConfigSchema = z
 const GitConfigSchema = z
   .object({
     enabled: z.boolean().optional(),
+    showInMenu: z.boolean().optional(),
+    showInHelp: z.boolean().optional(),
   })
   .optional();
 
 const NpmConfigSchema = z
   .object({
     enabled: z.boolean().optional(),
+    showInMenu: z.boolean().optional(),
+    showInHelp: z.boolean().optional(),
     whitelist: z.array(z.string()).optional(),
     blacklist: z.array(z.string()).optional(),
     timeoutMs: z.number().positive().optional(),
@@ -158,6 +168,8 @@ const NpmConfigSchema = z
 const InfoConfigSchema = z
   .object({
     enabled: z.boolean().optional(),
+    showInMenu: z.boolean().optional(),
+    showInHelp: z.boolean().optional(),
     cwd: z.boolean().optional(),
     engineModel: z.boolean().optional(),
     session: z.boolean().optional(),
@@ -419,27 +431,49 @@ export interface ResolvedProjectConfig {
   providerDefaultModel: string | undefined;
   availableEngines: EngineName[];
   commands: {
-    start: { enabled: boolean; sessionReset: boolean; message?: string };
-    help: { enabled: boolean; message?: string };
+    start: {
+      enabled: boolean;
+      showInMenu: boolean;
+      showInHelp: boolean;
+      sessionReset: boolean;
+      message?: string;
+    };
+    help: {
+      enabled: boolean;
+      showInMenu: boolean;
+      showInHelp: boolean;
+      message?: string;
+    };
     reset: {
       enabled: boolean;
+      showInMenu: boolean;
+      showInHelp: boolean;
       sessionReset: boolean;
       message: { confirm?: string; done?: string };
       timeout: number;
     };
-    clear: { enabled: boolean; message?: string };
+    clear: {
+      enabled: boolean;
+      showInMenu: boolean;
+      showInHelp: boolean;
+      message?: string;
+    };
     info: {
       enabled: boolean;
+      showInMenu: boolean;
+      showInHelp: boolean;
       cwd: boolean;
       engineModel: boolean;
       session: boolean;
       context: boolean;
     };
-    git: { enabled: boolean };
-    model: { enabled: boolean };
-    engine: { enabled: boolean };
+    git: { enabled: boolean; showInMenu: boolean; showInHelp: boolean };
+    model: { enabled: boolean; showInMenu: boolean; showInHelp: boolean };
+    engine: { enabled: boolean; showInMenu: boolean; showInHelp: boolean };
     npm: {
       enabled: boolean;
+      showInMenu: boolean;
+      showInHelp: boolean;
       whitelist: string[] | undefined;
       blacklist: string[] | undefined;
       timeoutMs: number;
@@ -679,6 +713,14 @@ export function resolveProjectConfig(
         project.commands?.start?.enabled ??
         globals.commands?.start?.enabled ??
         true,
+      showInMenu:
+        project.commands?.start?.showInMenu ??
+        globals.commands?.start?.showInMenu ??
+        false,
+      showInHelp:
+        project.commands?.start?.showInHelp ??
+        globals.commands?.start?.showInHelp ??
+        false,
       sessionReset: rawStart?.session?.reset ?? false,
       message: rawStart?.message
         ? resolveMessageTemplate(rawStart.message, "commands.start")
@@ -689,6 +731,14 @@ export function resolveProjectConfig(
         project.commands?.help?.enabled ??
         globals.commands?.help?.enabled ??
         true,
+      showInMenu:
+        project.commands?.help?.showInMenu ??
+        globals.commands?.help?.showInMenu ??
+        true,
+      showInHelp:
+        project.commands?.help?.showInHelp ??
+        globals.commands?.help?.showInHelp ??
+        true,
       message: rawHelp?.message
         ? resolveMessageTemplate(rawHelp.message, "commands.help")
         : undefined,
@@ -697,6 +747,14 @@ export function resolveProjectConfig(
       enabled:
         project.commands?.reset?.enabled ??
         globals.commands?.reset?.enabled ??
+        false,
+      showInMenu:
+        project.commands?.reset?.showInMenu ??
+        globals.commands?.reset?.showInMenu ??
+        true,
+      showInHelp:
+        project.commands?.reset?.showInHelp ??
+        globals.commands?.reset?.showInHelp ??
         true,
       sessionReset: rawReset?.session?.reset ?? false,
       message: {
@@ -710,6 +768,14 @@ export function resolveProjectConfig(
         project.commands?.clear?.enabled ??
         globals.commands?.clear?.enabled ??
         true,
+      showInMenu:
+        project.commands?.clear?.showInMenu ??
+        globals.commands?.clear?.showInMenu ??
+        true,
+      showInHelp:
+        project.commands?.clear?.showInHelp ??
+        globals.commands?.clear?.showInHelp ??
+        true,
       message: rawClear?.message
         ? resolveMessageTemplate(rawClear.message, "commands.clear")
         : undefined,
@@ -718,6 +784,14 @@ export function resolveProjectConfig(
       enabled:
         project.commands?.info?.enabled ??
         globals.commands?.info?.enabled ??
+        true,
+      showInMenu:
+        project.commands?.info?.showInMenu ??
+        globals.commands?.info?.showInMenu ??
+        true,
+      showInHelp:
+        project.commands?.info?.showInHelp ??
+        globals.commands?.info?.showInHelp ??
         true,
       cwd: project.commands?.info?.cwd ?? globals.commands?.info?.cwd ?? true,
       engineModel:
@@ -738,14 +812,50 @@ export function resolveProjectConfig(
         project.commands?.git?.enabled ??
         globals.commands?.git?.enabled ??
         false,
+      showInMenu:
+        project.commands?.git?.showInMenu ??
+        globals.commands?.git?.showInMenu ??
+        true,
+      showInHelp:
+        project.commands?.git?.showInHelp ??
+        globals.commands?.git?.showInHelp ??
+        true,
     },
-    model: { enabled: modelEnabled },
-    engine: { enabled: engineEnabled },
+    model: {
+      enabled: modelEnabled,
+      showInMenu:
+        project.commands?.model?.showInMenu ??
+        globals.commands?.model?.showInMenu ??
+        true,
+      showInHelp:
+        project.commands?.model?.showInHelp ??
+        globals.commands?.model?.showInHelp ??
+        true,
+    },
+    engine: {
+      enabled: engineEnabled,
+      showInMenu:
+        project.commands?.engine?.showInMenu ??
+        globals.commands?.engine?.showInMenu ??
+        true,
+      showInHelp:
+        project.commands?.engine?.showInHelp ??
+        globals.commands?.engine?.showInHelp ??
+        true,
+    },
     npm: {
       enabled:
         project.commands?.npm?.enabled ??
         globals.commands?.npm?.enabled ??
         false,
+      showInMenu:
+        project.commands?.npm?.showInMenu ??
+        globals.commands?.npm?.showInMenu ??
+        true,
+      showInHelp:
+        project.commands?.npm?.showInHelp ??
+        globals.commands?.npm?.showInHelp ??
+        true,
       whitelist:
         project.commands?.npm?.whitelist ??
         globals.commands?.npm?.whitelist ??

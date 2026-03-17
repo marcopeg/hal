@@ -38,6 +38,16 @@ vi.mock("../commands/loader.js", () => ({
   resolveSkillEntry: vi.fn(async () => null),
 }));
 
+vi.mock("../commands/npm/index.js", () => ({
+  executeNpmScript: vi.fn(async () => undefined),
+}));
+
+vi.mock("../commands/npm/scripts.js", () => ({
+  NpmScriptError: class NpmScriptError extends Error {},
+  readPackageScripts: vi.fn(() => ({ build: "tsc", test: "vitest" })),
+  resolveAllowedScripts: vi.fn((available: string[]) => available),
+}));
+
 vi.mock("./session.js", () => ({
   shouldLoadSessionFromUserDir: vi.fn(() => false),
   shouldPersistUserSessionToUserDir: vi.fn(() => false),
@@ -47,6 +57,11 @@ import { createAgent } from "../../agent/index.js";
 import { resolveContext } from "../../context/resolver.js";
 import { sendChunkedResponse } from "../../telegram/chunker.js";
 import { resolveCommandPath, resolveSkillEntry } from "../commands/loader.js";
+import { executeNpmScript } from "../commands/npm/index.js";
+import {
+  readPackageScripts,
+  resolveAllowedScripts,
+} from "../commands/npm/scripts.js";
 import { classifyBufferedTextParts, createTextHandler } from "./text.js";
 
 const tempDirs: string[] = [];
@@ -102,27 +117,38 @@ function createProjectContext(execute = vi.fn()) {
       providerDefaultModel: undefined,
       availableEngines: ["copilot"],
       commands: {
-        start: { enabled: true, sessionReset: false },
-        help: { enabled: true },
-        reset: {
+        start: {
           enabled: true,
+          showInMenu: false,
+          showInHelp: false,
+          sessionReset: false,
+        },
+        help: { enabled: true, showInMenu: true, showInHelp: true },
+        reset: {
+          enabled: false,
+          showInMenu: true,
+          showInHelp: true,
           sessionReset: false,
           message: {},
           timeout: 60,
         },
-        clear: { enabled: true },
+        clear: { enabled: true, showInMenu: true, showInHelp: true },
         info: {
           enabled: true,
+          showInMenu: true,
+          showInHelp: true,
           cwd: true,
           engineModel: true,
           session: true,
           context: true,
         },
-        git: { enabled: false },
-        model: { enabled: false },
-        engine: { enabled: false },
+        git: { enabled: false, showInMenu: true, showInHelp: true },
+        model: { enabled: false, showInMenu: true, showInHelp: true },
+        engine: { enabled: false, showInMenu: true, showInHelp: true },
         npm: {
           enabled: false,
+          showInMenu: true,
+          showInHelp: true,
           whitelist: undefined,
           blacklist: undefined,
           timeoutMs: 60_000,
@@ -153,6 +179,114 @@ function createProjectContext(execute = vi.fn()) {
       instructionsFile: vi.fn(() => "AGENTS.md"),
     },
   } as unknown as import("../../types.js").ProjectContext;
+}
+
+/** Same as createProjectContext but with npm enabled. */
+function createNpmProjectContext(execute = vi.fn()) {
+  return {
+    config: {
+      slug: "test-project",
+      name: "Test Project",
+      cwd: "/tmp/project",
+      configDir: "/tmp/config",
+      dataDir: "/tmp/data",
+      logDir: "/tmp/logs",
+      telegram: {
+        botToken: "token",
+        message: { debounceMs: 1000 },
+      },
+      access: {
+        allowedUserIds: [],
+        dangerouslyAllowUnrestrictedAccess: false,
+      },
+      engine: "copilot",
+      engineCommand: undefined,
+      engineModel: undefined,
+      engineEnforceCwd: true,
+      engineEnvFile: undefined,
+      engineSession: false,
+      engineSessionMsg: "hi!",
+      codex: {
+        networkAccess: false,
+        fullDiskAccess: false,
+        dangerouslyEnableYolo: false,
+      },
+      antigravity: {
+        approvalMode: "yolo",
+        sandbox: false,
+      },
+      copilot: { allowAllPaths: false },
+      logging: { level: "info", flow: true, persist: false },
+      rateLimit: { max: 10, windowMs: 60_000 },
+      debounce: { windowMs: 1000 },
+      transcription: { model: "base.en", mode: "confirm" },
+      context: undefined,
+      providerModels: [],
+      providerDefaultModel: undefined,
+      availableEngines: ["copilot"],
+      commands: {
+        start: {
+          enabled: true,
+          showInMenu: false,
+          showInHelp: false,
+          sessionReset: false,
+        },
+        help: { enabled: true, showInMenu: true, showInHelp: true },
+        reset: {
+          enabled: false,
+          showInMenu: true,
+          showInHelp: true,
+          sessionReset: false,
+          message: {},
+          timeout: 60,
+        },
+        clear: { enabled: true, showInMenu: true, showInHelp: true },
+        info: {
+          enabled: true,
+          showInMenu: true,
+          showInHelp: true,
+          cwd: true,
+          engineModel: true,
+          session: true,
+          context: true,
+        },
+        git: { enabled: false, showInMenu: true, showInHelp: true },
+        model: { enabled: false, showInMenu: true, showInHelp: true },
+        engine: { enabled: false, showInMenu: true, showInHelp: true },
+        npm: {
+          enabled: true,
+          showInMenu: true,
+          showInHelp: true,
+          whitelist: undefined,
+          blacklist: undefined,
+          timeoutMs: 60_000,
+          maxOutputChars: 4000,
+          sendAsFileWhenLarge: true,
+        },
+      },
+    },
+    logger: {
+      info: vi.fn(),
+      debug: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+    },
+    bootContext: {} as never,
+    engine: {
+      name: "Copilot",
+      command: "copilot",
+      check: vi.fn(),
+      sessionCapabilities: {
+        supportsUserIsolation: true,
+        defaultMode: "user",
+        sharedContinuationRequiresMarker: false,
+      },
+      execute,
+      parse: vi.fn((result) => ({ text: result.output })),
+      skillsDirs: vi.fn(() => []),
+      instructionsFile: vi.fn(() => "AGENTS.md"),
+    },
+  } as never;
 }
 
 function createGramCtx(
@@ -222,6 +356,16 @@ describe("createTextHandler", () => {
     vi.useFakeTimers();
     vi.mocked(createAgent).mockReturnValue({ call: vi.fn() } as never);
     vi.mocked(resolveContext).mockResolvedValue({} as never);
+    vi.mocked(resolveCommandPath).mockReturnValue(null);
+    vi.mocked(resolveSkillEntry).mockResolvedValue(null);
+    vi.mocked(executeNpmScript).mockResolvedValue(undefined);
+    vi.mocked(readPackageScripts).mockReturnValue({
+      build: "tsc",
+      test: "vitest",
+    });
+    vi.mocked(resolveAllowedScripts).mockImplementation(
+      (available: string[]) => available,
+    );
   });
 
   afterEach(async () => {
@@ -585,5 +729,76 @@ describe("createTextHandler", () => {
     expect(execute).toHaveBeenCalledTimes(2);
     expect(execute.mock.calls[0][0].prompt).toBe("first");
     expect(execute.mock.calls[1][0].prompt).toBe("second");
+  });
+
+  it("routes a slash command to a project custom command when resolveCommandPath returns a path", async () => {
+    const { resolveCommandPath: mockResolveCommandPath } = await import(
+      "../commands/loader.js"
+    );
+    vi.mocked(mockResolveCommandPath).mockReturnValueOnce("/tmp/deploy.mjs");
+
+    const execute = vi.fn();
+    const projectCtx = createProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+
+    await handler(createGramCtx("/deploy", 50));
+
+    // Engine execute should NOT be called — custom command handled it
+    expect(execute).not.toHaveBeenCalled();
+  });
+
+  it("falls through to agent for a slash command that matches no custom command or skill", async () => {
+    const execute = vi.fn(async ({ prompt }: { prompt: string }) => ({
+      success: true,
+      output: prompt,
+    }));
+    const projectCtx = createProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+
+    await handler(createGramCtx("/unknown-command", 60));
+
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(execute.mock.calls[0][0].prompt).toBe("/unknown-command");
+  });
+
+  it("routes an npm-derived command when npm is enabled and script matches", async () => {
+    const { readPackageScripts: mockRead, resolveAllowedScripts: mockResolve } =
+      await import("../commands/npm/scripts.js");
+    const { executeNpmScript: mockExecute } = await import(
+      "../commands/npm/index.js"
+    );
+
+    vi.mocked(mockRead).mockReturnValueOnce({ build: "tsc" });
+    vi.mocked(mockResolve).mockReturnValueOnce(["build"]);
+
+    const execute = vi.fn();
+    const projectCtx = createNpmProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+    await handler(createGramCtx("/build", 70));
+
+    expect(execute).not.toHaveBeenCalled();
+    expect(mockExecute).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      "build",
+    );
+  });
+
+  it("falls through to agent when npm is enabled but command does not match any script", async () => {
+    const { readPackageScripts: mockRead, resolveAllowedScripts: mockResolve } =
+      await import("../commands/npm/scripts.js");
+    vi.mocked(mockRead).mockReturnValueOnce({ build: "tsc" });
+    vi.mocked(mockResolve).mockReturnValueOnce(["build"]);
+
+    const execute = vi.fn(async ({ prompt }: { prompt: string }) => ({
+      success: true,
+      output: prompt,
+    }));
+    const projectCtx = createNpmProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+    await handler(createGramCtx("/notanpmscript", 80));
+
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(execute.mock.calls[0][0].prompt).toBe("/notanpmscript");
   });
 });

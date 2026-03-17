@@ -15,6 +15,12 @@ import {
 } from "../../user/setup.js";
 import { resolveCommandPath, resolveSkillEntry } from "../commands/loader.js";
 import { normalizeCustomCommandResult } from "../commands/result.js";
+import { executeNpmScript } from "../commands/npm/index.js";
+import {
+  NpmScriptError,
+  readPackageScripts,
+  resolveAllowedScripts,
+} from "../commands/npm/scripts.js";
 import {
   shouldLoadSessionFromUserDir,
   shouldPersistUserSessionToUserDir,
@@ -468,7 +474,50 @@ export function createTextHandler(
           }
           return;
         }
-        // Not a .mjs command or skill — fall through to Claude
+
+        // Check npm-derived script commands before falling through to the agent.
+        // Individual npm script entries (sanitized script names) are registered in
+        // the Telegram menu when npm is enabled; clicking them sends the command
+        // name directly and reaches here instead of the /npm Grammy handler.
+        if (config.commands.npm.enabled) {
+          const npmCfg = config.commands.npm;
+          try {
+            const scripts = readPackageScripts(config.cwd);
+            const allowed = resolveAllowedScripts(
+              Object.keys(scripts),
+              npmCfg.whitelist,
+              npmCfg.blacklist,
+            );
+            // Match the sanitized command name back to a script name.
+            const matchedScript = allowed.find((script) => {
+              if (script === commandName) return true;
+              const sanitized = script
+                .toLowerCase()
+                .replace(/[^a-z0-9_]/g, "_")
+                .replace(/_+/g, "_")
+                .replace(/^_|_$/g, "")
+                .slice(0, 32);
+              return sanitized === commandName;
+            });
+            if (matchedScript) {
+              await executeNpmScript(ctx, gramCtx, matchedScript);
+              return;
+            }
+          } catch (err) {
+            if (!(err instanceof NpmScriptError)) {
+              logger.warn(
+                {
+                  commandName,
+                  error: err instanceof Error ? err.message : String(err),
+                },
+                "npm script lookup failed",
+              );
+            }
+            // NpmScriptError (missing/empty package.json) → fall through
+          }
+        }
+
+        // Not a .mjs command, skill, or npm script — fall through to Claude
       }
     }
     // ── End slash command interception ────────────────────────────────────────
