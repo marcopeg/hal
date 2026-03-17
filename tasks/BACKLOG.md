@@ -10,10 +10,10 @@ The commands in the menu should be sorted:
 ## In Progress
 
 ## Ready Tasks
+- [082 — Built-in command visibility and enabled semantics](./ready/082.command-visibility-and-enabled-semantics.md) | [plan](./ready/082.command-visibility-and-enabled-semantics.plan.md)
 
 
 ## Drafts
-- [082 — Built-in command visibility and enabled semantics](./drafts/082.command-visibility-and-enabled-semantics.md)
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 - [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
 - [085 — List project on awesome-* repositories](./drafts/085.list-project-on-awesome-repositories.md)
