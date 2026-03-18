@@ -17,6 +17,7 @@ The commands in the menu should be sorted:
 ## Drafts
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 - [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
+- [088 — Slash command handlers can yield to the agent](./drafts/088.slash-command-handler-yield-to-agent.md)
 - [085 — List project on awesome-* repositories](./drafts/085.list-project-on-awesome-repositories.md)
 - [080 — Use cases documentation index and research](./drafts/080.use-cases-documentation-index-and-research.md) | [plan](./drafts/080.use-cases-documentation-index-and-research.plan.md)
 - [077 — Architectural refactoring for maintainability](./ready/077.architectural-refactoring-for-maintainability.md)
