@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.7.0](https://github.com/marcopeg/hal/compare/v1.6.0...v1.7.0) (2026-03-18)
+
+### Features
+
+* 88 commands yield to skills ([ef120a3](https://github.com/marcopeg/hal/commit/ef120a3e82dd6041abdb945d2ddd02748c57a5c2))
+
+### Bug Fixes
+
+* handle message fragments - 87 ([5c53fb2](https://github.com/marcopeg/hal/commit/5c53fb22eb2578004a91848ce912592a7492c21e))
+
 ## [1.6.0](https://github.com/marcopeg/hal/compare/v1.5.0...v1.6.0) (2026-03-16)
 
 ### Features
