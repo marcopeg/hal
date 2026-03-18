@@ -57,7 +57,7 @@ export default async function ({ args, gram, agent }) {
 
     clearInterval(rotator);
     await gram.api.deleteMessage(gram.chat.id, statusMsg.message_id);
-    return joke;
+    return { type: "assistant", message: joke };
   } catch (err) {
     clearInterval(rotator);
     await gram.api.deleteMessage(gram.chat.id, statusMsg.message_id);

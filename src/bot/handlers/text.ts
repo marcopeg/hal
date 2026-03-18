@@ -14,6 +14,7 @@ import {
   saveSessionId,
 } from "../../user/setup.js";
 import { resolveCommandPath, resolveSkillEntry } from "../commands/loader.js";
+import { normalizeCustomCommandResult } from "../commands/result.js";
 import {
   shouldLoadSessionFromUserDir,
   shouldPersistUserSessionToUserDir,
@@ -171,7 +172,7 @@ export function createTextHandler(
     return setTimeout(() => flush(userId), delayMs);
   }
 
-  async function dispatchMessage(
+  async function dispatchToEngine(
     gramCtx: Context,
     text: string,
     existingStatusMsgId?: number,
@@ -305,7 +306,7 @@ export function createTextHandler(
       { userId, parts: buf.parts.length, mode: resolved.mode },
       "Flushing buffered text",
     );
-    dispatchMessage(buf.gramCtx, resolved.text, buf.statusMsgId).catch(
+    dispatchToEngine(buf.gramCtx, resolved.text, buf.statusMsgId).catch(
       (err) => {
         logger.error({ err }, "Debounce flush error");
       },
@@ -367,15 +368,22 @@ export function createTextHandler(
             const agent = createAgent(ctx);
             // Cache-bust on every dispatch call
             const mod = await import(`${filePath}?t=${Date.now()}`);
-            const result = await mod.default({
+            const rawResult = await mod.default({
               args,
               ctx: context,
               gram: gramCtx,
               agent,
               projectCtx: ctx,
             });
-            if (typeof result === "string") {
-              await sendChunkedResponse(gramCtx, result);
+            const result = normalizeCustomCommandResult(rawResult, logger, {
+              commandName,
+              filePath,
+            });
+
+            if (result.type === "assistant") {
+              await sendChunkedResponse(gramCtx, result.message);
+            } else if (result.type === "agent") {
+              await dispatchToEngine(gramCtx, result.message ?? messageText);
             }
           } catch (err) {
             logger.error(
@@ -467,7 +475,7 @@ export function createTextHandler(
 
     if (messageText.startsWith("/")) {
       try {
-        await dispatchMessage(gramCtx, messageText);
+        await dispatchToEngine(gramCtx, messageText);
       } catch (error) {
         logger.error({ error }, "Text handler error");
         const errorMessage =

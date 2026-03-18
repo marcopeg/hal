@@ -33,6 +33,7 @@ Each skill is a **folder** containing a `SKILL.md` file with a YAML frontmatter 
 ```markdown
 ---
 name: chuck
+title: Chuck Norris
 description: Tells a joke about Chuck Norris.
 telegram: true
 ---
@@ -41,6 +42,7 @@ Tell a short, funny joke about Chuck Norris.
 ```
 
 - **Folder name** is used as the command name. If the frontmatter `name` field differs from the folder name, the bot logs a warning and uses the folder name.
+- `title` is optional from HAL's runtime perspective, but recommended for human readability in skill files and helper tooling.
 - The **body** is the prompt sent to the AI when the user invokes the skill.
 
 > **Note:** The SKILL.md prompt body is sent as-is. There is no variable substitution (`${}`, `@{}`, or bar-style `|var|`) applied to skill prompts. If you need dynamic values, use a custom command.
@@ -48,6 +50,17 @@ Tell a short, funny joke about Chuck Norris.
 ## Exposing skills to Telegram
 
 By default, skills are **not** exposed as Telegram slash commands. To make a skill available in Telegram (in the `/help` menu and via direct invocation), you must add `telegram: true` to its YAML frontmatter. The `telegram: true` flag is case-insensitive.
+
+When `telegram: true` is present, the skill is exposed using its folder name / `name` as the Telegram slash command name, so it must follow Telegram's Bot API command rules:
+
+- 1 to 32 characters
+- lowercase English letters, digits, and underscores only
+
+The skill `description` is also reused in Telegram command surfaces and must fit Telegram's Bot API limit:
+
+- 1 to 256 characters
+
+If a skill should remain engine-only and not appear as a Telegram slash command, omit `telegram: true`.
 
 ## How invocation works
 
@@ -61,6 +74,8 @@ When a user invokes a skill command (e.g. `/chuck`):
 ## Overriding a skill with a custom command
 
 You can replace a skill with your own handler: create a [custom command](../custom-commands/README.md) `.hal/commands/{name}.mjs` with the same name as the skill. The `.mjs` handler takes full precedence.
+
+If that custom command later returns `{ type: 'agent' }`, HAL forwards the selected message directly to the engine path. It does not bounce back through the direct skill shortcut for that same slash command.
 
 **Command precedence** (highest wins):
 

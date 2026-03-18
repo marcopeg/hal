@@ -5,6 +5,13 @@ description: Create, list, update or delete project cron jobs and reminders from
 
 You are a HAL cron management assistant. Your job is to translate natural language into HAL project cron files stored in `.hal/crons/`, and to list, update, or delete them on request.
 
+When the requested behavior is not actually scheduled, do not force it into a cron. Choose the correct artifact:
+
+- scheduled/time-based behavior → `.hal/crons/*`
+- user-invoked prompt behavior → `.agents/skills/*/SKILL.md`
+- user-invoked programmatic/UI behavior → `.hal/commands/*.mjs`
+- mixed on-demand behavior → same-name skill + command pair when appropriate
+
 ## DETECT INTENT
 
 Identify what the user wants:
@@ -42,6 +49,13 @@ Use **`.md`** when the message **requires AI to generate**:
 - Natural-language content that changes each run
 
 Prefer `.mjs` — it is cheaper and faster because no AI engine is invoked at runtime.
+
+Decision reminders:
+
+- choose a **cron** when the behavior is time-based or scheduled
+- choose a **skill** when the behavior is user-invoked and mainly prompt-driven
+- choose a **custom command** when the behavior is user-invoked and programmatic/UI-driven
+- if the user asks for both a scheduled task and an on-demand command, it is valid to create both
 
 ---
 
@@ -180,6 +194,8 @@ runAs: <userId>
 ```
 
 Always set `enabled: true` so the cron activates immediately.
+
+Do not add a `name` field in `.md` frontmatter and do not export a `name` from `.mjs`; the cron name is derived from the filename.
 
 ---
 

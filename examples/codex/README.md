@@ -19,3 +19,5 @@ Example project using the Codex adapter — OpenAI's terminal-based coding agent
 ## Notes
 
 Supports additional permission flags: `networkAccess`, `fullDiskAccess`, and `dangerouslyEnableYolo`. These must be explicitly enabled in `hal.config.yaml` under the engine options.
+
+This example also includes a `todo` skill plus a matching `.hal/commands/todo.mjs` command. `/todo` renders a paginated view from `TODOS.md`, while `/todo ...` yields to the agent so the `todo` skill can update the same Markdown checklist file.

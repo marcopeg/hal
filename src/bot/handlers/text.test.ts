@@ -1,3 +1,6 @@
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { Context } from "grammy";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -40,7 +43,21 @@ vi.mock("./session.js", () => ({
   shouldPersistUserSessionToUserDir: vi.fn(() => false),
 }));
 
+import { createAgent } from "../../agent/index.js";
+import { resolveContext } from "../../context/resolver.js";
+import { sendChunkedResponse } from "../../telegram/chunker.js";
+import { resolveCommandPath, resolveSkillEntry } from "../commands/loader.js";
 import { classifyBufferedTextParts, createTextHandler } from "./text.js";
+
+const tempDirs: string[] = [];
+
+async function writeCommandModule(source: string): Promise<string> {
+  const dir = await mkdtemp(join(tmpdir(), "hal-command-"));
+  tempDirs.push(dir);
+  const filePath = join(dir, "command.mjs");
+  await writeFile(filePath, source, "utf8");
+  return filePath;
+}
 
 function createProjectContext(execute = vi.fn()) {
   return {
@@ -117,6 +134,7 @@ function createProjectContext(execute = vi.fn()) {
     logger: {
       info: vi.fn(),
       debug: vi.fn(),
+      warn: vi.fn(),
       error: vi.fn(),
     },
     bootContext: {} as never,
@@ -134,7 +152,7 @@ function createProjectContext(execute = vi.fn()) {
       skillsDirs: vi.fn(() => []),
       instructionsFile: vi.fn(() => "AGENTS.md"),
     },
-  } as never;
+  } as unknown as import("../../types.js").ProjectContext;
 }
 
 function createGramCtx(
@@ -202,9 +220,16 @@ describe("classifyBufferedTextParts", () => {
 describe("createTextHandler", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    vi.mocked(createAgent).mockReturnValue({ call: vi.fn() } as never);
+    vi.mocked(resolveContext).mockResolvedValue({} as never);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await Promise.all(
+      tempDirs
+        .splice(0)
+        .map((dir) => rm(dir, { recursive: true, force: true })),
+    );
     vi.clearAllMocks();
     vi.useRealTimers();
   });
@@ -311,6 +336,234 @@ describe("createTextHandler", () => {
 
     expect(execute).toHaveBeenCalledTimes(1);
     expect(execute.mock.calls[0][0].prompt).toBe("/not-a-command");
+  });
+
+  it("sends typed assistant results without calling the engine", async () => {
+    const execute = vi.fn();
+    const projectCtx = createProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+    const gramCtx = createGramCtx("/status", 50);
+    const commandPath = await writeCommandModule(`
+      export const description = "status";
+      export default async function () {
+        return { type: "assistant", message: "Status ready" };
+      }
+    `);
+
+    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+
+    await handler(gramCtx);
+
+    expect(execute).not.toHaveBeenCalled();
+    expect(sendChunkedResponse).toHaveBeenCalledWith(gramCtx, "Status ready");
+    expect(vi.mocked(resolveSkillEntry)).not.toHaveBeenCalled();
+  });
+
+  it("forwards typed agent results with the original slash message", async () => {
+    const execute = vi.fn(async ({ prompt }: { prompt: string }) => ({
+      success: true,
+      output: prompt,
+    }));
+    const projectCtx = createProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+    const gramCtx = createGramCtx("/todo buy milk", 51);
+    const commandPath = await writeCommandModule(`
+      export const description = "todo";
+      export default async function () {
+        return { type: "agent" };
+      }
+    `);
+
+    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+    vi.mocked(resolveSkillEntry).mockResolvedValue({
+      command: "todo",
+      description: "todo",
+      filePath: "/tmp/skill/SKILL.md",
+      skillPrompt: "ignored",
+      telegram: true,
+      source: "skill",
+    });
+
+    await handler(gramCtx);
+
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(execute.mock.calls[0][0].prompt).toBe("/todo buy milk");
+    expect(vi.mocked(resolveSkillEntry)).not.toHaveBeenCalled();
+  });
+
+  it("forwards typed agent results with a replacement message", async () => {
+    const execute = vi.fn(async ({ prompt }: { prompt: string }) => ({
+      success: true,
+      output: prompt,
+    }));
+    const projectCtx = createProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+    const gramCtx = createGramCtx("/summarize latest", 52);
+    const commandPath = await writeCommandModule(`
+      export const description = "summarize";
+      export default async function () {
+        return {
+          type: "agent",
+          message: "Summarize the latest commits grouped by feature area."
+        };
+      }
+    `);
+
+    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+
+    await handler(gramCtx);
+
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(execute.mock.calls[0][0].prompt).toBe(
+      "Summarize the latest commits grouped by feature area.",
+    );
+  });
+
+  it("stops routing on typed void results", async () => {
+    const execute = vi.fn();
+    const projectCtx = createProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+    const gramCtx = createGramCtx("/picker", 53);
+    const commandPath = await writeCommandModule(`
+      export const description = "picker";
+      export default async function ({ gram }) {
+        await gram.reply("Choose one");
+        return { type: "void" };
+      }
+    `);
+
+    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+
+    await handler(gramCtx);
+
+    expect(execute).not.toHaveBeenCalled();
+    expect(sendChunkedResponse).not.toHaveBeenCalled();
+    expect(gramCtx.reply).toHaveBeenCalledWith("Choose one");
+  });
+
+  it("rejects malformed typed command results", async () => {
+    const execute = vi.fn();
+    const projectCtx = createProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+    const gramCtx = createGramCtx("/broken", 54);
+    const commandPath = await writeCommandModule(`
+      export const description = "broken";
+      export default async function () {
+        return { type: "assistant" };
+      }
+    `);
+
+    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+
+    await handler(gramCtx);
+
+    expect(execute).not.toHaveBeenCalled();
+    expect(gramCtx.reply).toHaveBeenCalledWith(
+      expect.stringContaining("Command failed: Invalid command return value"),
+    );
+  });
+
+  it("warns and keeps legacy string results working", async () => {
+    const execute = vi.fn();
+    const projectCtx = createProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+    const gramCtx = createGramCtx("/legacy", 55);
+    const commandPath = await writeCommandModule(`
+      export const description = "legacy";
+      export default async function () {
+        return "Legacy reply";
+      }
+    `);
+
+    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+
+    await handler(gramCtx);
+
+    expect(execute).not.toHaveBeenCalled();
+    expect(sendChunkedResponse).toHaveBeenCalledWith(gramCtx, "Legacy reply");
+    expect(projectCtx.logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ commandName: "legacy" }),
+      expect.stringContaining("legacy string"),
+    );
+  });
+
+  it("warns and forwards legacy undefined returns", async () => {
+    const execute = vi.fn(async ({ prompt }: { prompt: string }) => ({
+      success: true,
+      output: prompt,
+    }));
+    const projectCtx = createProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+    const gramCtx = createGramCtx("/legacy-undefined", 56);
+    const commandPath = await writeCommandModule(`
+      export const description = "legacy-undefined";
+      export default async function () {}
+    `);
+
+    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+
+    await handler(gramCtx);
+
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(execute.mock.calls[0][0].prompt).toBe("/legacy-undefined");
+    expect(projectCtx.logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ commandName: "legacy-undefined" }),
+      expect.stringContaining("legacy falsy value"),
+    );
+  });
+
+  it("warns and forwards legacy null returns", async () => {
+    const execute = vi.fn(async ({ prompt }: { prompt: string }) => ({
+      success: true,
+      output: prompt,
+    }));
+    const projectCtx = createProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+    const gramCtx = createGramCtx("/legacy-null", 57);
+    const commandPath = await writeCommandModule(`
+      export const description = "legacy-null";
+      export default async function () {
+        return null;
+      }
+    `);
+
+    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+
+    await handler(gramCtx);
+
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(execute.mock.calls[0][0].prompt).toBe("/legacy-null");
+    expect(projectCtx.logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ commandName: "legacy-null" }),
+      expect.stringContaining("legacy falsy value"),
+    );
+  });
+
+  it("warns and forwards other falsy legacy returns", async () => {
+    const execute = vi.fn(async ({ prompt }: { prompt: string }) => ({
+      success: true,
+      output: prompt,
+    }));
+    const projectCtx = createProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+    const gramCtx = createGramCtx("/legacy-false", 58);
+    const commandPath = await writeCommandModule(`
+      export const description = "legacy-false";
+      export default async function () {
+        return false;
+      }
+    `);
+
+    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+
+    await handler(gramCtx);
+
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(execute.mock.calls[0][0].prompt).toBe("/legacy-false");
+    expect(projectCtx.logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ commandName: "legacy-false" }),
+      expect.stringContaining("legacy falsy value"),
+    );
   });
 
   it("keeps spaced-apart messages as separate executions", async () => {
