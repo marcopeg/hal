@@ -150,7 +150,7 @@ Default settings applied to all projects. Any setting defined in a project overr
 | `globals.transcription.mode` | Voice transcript UX mode: `confirm` (buttons + confirm/cancel), `inline` (show transcript while processing), `silent` (no transcript shown) | `"confirm"` |
 | `globals.transcription.showTranscription` | Legacy compatibility flag (maps to `mode: inline` when `sticky: false`) | _(deprecated)_ |
 | `globals.transcription.sticky` | Legacy compatibility flag (maps to `mode: confirm` when `true`) | _(deprecated)_ |
-| `globals.commands` | Toggle and configure built-in commands | See [Commands](commands/README.md) |
+| `globals.commands` | Toggle and configure built-in/system commands | See [Commands config](commands/README.md) and [System commands](../commands/system/README.md) |
 
 Per-engine options (Codex, Antigravity) are documented in [Engines](../engines/README.md).
 
@@ -175,7 +175,7 @@ Per-project `providers` can override the top-level list for a specific project (
 | `providers: { opencode:, codex: }` (empty lists) | Only opencode and codex appear in `/engine`. Default models or CLI auto-discovery (OpenCode/Cursor) for `/model`. |
 | `providers` with one or more engine keys | Every project’s `engine.name` must be one of those keys; otherwise HAL fails at boot with a clear error. |
 
-When `/engine`, `/model`, or `/info` is disabled, sending the command replies *"This command is disabled."* instead of forwarding to the LLM.
+When a built-in command is disabled, HAL does not intercept it. The slash command falls through to project custom commands, global custom commands, skills, and finally the agent.
 
 ## Access control
 
@@ -225,7 +225,7 @@ This validation runs at both initial boot and after config hot-reload. A reload 
 | `transcription.sticky` | No | Legacy compatibility flag (deprecated) |
 | `dataDir` | No | Override user data directory (see below) |
 | `context` | No | Per-project context overrides (see [Context](context/README.md)) |
-| `commands` | No | Toggle and configure built-in commands (see [Commands](commands/README.md)) |
+| `commands` | No | Toggle and configure built-in/system commands (see [Commands config](commands/README.md) and [System commands](../commands/system/README.md)) |
 
 ## Project key (legacy: slug)
 

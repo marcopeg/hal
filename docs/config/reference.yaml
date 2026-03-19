@@ -53,41 +53,59 @@ globals:
 
   dataDir: ""     # default: project-cwd/.hal/users; see dataDir values in README
 
-  # See [Commands](commands/README.md)
+  # See [Commands config](commands/README.md) and [System commands](../commands/system/README.md)
   commands:
     start:
       enabled: true
+      showInMenu: false
+      showInHelp: false
       session:
         reset: false
       message:
         text: ""   # or from: "path/to/file.md"
     help:
       enabled: true
+      showInMenu: true
+      showInHelp: true
       message: {}
     reset:
-      enabled: true
+      enabled: false
+      showInMenu: true
+      showInHelp: true
       session: {}
       message:
         confirm: ""
         done: ""
-      timeout: 300000
+      timeout: 60
     clear:
       enabled: true
+      showInMenu: true
+      showInHelp: true
       message: {}
     info:
       enabled: true
+      showInMenu: true
+      showInHelp: true
       cwd: true
       engineModel: true
       session: true
       context: true
     git:
-      enabled: true
+      enabled: false
+      showInMenu: true
+      showInHelp: true
     model:
       enabled: true
+      showInMenu: true
+      showInHelp: true
     engine:
       enabled: true
+      showInMenu: true
+      showInHelp: true
     npm:
       enabled: false          # opt-in; run npm scripts via /npm
+      showInMenu: true
+      showInHelp: true
       whitelist: []            # optional; if set, only these scripts are allowed
       blacklist: []            # optional; if set, these scripts are excluded
       timeoutMs: 60000         # hard timeout (ms); process is killed after this
@@ -128,5 +146,5 @@ projects:
     dataDir: ""
     # See [Context](context/README.md)
     context: {}
-    # See [Commands](commands/README.md)
+    # See [Commands config](commands/README.md) and [System commands](../commands/system/README.md)
     commands: {}

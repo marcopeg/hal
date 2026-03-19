@@ -14,13 +14,13 @@ import {
   saveSessionId,
 } from "../../user/setup.js";
 import { resolveCommandPath, resolveSkillEntry } from "../commands/loader.js";
-import { normalizeCustomCommandResult } from "../commands/result.js";
 import { executeNpmScript } from "../commands/npm/index.js";
 import {
   NpmScriptError,
   readPackageScripts,
   resolveAllowedScripts,
 } from "../commands/npm/scripts.js";
+import { normalizeCustomCommandResult } from "../commands/result.js";
 import {
   shouldLoadSessionFromUserDir,
   shouldPersistUserSessionToUserDir,

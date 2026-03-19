@@ -196,8 +196,8 @@ HAL exposes a small set of built-in commands for session and help management.
 
 Add your own slash commands as `.mjs` files (project or global), or expose engine skill folders as commands. Custom commands can override a skill with the same name. Both are hot-reloaded.
 
-- **[Custom commands](docs/custom-commands/README.md)** — file locations, handler arguments (`args`, `ctx`, `gram`, `agent`, `projectCtx`), examples.
-- **[Skills](docs/skills/README.md)** — SKILL.md format, per-engine directories, precedence.
+- **[Project commands](docs/commands/project/README.md)** — file locations, handler arguments (`args`, `ctx`, `gram`, `agent`, `projectCtx`), examples.
+- **[Skills](docs/commands/skills/README.md)** — SKILL.md format, per-engine directories, precedence.
 
 ## Voice messages
 

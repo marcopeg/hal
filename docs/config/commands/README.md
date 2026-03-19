@@ -107,6 +107,8 @@ Each command supports a `message` object with **exactly one** of:
 
 Setting both `text` and `from`, or neither, is a configuration error.
 
+Detailed per-command behavior lives under [Commands → System commands](../../commands/system/README.md).
+
 ## /start
 
 The `/start` command additionally supports `session.reset` (boolean, default `false`). When `true`, the session is reset after sending the welcome message (same effect as `/clear`).
@@ -247,5 +249,11 @@ telegram: true
 ```
 
 The previous `public` frontmatter key is no longer used; only `telegram: true` controls Telegram exposure (no backward compatibility).
+
+[System commands →](../../commands/system/README.md)
+
+[Project commands →](../../commands/project/README.md)
+
+[Skills →](../../commands/skills/README.md)
 
 [← Back to Configuration](../README.md)
