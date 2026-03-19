@@ -13,14 +13,14 @@ The commands in the menu should be sorted:
 
 ## Ready Tasks
 
+- [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
+- [077 — Architectural refactoring for maintainability](./ready/077.architectural-refactoring-for-maintainability.md)
 
 ## Drafts
-- [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
-- [076 — Allow /clean to pass first message for new session](./ready/076.clean-command-prefill-first-message.md) | [plan](./ready/076.clean-command-prefill-first-message.plan.md)
-- [088 — Slash command handlers can yield to the agent](./drafts/088.slash-command-handler-yield-to-agent.md)
+- [090 — Deferred slash commands with background completion](./drafts/090.deferred-slash-commands-with-background-completion.md)
+- [089 — Cron scheduler local timezone and context](./drafts/089.cron-scheduler-local-timezone-and-context.md)
 - [085 — List project on awesome-* repositories](./drafts/085.list-project-on-awesome-repositories.md)
 - [080 — Use cases documentation index and research](./drafts/080.use-cases-documentation-index-and-research.md) | [plan](./drafts/080.use-cases-documentation-index-and-research.plan.md)
-- [077 — Architectural refactoring for maintainability](./ready/077.architectural-refactoring-for-maintainability.md)
 - [079 — `/btw` command: fresh implementation](./079.btw-command-fresh-implementation.md)
 - [075 — Handle voice messages exceeding Telegram's 20 MB download limit](./drafts/075.voice-message-20mb-limit.md)
 - [032 — Cron jobs and scheduled actions](./drafts/032.cron-jobs-and-scheduled-actions.md) (parent)
@@ -39,6 +39,10 @@ The commands in the menu should be sorted:
 - [072 — System prompt pipeline](./drafts/072.system-prompt-pipeline.md)
 - [073 — HAL native desktop app UI](./drafts/073.hal-native-desktop-app-ui.md)
 - [074 — CronList/CronRemove commands + cron descriptions](./drafts/074.cronlist-cronremove-and-cron-descriptions.md)
+
+## Archived
+
+- [076 — Allow /clear to pass first message for new session](./archived/076.clean-command-prefill-first-message.md) | [plan](./archived/076.clean-command-prefill-first-message.plan.md)
 
 ## Completed
 
@@ -101,3 +105,4 @@ The commands in the menu should be sorted:
 - [060 — Stale session empty-response recovery](./completed/060.stale-session-empty-response-recovery.md) | [plan](./completed/060.stale-session-empty-response-recovery.plan.md)
 - [071 — Enforce project cwd in agent prompts](./completed/071.enforce-project-cwd.md) | [plan](./completed/071.enforce-project-cwd.plan.md)
 - [087 — Fix stitched text debounce for long transcripts](./completed/087.fix-stitched-text-debounce-for-long-transcripts.md) | [plan](./completed/087.fix-stitched-text-debounce-for-long-transcripts.plan.md)
+- [088 — Slash command handlers can yield to the agent](./completed/088.slash-command-handler-yield-to-agent.md) | [notes](./completed/088.slash-command-handler-yield-to-agent.notes.md)
