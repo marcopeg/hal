@@ -17,6 +17,7 @@ The commands in the menu should be sorted:
 - [077 — Architectural refactoring for maintainability](./ready/077.architectural-refactoring-for-maintainability.md)
 
 ## Drafts
+- [091 — Project command and skill visibility signature](./drafts/091.project-command-and-skill-visibility-signature.md)
 - [090 — Deferred slash commands with background completion](./drafts/090.deferred-slash-commands-with-background-completion.md)
 - [089 — Cron scheduler local timezone and context](./drafts/089.cron-scheduler-local-timezone-and-context.md)
 - [085 — List project on awesome-* repositories](./drafts/085.list-project-on-awesome-repositories.md)
