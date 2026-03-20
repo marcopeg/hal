@@ -12,6 +12,7 @@ import { createHelpHandler } from "./bot/commands/help.js";
 import { createInfoHandler } from "./bot/commands/info.js";
 import {
   type CommandEnabledFlags,
+  type CommandVisibility,
   commandsForTelegramMenu,
   getCommandsWithDescriptionTooLong,
   loadCommands,
@@ -99,37 +100,28 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
     bot.on("callback_query:data", createGitCallbackHandler(projectCtx));
   }
 
+  // Keep /npm as a direct launcher even when individual script entries replace it
+  // in the menu — users who type /npm still get the script-picker keyboard.
   if (cmd.npm.enabled) {
     bot.command("npm", createNpmHandler(projectCtx));
     bot.on("callback_query:data", createNpmCallbackHandler(projectCtx));
   }
 
-  // When disabled, catch /model and /engine (and their callbacks) so we reply instead of sending to the LLM
-  if (!cmd.model.enabled) {
-    bot.hears(/^\/model(@\w+)?(\s|$)/i, (ctx) =>
-      ctx.reply("This command is disabled."),
-    );
-  } else {
+  // Disabled built-ins do NOT get bot.hears interceptors — they fall through to
+  // the text handler which routes to project custom commands, then global custom
+  // commands, then skills, and finally the agent.
+  if (cmd.model.enabled) {
     bot.command("model", createModelHandler(projectCtx));
     bot.on("callback_query:data", createModelCallbackHandler(projectCtx));
   }
 
-  if (!cmd.engine.enabled) {
-    bot.hears(/^\/engine(@\w+)?(\s|$)/i, (ctx) =>
-      ctx.reply("This command is disabled."),
-    );
-  } else {
+  if (cmd.engine.enabled) {
     bot.command("engine", createEngineHandler(projectCtx));
     bot.on("callback_query:data", createEngineCallbackHandler(projectCtx));
   }
 
-  if (!cmd.info.enabled) {
-    bot.hears(/^\/info(@\w+)?(\s|$)/i, (ctx) =>
-      ctx.reply("This command is disabled."),
-    );
-  }
-
-  // Answer old inline buttons for /model and /engine when those commands are disabled
+  // Answer stale inline-keyboard callbacks for /model and /engine when those
+  // commands are currently disabled, so the UI doesn't hang indefinitely.
   bot.on("callback_query:data", async (ctx, next) => {
     const data = ctx.callbackQuery?.data ?? "";
     const engineDisabled = data.startsWith("en:") && !cmd.engine.enabled;
@@ -205,6 +197,48 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
     npm: cmd.npm.enabled,
   };
 
+  // Build per-command visibility map from resolved config
+  const visibility: CommandVisibility = {
+    start: {
+      showInMenu: cmd.start.showInMenu,
+      showInHelp: cmd.start.showInHelp,
+    },
+    help: { showInMenu: cmd.help.showInMenu, showInHelp: cmd.help.showInHelp },
+    reset: {
+      showInMenu: cmd.reset.showInMenu,
+      showInHelp: cmd.reset.showInHelp,
+    },
+    clear: {
+      showInMenu: cmd.clear.showInMenu,
+      showInHelp: cmd.clear.showInHelp,
+    },
+    info: { showInMenu: cmd.info.showInMenu, showInHelp: cmd.info.showInHelp },
+    git_init: {
+      showInMenu: cmd.git.showInMenu,
+      showInHelp: cmd.git.showInHelp,
+    },
+    git_status: {
+      showInMenu: cmd.git.showInMenu,
+      showInHelp: cmd.git.showInHelp,
+    },
+    git_commit: {
+      showInMenu: cmd.git.showInMenu,
+      showInHelp: cmd.git.showInHelp,
+    },
+    git_clean: {
+      showInMenu: cmd.git.showInMenu,
+      showInHelp: cmd.git.showInHelp,
+    },
+    model: {
+      showInMenu: cmd.model.showInMenu,
+      showInHelp: cmd.model.showInHelp,
+    },
+    engine: {
+      showInMenu: cmd.engine.showInMenu,
+      showInHelp: cmd.engine.showInHelp,
+    },
+  };
+
   // Register project-specific commands and skills with Telegram on startup
   const skillsDirs = engine.skillsDirs(config.cwd);
   const commands = await loadCommands(
@@ -213,8 +247,16 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
     logger,
     skillsDirs,
     enabledFlags,
+    cmd.npm.enabled
+      ? {
+          whitelist: cmd.npm.whitelist,
+          blacklist: cmd.npm.blacklist,
+          showInMenu: cmd.npm.showInMenu,
+          showInHelp: cmd.npm.showInHelp,
+        }
+      : undefined,
   );
-  const commandsForMenu = commandsForTelegramMenu(commands);
+  const commandsForMenu = commandsForTelegramMenu(commands, visibility);
   if (commandsForMenu.length > 0) {
     const tooLong = getCommandsWithDescriptionTooLong(
       commandsForMenu,
@@ -251,6 +293,15 @@ export async function startBot(projectCtx: ProjectContext): Promise<BotHandle> {
     logger,
     skillsDirs,
     enabledFlags,
+    visibility,
+    cmd.npm.enabled
+      ? {
+          whitelist: cmd.npm.whitelist,
+          blacklist: cmd.npm.blacklist,
+          showInMenu: cmd.npm.showInMenu,
+          showInHelp: cmd.npm.showInHelp,
+        }
+      : undefined,
   );
 
   return {

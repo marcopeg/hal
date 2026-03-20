@@ -4,24 +4,54 @@ Customize built-in command behavior and toggle individual commands on/off. The `
 
 Configure this in [Configuration](../README.md) via `globals.commands` or per-project in the `projects` map (e.g. `projects.<key>.commands`).
 
-## Enabling commands
+## Routing vs. visibility
 
-Each command supports an `enabled` flag (default `true` for most, `false` for `/git`):
+Two separate concerns are configured independently:
+
+- **`enabled`** — whether HAL intercepts and handles the command. When `false`, the command is not routed to HAL; slash messages fall through to project custom commands, global custom commands, skills, and finally the agent.
+- **`showInMenu`** — whether the command appears in the Telegram slash-command menu published via `setMyCommands`.
+- **`showInHelp`** — whether the command appears in the `${HAL_COMMANDS}` placeholder used by `/start`, `/help`, and other message templates.
+
+These flags can be combined freely. For example, `/start` is `enabled: true` (HAL intercepts it) but `showInMenu: false` and `showInHelp: false` (it is not listed anywhere) — the default for most bots.
+
+## Default built-in behavior
+
+| Command | `enabled` | `showInMenu` | `showInHelp` |
+|---------|-----------|--------------|--------------|
+| `/start` | `true` | `false` | `false` |
+| `/help` | `true` | `true` | `true` |
+| `/clear` | `true` | `true` | `true` |
+| `/reset` | `false` | `true` | `true` |
+| `/info` | `true` | `true` | `true` |
+| `/model` | auto* | `true` | `true` |
+| `/engine` | auto* | `true` | `true` |
+| `/git_*` | `false` | `true` | `true` |
+| `npm` scripts | `false` | `true` | `true` |
+
+\* `/model` and `/engine` are auto-enabled when the `providers` config has more than one model/engine choice. The `enabled` flag can explicitly disable them regardless.
+
+## Configuring commands
 
 ```yaml
 commands:
   model:
     enabled: true
+    showInMenu: true
+    showInHelp: true
   engine:
     enabled: true
   git:
     enabled: true
   start:
     enabled: true
+    showInMenu: false  # hidden from Telegram menu and help by default
+    showInHelp: false
   help:
     enabled: true
   reset:
-    enabled: true
+    enabled: false    # disabled by default
+    showInMenu: true
+    showInHelp: true
   clear:
     enabled: true
   info:
@@ -32,6 +62,8 @@ commands:
     context: true
   npm:
     enabled: false
+    showInMenu: true
+    showInHelp: true
     whitelist: ["build", "test"]
     blacklist: ["start"]
     timeoutMs: 60000
@@ -75,13 +107,15 @@ Each command supports a `message` object with **exactly one** of:
 
 Setting both `text` and `from`, or neither, is a configuration error.
 
+Detailed per-command behavior lives under [Commands → System commands](../../commands/system/README.md).
+
 ## /start
 
 The `/start` command additionally supports `session.reset` (boolean, default `false`). When `true`, the session is reset after sending the welcome message (same effect as `/clear`).
 
 ## /reset
 
-The `/reset` command asks for confirmation before deleting user data. It sends an inline keyboard with **Yes, go ahead!** and **Abort!** buttons. The prompt auto-expires after `timeout` seconds (default `60`), removing the buttons. Sending `/reset` again while a prompt is active invalidates the previous one.
+The `/reset` command is **disabled by default** (`enabled: false`). Enable it explicitly when needed. When enabled, it asks for confirmation before deleting user data. It sends an inline keyboard with **Yes, go ahead!** and **Abort!** buttons. The prompt auto-expires after `timeout` seconds (default `60`), removing the buttons. Sending `/reset` again while a prompt is active invalidates the previous one.
 
 | Field | Description | Default |
 |-------|-------------|---------|
@@ -113,7 +147,7 @@ When context output is too large for one Telegram message, HAL splits it into mu
 | `session` | Include session mode (`true`, `false`, `shared`, `user`) in summary output | `true` |
 | `context` | Send resolved context as a second code-block message | `true` |
 
-When `enabled: false`, sending `/info` replies with `This command is disabled.` and does not forward to the LLM.
+When `enabled: false`, `/info` is not intercepted by HAL. The slash command falls through to project custom commands, global custom commands, skills, and finally the agent — same as any other disabled built-in.
 
 Note: env/source-aware redaction for context values is not implemented in this task iteration.
 
@@ -138,23 +172,28 @@ The `/engine` command lets users switch the AI engine for the current project. S
 
 ## /npm
 
-The `/npm` command lets users run scripts defined in the project's `package.json`.
+The `commands.npm` entry controls a derived npm command surface based on the project's `package.json` scripts. It is **disabled by default** (`enabled: false`).
 
-- `/npm` (no argument) — shows an inline keyboard with all available scripts.
-- `/npm <script>` — runs the specified script.
+When enabled, HAL reads `package.json`, applies whitelist/blacklist filtering, and exposes each allowed script as an individual Telegram slash command (using the sanitized script name). These entries appear in both the Telegram menu and `${HAL_COMMANDS}` by default.
 
-If the `package.json` does not exist or has no scripts, the command returns an error. The command is disabled by default (`enabled: false`).
+The `/npm` launcher command remains available for direct use (`/npm` with no argument shows a script-picker keyboard; `/npm <script>` runs a script directly). However, individual script commands take precedence in the menu and help output.
+
+Clicking an individual npm script entry in the Telegram menu sends the script name as a slash command. The text handler routes it back to the npm executor automatically — no separate bot handler is registered per script.
+
+If `package.json` does not exist or has no scripts, npm script entries are silently omitted from menu and help. A runtime error is shown only when a user actively invokes `/npm`.
 
 | Field | Description | Default |
 |-------|-------------|---------|
-| `enabled` | Enable the `/npm` command | `false` |
-| `whitelist` | Array of allowed script names. If set, only these scripts can be run. | `undefined` |
-| `blacklist` | Array of forbidden script names. If set, these scripts are hidden and blocked. | `undefined` |
+| `enabled` | Enable npm script handling | `false` |
+| `showInMenu` | Show npm-derived script entries in the Telegram menu | `true` |
+| `showInHelp` | Show npm-derived script entries in `${HAL_COMMANDS}` | `true` |
+| `whitelist` | Array of allowed script names. If set, only these scripts are exposed. | `undefined` |
+| `blacklist` | Array of forbidden script names. These scripts are hidden and blocked. | `undefined` |
 | `timeoutMs` | Maximum execution time in milliseconds before the script is killed | `60000` |
 | `maxOutputChars` | Maximum characters of log output to send in the Telegram message | `4000` |
 | `sendAsFileWhenLarge` | If `true` and output exceeds `maxOutputChars`, sends the full log as a document | `true` |
 
-When `whitelist` is provided, only scripts in the whitelist (that also exist in `package.json`) are available. When `blacklist` is provided, those scripts are removed from the available list.
+When `whitelist` is provided, only scripts in the whitelist (that also exist in `package.json`) are exposed. When `blacklist` is provided, those scripts are removed from the available list.
 
 ## Default messages
 
@@ -179,13 +218,15 @@ All `message.text` values and file contents from `message.from` support:
 | `${varName}` | Implicit context (`bot.firstName`, `sys.date`, `project.name`, etc.) and env vars |
 | `@{cmd}` | Message-time shell command |
 
-The special **`${HAL_COMMANDS}`** placeholder expands to a formatted list of all available commands, divided into five sections (empty sections are omitted):
+The special **`${HAL_COMMANDS}`** placeholder expands to a formatted list of all available commands, divided into five sections (empty sections are omitted). It uses `showInHelp` visibility independently from the Telegram menu (`showInMenu`):
 
 - **Project Commands** — `.mjs` commands from the project's `.hal/commands/` directory
 - **Project Skills** — engine skills marked with `telegram: true` in their `SKILL.md` frontmatter
 - **System Commands** — `.mjs` commands from the global `.hal/commands/` directory (shared across projects)
-- **Hal Commands** — built-in commands (`/start`, `/help`, `/reset`, `/clear`, `/info`, `/model`, `/engine`)
+- **Hal Commands** — built-in commands with `showInHelp: true` (e.g. `/help`, `/clear`, `/info`, `/model`, `/engine`; `/start` and `/reset` are hidden by default)
 - **Versioning** — git built-in commands (`/git_init`, `/git_status`, `/git_commit`, `/git_clean`) — only when `commands.git.enabled: true`
+
+npm-derived script commands also appear under **Hal Commands** when `commands.npm.enabled: true` and `commands.npm.showInHelp: true`.
 
 Example `WELCOME.md`:
 
@@ -208,5 +249,11 @@ telegram: true
 ```
 
 The previous `public` frontmatter key is no longer used; only `telegram: true` controls Telegram exposure (no backward compatibility).
+
+[System commands →](../../commands/system/README.md)
+
+[Project commands →](../../commands/project/README.md)
+
+[Skills →](../../commands/skills/README.md)
 
 [← Back to Configuration](../README.md)

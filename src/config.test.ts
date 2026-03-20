@@ -1,6 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { ConfigLoadError, resolveProjectConfig } from "./config.js";
 
+// ─── Helper ───────────────────────────────────────────────────────────────────
+
+function minimalProject(overrides: Record<string, unknown> = {}) {
+  return {
+    telegram: { botToken: "token" },
+    engine: { name: "copilot" },
+    ...overrides,
+  } as never;
+}
+
+const configDir = "/tmp/hal-config";
+
 describe("resolveProjectConfig session modes", () => {
   const configDir = "/tmp/hal-config";
 
@@ -225,5 +237,129 @@ describe("resolveProjectConfig session modes", () => {
 
     expect(result.telegram.message.debounceMs).toBe(525);
     expect(result.debounce.windowMs).toBe(525);
+  });
+});
+
+// ─── Visibility defaults ───────────────────────────────────────────────────────
+
+describe("resolveProjectConfig command visibility defaults", () => {
+  it("/start is enabled but hidden from menu and help by default", () => {
+    const result = resolveProjectConfig(
+      "proj",
+      minimalProject(),
+      {} as never,
+      configDir,
+    );
+    expect(result.commands.start.enabled).toBe(true);
+    expect(result.commands.start.showInMenu).toBe(false);
+    expect(result.commands.start.showInHelp).toBe(false);
+  });
+
+  it("/help is enabled and visible by default", () => {
+    const result = resolveProjectConfig(
+      "proj",
+      minimalProject(),
+      {} as never,
+      configDir,
+    );
+    expect(result.commands.help.enabled).toBe(true);
+    expect(result.commands.help.showInMenu).toBe(true);
+    expect(result.commands.help.showInHelp).toBe(true);
+  });
+
+  it("/clear is enabled and visible by default", () => {
+    const result = resolveProjectConfig(
+      "proj",
+      minimalProject(),
+      {} as never,
+      configDir,
+    );
+    expect(result.commands.clear.enabled).toBe(true);
+    expect(result.commands.clear.showInMenu).toBe(true);
+    expect(result.commands.clear.showInHelp).toBe(true);
+  });
+
+  it("/info is enabled and visible by default", () => {
+    const result = resolveProjectConfig(
+      "proj",
+      minimalProject(),
+      {} as never,
+      configDir,
+    );
+    expect(result.commands.info.enabled).toBe(true);
+    expect(result.commands.info.showInMenu).toBe(true);
+    expect(result.commands.info.showInHelp).toBe(true);
+  });
+
+  it("/reset is disabled by default", () => {
+    const result = resolveProjectConfig(
+      "proj",
+      minimalProject(),
+      {} as never,
+      configDir,
+    );
+    expect(result.commands.reset.enabled).toBe(false);
+  });
+
+  it("/reset visibility defaults to true when enabled", () => {
+    const result = resolveProjectConfig(
+      "proj",
+      minimalProject(),
+      {} as never,
+      configDir,
+    );
+    expect(result.commands.reset.showInMenu).toBe(true);
+    expect(result.commands.reset.showInHelp).toBe(true);
+  });
+
+  it("commands.npm.enabled defaults to false", () => {
+    const result = resolveProjectConfig(
+      "proj",
+      minimalProject(),
+      {} as never,
+      configDir,
+    );
+    expect(result.commands.npm.enabled).toBe(false);
+  });
+
+  it("npm showInMenu and showInHelp default to true", () => {
+    const result = resolveProjectConfig(
+      "proj",
+      minimalProject(),
+      {} as never,
+      configDir,
+    );
+    expect(result.commands.npm.showInMenu).toBe(true);
+    expect(result.commands.npm.showInHelp).toBe(true);
+  });
+
+  it("project showInMenu overrides globals showInMenu for /start", () => {
+    const result = resolveProjectConfig(
+      "proj",
+      minimalProject({ commands: { start: { showInMenu: true } } }),
+      { commands: { start: { showInMenu: false } } } as never,
+      configDir,
+    );
+    expect(result.commands.start.showInMenu).toBe(true);
+  });
+
+  it("globals showInHelp is inherited when project does not set it", () => {
+    const result = resolveProjectConfig(
+      "proj",
+      minimalProject(),
+      { commands: { help: { showInHelp: false } } } as never,
+      configDir,
+    );
+    expect(result.commands.help.showInHelp).toBe(false);
+  });
+
+  it("project showInHelp overrides globals showInHelp", () => {
+    const result = resolveProjectConfig(
+      "proj",
+      minimalProject({ commands: { help: { showInHelp: false } } }),
+      { commands: { help: { showInHelp: true } } } as never,
+      configDir,
+    );
+    expect(result.commands.help.showInHelp).toBe(false);
   });
 });

@@ -32,6 +32,18 @@ function buildScriptKeyboard(allowed: string[]): InlineKeyboard {
   return kb;
 }
 
+/**
+ * Execute an npm script by name.  Exported so the text handler can route
+ * individual npm-derived Telegram commands to the same execution path.
+ */
+export async function executeNpmScript(
+  ctx: ProjectContext,
+  gramCtx: Context,
+  script: string,
+): Promise<void> {
+  return runScript(ctx, gramCtx, script);
+}
+
 async function runScript(
   ctx: ProjectContext,
   gramCtx: Context,

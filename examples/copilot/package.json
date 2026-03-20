@@ -1,0 +1,7 @@
+{
+  "name": "copilot-example",
+  "private": true,
+  "scripts": {
+    "hello": "echo 'Hello, World!'"
+  }
+}

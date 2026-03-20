@@ -36,13 +36,23 @@ projects:
       name: copilot
       # session: "user"
     commands:
+      git:
+        enabled: true
+        showInMenu: true
+        showInHelp: true
+        # whitelist:
+        #   - status
+        #   - add
+        #   - commit
+        #   - push
+        #   - pull
       npm:
         enabled: true
+        showInMenu: true
+        showInHelp: true
         whitelist:
-          - tunnel:stop
-          - tunnel:start
-          - tunnel:logs
           - hello
+          - doesNotExist
   opencode:
     active: false
     cwd: ./opencode

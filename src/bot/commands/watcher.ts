@@ -4,9 +4,11 @@ import type { Bot } from "grammy";
 import type pino from "pino";
 import {
   type CommandEnabledFlags,
+  type CommandVisibility,
   commandsForTelegramMenu,
   getCommandsWithDescriptionTooLong,
   loadCommands,
+  type NpmCommandOptions,
 } from "./loader.js";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -28,6 +30,8 @@ export function startCommandWatcher(
   logger: pino.Logger,
   skillsDirs?: string[],
   enabled?: CommandEnabledFlags,
+  visibility?: CommandVisibility,
+  npmOpts?: NpmCommandOptions,
 ): CommandWatcher {
   const projectCommandDir = join(projectCwd, ".hal", "commands");
   const globalCommandDir = join(configDir, ".hal", "commands");
@@ -42,8 +46,9 @@ export function startCommandWatcher(
         logger,
         skillsDirs,
         enabled,
+        npmOpts,
       );
-      const commandsForMenu = commandsForTelegramMenu(commands);
+      const commandsForMenu = commandsForTelegramMenu(commands, visibility);
       const tooLong = getCommandsWithDescriptionTooLong(
         commandsForMenu,
         configDir,
