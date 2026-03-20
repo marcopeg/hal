@@ -9,8 +9,6 @@ The commands in the menu should be sorted:
 
 ## In Progress
 
-- [082 — Built-in command visibility and enabled semantics](./082.command-visibility-and-enabled-semantics.md) | [plan](./082.command-visibility-and-enabled-semantics.plan.md) | [notes](./082.command-visibility-and-enabled-semantics.notes.md)
-
 ## Ready Tasks
 
 - [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
@@ -108,3 +106,4 @@ The commands in the menu should be sorted:
 - [071 — Enforce project cwd in agent prompts](./completed/071.enforce-project-cwd.md) | [plan](./completed/071.enforce-project-cwd.plan.md)
 - [087 — Fix stitched text debounce for long transcripts](./completed/087.fix-stitched-text-debounce-for-long-transcripts.md) | [plan](./completed/087.fix-stitched-text-debounce-for-long-transcripts.plan.md)
 - [088 — Slash command handlers can yield to the agent](./completed/088.slash-command-handler-yield-to-agent.md) | [notes](./completed/088.slash-command-handler-yield-to-agent.notes.md)
+- [082 — Built-in command visibility and enabled semantics](./completed/082.command-visibility-and-enabled-semantics.md) | [plan](./completed/082.command-visibility-and-enabled-semantics.plan.md) | [notes](./completed/082.command-visibility-and-enabled-semantics.notes.md)
