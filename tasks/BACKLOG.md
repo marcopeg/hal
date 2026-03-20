@@ -11,7 +11,6 @@ The commands in the menu should be sorted:
 
 ## Ready Tasks
 
-- [051 — Telegram skill frontmatter properties](./ready/051.telegram-skills.md) | [plan](./ready/051.telegram-skills.plan.md)
 - [077 — Architectural refactoring for maintainability](./ready/077.architectural-refactoring-for-maintainability.md)
 
 ## Drafts
@@ -43,6 +42,7 @@ The commands in the menu should be sorted:
 ## Archived
 
 - [076 — Allow /clear to pass first message for new session](./archived/076.clean-command-prefill-first-message.md) | [plan](./archived/076.clean-command-prefill-first-message.plan.md)
+- [051 — Telegram skill frontmatter properties](./archived/051.telegram-skills.md) | [plan](./archived/051.telegram-skills.plan.md)
 
 ## Completed
 
