@@ -69,21 +69,30 @@ projects:
       # envFile: .env  # optional; path to env file sourced before running engine CLI (relative to cwd, or absolute)
     telegram:
       botToken: ${HAL_CLAUDE_CODE_TELEGRAM_TOKEN}
-  codex:
+  claude-code-or:
     active: true
+    cwd: ./claude-code-or
+    engine:
+      name: claude
+      envFile: .env  # optional: path to env file sourced before running engine CLI (relative to cwd, or absolute)
+      model: openrouter/free # optional: you can specify the model here or in the settings.json (settings.json takes precedence)
+    telegram:
+      botToken: ${HAL_CLAUDE_CODE_OR_TELEGRAM_TOKEN}
+  codex:
+    active: false
     cwd: ./codex
     engine:
       name: codex
       # session: "user"
     telegram:
       botToken: ${HAL_CODEX_TELEGRAM_TOKEN}
-  antigravity:
-    active: false
-    cwd: ./antigravity
-    engine:
-      name: antigravity
-    telegram:
-      botToken: ${HAL_ANTIGRAVITY_TELEGRAM_TOKEN}
+  # antigravity:
+  #   active: false
+  #   cwd: ./antigravity
+  #   engine:
+  #     name: antigravity
+  #   telegram:
+  #     botToken: ${HAL_ANTIGRAVITY_TELEGRAM_TOKEN}
   # cursor:
   #   active: false
   #   cwd: ./cursor
@@ -91,13 +100,13 @@ projects:
   #     name: cursor
   #   telegram:
   #     botToken: ${HAL_CURSOR_TELEGRAM_TOKEN}
-  blog:
-    active: false
-    cwd: ./blog
-    engine:
-      name: claude
-    telegram:
-      botToken: ${HAL_BLOG_TELEGRAM_TOKEN}
+  # blog:
+  #   active: false
+  #   cwd: ./blog
+  #   engine:
+  #     name: claude
+  #   telegram:
+  #     botToken: ${HAL_BLOG_TELEGRAM_TOKEN}
 
 
 

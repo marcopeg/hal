@@ -3,5 +3,18 @@
         "ANTHROPIC_BASE_URL": "https://openrouter.ai/api",
         "ANTHROPIC_API_KEY": "",
         "ANTHROPIC_MODEL": "openrouter/free"
+    },
+    "permissions": {
+        "allow": [
+            "Read",
+            "Write",
+            "Edit",
+            "Bash",
+            "Glob",
+            "Grep",
+            "WebSearch",
+            "WebFetch"
+        ],
+        "deny": []
     }
 }

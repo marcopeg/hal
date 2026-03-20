@@ -4,7 +4,8 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "hal": "dist/cli.js"
+    "hal": "dist/cli.js",
+    "hal-dev": "bin/hal-dev.js"
   },
   "files": [
     "dist",
