@@ -347,6 +347,14 @@ export function createTextHandler(
       const args = argsText ? argsText.split(/\s+/) : [];
 
       if (commandName) {
+        logger.info(
+          {
+            commandName,
+            args,
+            hasArgs: args.length > 0,
+          },
+          "Slash command received",
+        );
         const filePath = resolveCommandPath(
           commandName,
           config.cwd,
@@ -355,6 +363,16 @@ export function createTextHandler(
 
         if (filePath !== null) {
           try {
+            logger.info(
+              {
+                commandName,
+                filePath,
+                source: filePath.startsWith(resolve(config.cwd))
+                  ? "project"
+                  : "system",
+              },
+              "Slash command matched custom .mjs command",
+            );
             const context = await resolveContext({
               gramCtx,
               configContext: config.context,
@@ -374,6 +392,13 @@ export function createTextHandler(
             const agent = createAgent(ctx);
             // Cache-bust on every dispatch call
             const mod = await import(`${filePath}?t=${Date.now()}`);
+            logger.info(
+              {
+                commandName,
+                filePath,
+              },
+              "Executing custom .mjs command",
+            );
             const rawResult = await mod.default({
               args,
               ctx: context,
@@ -387,9 +412,35 @@ export function createTextHandler(
             });
 
             if (result.type === "assistant") {
+              logger.info(
+                {
+                  commandName,
+                  filePath,
+                  resultType: result.type,
+                },
+                "Custom .mjs command handled the message directly",
+              );
               await sendChunkedResponse(gramCtx, result.message);
             } else if (result.type === "agent") {
+              logger.info(
+                {
+                  commandName,
+                  filePath,
+                  resultType: result.type,
+                  replacedPrompt: result.message !== undefined,
+                },
+                "Custom .mjs command yielded to the agent",
+              );
               await dispatchToEngine(gramCtx, result.message ?? messageText);
+            } else {
+              logger.info(
+                {
+                  commandName,
+                  filePath,
+                  resultType: result.type,
+                },
+                "Custom .mjs command handled the message without agent handoff",
+              );
             }
           } catch (err) {
             logger.error(
@@ -416,6 +467,13 @@ export function createTextHandler(
         );
 
         if (skillEntry?.skillPrompt && skillEntry.telegram) {
+          logger.info(
+            {
+              commandName,
+              skillPath: skillEntry.filePath,
+            },
+            "Slash command matched telegram skill",
+          );
           const prompt =
             args.length > 0
               ? `${skillEntry.skillPrompt}\n\nUser input: ${args.join(" ")}`
@@ -428,6 +486,14 @@ export function createTextHandler(
           let lastProgressUpdate = Date.now();
 
           try {
+            logger.info(
+              {
+                commandName,
+                skillPath: skillEntry.filePath,
+                yieldedToAgent: true,
+              },
+              "Executing skill through agent",
+            );
             const result = await agent.call(prompt, {
               onProgress: async (message: string) => {
                 const now = Date.now();
@@ -446,6 +512,13 @@ export function createTextHandler(
                 }
               },
             });
+            logger.info(
+              {
+                commandName,
+                skillPath: skillEntry.filePath,
+              },
+              "Skill handled the slash command",
+            );
             await gramCtx.api.deleteMessage(
               gramCtx.chat!.id,
               statusMsg.message_id,
@@ -500,6 +573,13 @@ export function createTextHandler(
               return sanitized === commandName;
             });
             if (matchedScript) {
+              logger.info(
+                {
+                  commandName,
+                  script: matchedScript,
+                },
+                "Slash command matched npm script",
+              );
               await executeNpmScript(ctx, gramCtx, matchedScript);
               return;
             }
@@ -518,6 +598,12 @@ export function createTextHandler(
         }
 
         // Not a .mjs command, skill, or npm script — fall through to Claude
+        logger.info(
+          {
+            commandName,
+          },
+          "Slash command did not match a custom handler; forwarding to agent",
+        );
       }
     }
     // ── End slash command interception ────────────────────────────────────────

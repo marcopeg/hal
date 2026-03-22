@@ -501,6 +501,13 @@ describe("createTextHandler", () => {
     expect(execute).not.toHaveBeenCalled();
     expect(sendChunkedResponse).toHaveBeenCalledWith(gramCtx, "Status ready");
     expect(vi.mocked(resolveSkillEntry)).not.toHaveBeenCalled();
+    expect(projectCtx.logger.info).toHaveBeenCalledWith(
+      expect.objectContaining({
+        commandName: "status",
+        resultType: "assistant",
+      }),
+      "Custom .mjs command handled the message directly",
+    );
   });
 
   it("forwards typed agent results with the original slash message", async () => {
@@ -533,6 +540,14 @@ describe("createTextHandler", () => {
     expect(execute).toHaveBeenCalledTimes(1);
     expect(execute.mock.calls[0][0].prompt).toBe("/todo buy milk");
     expect(vi.mocked(resolveSkillEntry)).not.toHaveBeenCalled();
+    expect(projectCtx.logger.info).toHaveBeenCalledWith(
+      expect.objectContaining({
+        commandName: "todo",
+        resultType: "agent",
+        replacedPrompt: false,
+      }),
+      "Custom .mjs command yielded to the agent",
+    );
   });
 
   it("forwards typed agent results with a replacement message", async () => {
@@ -583,6 +598,13 @@ describe("createTextHandler", () => {
     expect(execute).not.toHaveBeenCalled();
     expect(sendChunkedResponse).not.toHaveBeenCalled();
     expect(gramCtx.reply).toHaveBeenCalledWith("Choose one");
+    expect(projectCtx.logger.info).toHaveBeenCalledWith(
+      expect.objectContaining({
+        commandName: "picker",
+        resultType: "void",
+      }),
+      "Custom .mjs command handled the message without agent handoff",
+    );
   });
 
   it("rejects malformed typed command results", async () => {
@@ -759,6 +781,12 @@ describe("createTextHandler", () => {
 
     expect(execute).toHaveBeenCalledTimes(1);
     expect(execute.mock.calls[0][0].prompt).toBe("/unknown-command");
+    expect(projectCtx.logger.info).toHaveBeenCalledWith(
+      expect.objectContaining({
+        commandName: "unknown-command",
+      }),
+      "Slash command did not match a custom handler; forwarding to agent",
+    );
   });
 
   it("routes an npm-derived command when npm is enabled and script matches", async () => {
