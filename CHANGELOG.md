@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.7.1](https://github.com/marcopeg/hal/compare/v1.7.0...v1.7.1) (2026-03-22)
+
+### Bug Fixes
+
+* commands logs ([d43a4c4](https://github.com/marcopeg/hal/commit/d43a4c4c8b28847c5992f57e6280d3aeea4e9913))
+
 ## [1.7.0](https://github.com/marcopeg/hal/compare/v1.6.0...v1.7.0) (2026-03-18)
 
 ### Features
