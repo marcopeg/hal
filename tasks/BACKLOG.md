@@ -12,10 +12,12 @@ The commands in the menu should be sorted:
 ## Ready Tasks
 
 - [077 — Architectural refactoring for maintainability](./ready/077.architectural-refactoring-for-maintainability.md)
+- [091 — Project command and skill visibility signature](./ready/091.project-command-and-skill-visibility-signature.md) | [plan](./ready/091.project-command-and-skill-visibility-signature.plan.md)
 
 ## Drafts
+- [094 — Explicit `transcription.enabled` flag](./drafts/094.explicit-transcription-enabled-flag.md)
+- [093 — External transcription services for voice messages](./drafts/093.external-transcription-services.md)
 - [092 — Tighten Claude Code permissions](./drafts/092.tighten-claude-code-permissions.md)
-- [091 — Project command and skill visibility signature](./drafts/091.project-command-and-skill-visibility-signature.md)
 - [090 — Deferred slash commands with background completion](./drafts/090.deferred-slash-commands-with-background-completion.md)
 - [089 — Cron scheduler local timezone and context](./drafts/089.cron-scheduler-local-timezone-and-context.md)
 - [085 — List project on awesome-* repositories](./drafts/085.list-project-on-awesome-repositories.md)

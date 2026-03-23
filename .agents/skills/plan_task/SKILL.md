@@ -17,6 +17,11 @@ For each phase, define the specific steps that need to be taken, ensuring that t
 
 After outlining the phases and steps, create a `{task}.plan.md` file alongside the task file (typically in `tasks/drafts/`). This file will serve as a reference and progress tracker throughout the implementation of the task.
 
+Immediately after creating/updating the plan file, update `tasks/BACKLOG.md` so the task entry links to the plan file even if the task is still in Drafts.
+- If the task is in `Drafts`, keep it in the "Drafts" section and add/update the `| [plan](...)` link there.
+- If the task is already in `Ready Tasks`, keep it there and add/update the `| [plan](...)` link there.
+- Do not wait for plan acceptance before adding the plan link to `BACKLOG.md`.
+
 After creating/updating the plan, ask the user if the plan is accepted.
 
 If the user provides feedback:
@@ -33,7 +38,7 @@ Then update BACKLOG.md:
 - ensure task/plan links point to `./ready/...` (relative to `tasks/BACKLOG.md`)
 - ensure the task does not remain listed in any other section
 
-If the plan is not yet accepted, keep the task in Drafts (folder + BACKLOG section) and do not move it to Ready.
+If the plan is not yet accepted, keep the task in Drafts (folder + BACKLOG section) and do not move it to Ready, but still keep the draft entry linked to the plan file.
 
 BACKLOG link convention (mandatory):
 - use only relative links from `tasks/BACKLOG.md`
