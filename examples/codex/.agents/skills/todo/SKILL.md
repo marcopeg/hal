@@ -2,7 +2,10 @@
 name: todo
 title: TODO Manager
 description: Read and update the project TODO list stored in TODOS.md.
-telegram: true
+telegram:
+  enabled: true
+  showInMenu: true
+  showInHelp: true
 ---
 
 Manage the project's `TODOS.md` file at the repository root.

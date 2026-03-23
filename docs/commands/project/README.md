@@ -36,25 +36,28 @@ HAL resolves slash commands in this order:
 1. enabled built-in HAL commands
 2. project `.mjs` commands
 3. global `.mjs` commands
-4. skills with `telegram: true`
+4. skills with Telegram exposure enabled
 5. the AI engine
 
 Implications:
 
 - a project command overrides a global command with the same name
-- a project/global `.mjs` command overrides a same-name skill
+- an enabled project/global `.mjs` command overrides a same-name skill
 - a disabled built-in command no longer blocks a same-name project command
+- a same-name `.mjs` command with `enabled: false` falls through to the next lower-precedence command or skill
 - if no command or skill matches, HAL forwards the raw slash-command text to the engine
 
-## Current exposure model
+## Visibility exports
 
-Custom `.mjs` commands are currently:
+Custom `.mjs` commands are discovered by filename and must export `description`.
 
-- discovered by filename
-- required to export `description`
-- shown in Telegram menu and `${HAL_COMMANDS}` by default
+They may also export:
 
-Unlike built-in HAL commands, they do not yet have a file-level `showInMenu` / `showInHelp` signature.
+- `enabled`
+- `showInMenu`
+- `showInHelp`
+
+All three default to `true` when omitted, and each must be a boolean when present.
 
 ## Required exports
 
@@ -65,12 +68,17 @@ Each file must export:
 
 Optional:
 
+- `enabled`
+- `showInMenu`
+- `showInHelp`
 - `callbackHandler`
 
 Minimal example:
 
 ```js
 export const description = "Show project status";
+export const showInMenu = true;
+export const showInHelp = true;
 
 export default async function ({ projectCtx }) {
   return {
@@ -92,6 +100,14 @@ Rules:
 - must be a non-empty string
 - should fit Telegram's 256-character command description limit
 - should describe the command in one short sentence
+
+## Visibility semantics
+
+- `enabled: false` removes the command from slash-command routing
+- `showInMenu: false` hides the command from Telegram `setMyCommands`
+- `showInHelp: false` hides the command from `${HAL_COMMANDS}`
+
+If a same-name skill exists and the command is disabled, HAL falls through to the skill for routing and for menu/help publication.
 
 ## Default handler signature
 
@@ -365,10 +381,7 @@ When a `.mjs` file is added, changed, or removed:
 
 ## Current limitations
 
-Project `.mjs` commands do not yet have a file-level visibility signature. At the moment:
-
-- command discovery is implicit by filename
-- menu/help exposure is implicit when `description` exists
-- there is no per-command `showInMenu` or `showInHelp` in the file itself
-
-That visibility model is a possible future extension, but it is not part of the current command authoring contract.
+- filenames still define the Telegram command name
+- visibility metadata must be boolean when present
+- invalid visibility metadata is fatal at boot/reload time
+- callback payloads for a command that is later disabled will stop resolving, because disabled commands are no longer active callback surfaces

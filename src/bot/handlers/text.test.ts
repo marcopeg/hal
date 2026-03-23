@@ -34,7 +34,7 @@ vi.mock("../../user/setup.js", () => ({
 }));
 
 vi.mock("../commands/loader.js", () => ({
-  resolveCommandPath: vi.fn(() => null),
+  resolveCommandPath: vi.fn(async () => null),
   resolveSkillEntry: vi.fn(async () => null),
 }));
 
@@ -356,7 +356,7 @@ describe("createTextHandler", () => {
     vi.useFakeTimers();
     vi.mocked(createAgent).mockReturnValue({ call: vi.fn() } as never);
     vi.mocked(resolveContext).mockResolvedValue({} as never);
-    vi.mocked(resolveCommandPath).mockReturnValue(null);
+    vi.mocked(resolveCommandPath).mockResolvedValue(null);
     vi.mocked(resolveSkillEntry).mockResolvedValue(null);
     vi.mocked(executeNpmScript).mockResolvedValue(undefined);
     vi.mocked(readPackageScripts).mockReturnValue({
@@ -494,7 +494,7 @@ describe("createTextHandler", () => {
       }
     `);
 
-    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+    vi.mocked(resolveCommandPath).mockResolvedValue(commandPath);
 
     await handler(gramCtx);
 
@@ -525,13 +525,15 @@ describe("createTextHandler", () => {
       }
     `);
 
-    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+    vi.mocked(resolveCommandPath).mockResolvedValue(commandPath);
     vi.mocked(resolveSkillEntry).mockResolvedValue({
       command: "todo",
       description: "todo",
       filePath: "/tmp/skill/SKILL.md",
       skillPrompt: "ignored",
-      telegram: true,
+      enabled: true,
+      showInMenu: true,
+      showInHelp: true,
       source: "skill",
     });
 
@@ -568,7 +570,7 @@ describe("createTextHandler", () => {
       }
     `);
 
-    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+    vi.mocked(resolveCommandPath).mockResolvedValue(commandPath);
 
     await handler(gramCtx);
 
@@ -591,7 +593,7 @@ describe("createTextHandler", () => {
       }
     `);
 
-    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+    vi.mocked(resolveCommandPath).mockResolvedValue(commandPath);
 
     await handler(gramCtx);
 
@@ -619,7 +621,7 @@ describe("createTextHandler", () => {
       }
     `);
 
-    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+    vi.mocked(resolveCommandPath).mockResolvedValue(commandPath);
 
     await handler(gramCtx);
 
@@ -641,7 +643,7 @@ describe("createTextHandler", () => {
       }
     `);
 
-    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+    vi.mocked(resolveCommandPath).mockResolvedValue(commandPath);
 
     await handler(gramCtx);
 
@@ -666,7 +668,7 @@ describe("createTextHandler", () => {
       export default async function () {}
     `);
 
-    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+    vi.mocked(resolveCommandPath).mockResolvedValue(commandPath);
 
     await handler(gramCtx);
 
@@ -693,7 +695,7 @@ describe("createTextHandler", () => {
       }
     `);
 
-    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+    vi.mocked(resolveCommandPath).mockResolvedValue(commandPath);
 
     await handler(gramCtx);
 
@@ -720,7 +722,7 @@ describe("createTextHandler", () => {
       }
     `);
 
-    vi.mocked(resolveCommandPath).mockReturnValue(commandPath);
+    vi.mocked(resolveCommandPath).mockResolvedValue(commandPath);
 
     await handler(gramCtx);
 
@@ -757,7 +759,7 @@ describe("createTextHandler", () => {
     const { resolveCommandPath: mockResolveCommandPath } = await import(
       "../commands/loader.js"
     );
-    vi.mocked(mockResolveCommandPath).mockReturnValueOnce("/tmp/deploy.mjs");
+    vi.mocked(mockResolveCommandPath).mockResolvedValueOnce("/tmp/deploy.mjs");
 
     const execute = vi.fn();
     const projectCtx = createProjectContext(execute);
@@ -786,6 +788,81 @@ describe("createTextHandler", () => {
         commandName: "unknown-command",
       }),
       "Slash command did not match a custom handler; forwarding to agent",
+    );
+  });
+
+  it("routes directly to a skill when no enabled custom command matches", async () => {
+    const agentCall = vi.fn(async () => "Skill result");
+    vi.mocked(createAgent).mockReturnValue({ call: agentCall } as never);
+
+    const execute = vi.fn();
+    const projectCtx = createProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+    const gramCtx = createGramCtx("/todo buy milk", 61);
+
+    vi.mocked(resolveCommandPath).mockResolvedValue(null);
+    vi.mocked(resolveSkillEntry).mockResolvedValue({
+      command: "todo",
+      description: "todo",
+      filePath: "/tmp/skill/SKILL.md",
+      skillPrompt: "Run the todo skill",
+      enabled: true,
+      showInMenu: true,
+      showInHelp: true,
+      source: "skill",
+    });
+
+    await handler(gramCtx);
+
+    expect(execute).not.toHaveBeenCalled();
+    expect(agentCall).toHaveBeenCalledWith(
+      "Run the todo skill\n\nUser input: buy milk",
+      expect.anything(),
+    );
+    expect(sendChunkedResponse).toHaveBeenCalledWith(gramCtx, "Skill result");
+  });
+
+  it("falls through to the agent when a skill exists but is Telegram-disabled", async () => {
+    const execute = vi.fn(async ({ prompt }: { prompt: string }) => ({
+      success: true,
+      output: prompt,
+    }));
+    const projectCtx = createProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+
+    vi.mocked(resolveCommandPath).mockResolvedValue(null);
+    vi.mocked(resolveSkillEntry).mockResolvedValue({
+      command: "todo",
+      description: "todo",
+      filePath: "/tmp/skill/SKILL.md",
+      skillPrompt: "Run the todo skill",
+      enabled: false,
+      showInMenu: false,
+      showInHelp: false,
+      source: "skill",
+    });
+
+    await handler(createGramCtx("/todo buy milk", 62));
+
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(execute.mock.calls[0][0].prompt).toBe("/todo buy milk");
+  });
+
+  it("replies with a command failure when metadata resolution throws", async () => {
+    const execute = vi.fn();
+    const projectCtx = createProjectContext(execute);
+    const handler = createTextHandler(projectCtx, new Set<number>());
+    const gramCtx = createGramCtx("/todo", 63);
+
+    vi.mocked(resolveCommandPath).mockRejectedValue(
+      new Error("Invalid enabled export in /tmp/todo.mjs: expected boolean"),
+    );
+
+    await handler(gramCtx);
+
+    expect(execute).not.toHaveBeenCalled();
+    expect(gramCtx.reply).toHaveBeenCalledWith(
+      "Command failed: Invalid enabled export in /tmp/todo.mjs: expected boolean",
     );
   });
 

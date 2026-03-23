@@ -86,7 +86,7 @@ async function buildHalCommands(ctx: ProjectContext): Promise<string> {
         projectCommands.push(entry);
         break;
       case "skill":
-        if (entry.telegram) skills.push(entry);
+        skills.push(entry);
         break;
       case "system":
         systemCommands.push(entry);

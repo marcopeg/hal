@@ -60,7 +60,10 @@ Every skill lives in its own folder and must contain `SKILL.md`:
 name: todo
 title: TODO Manager
 description: Add, edit and list TODO items.
-telegram: true
+telegram:
+  enabled: true
+  showInMenu: true
+  showInHelp: true
 ---
 
 Describe exactly what the skill should do, which files it may read/write, and the output format it must preserve.
@@ -69,18 +72,20 @@ Describe exactly what the skill should do, which files it may read/write, and th
 Rules:
 
 - include `name`, `title`, and `description`
-- include `telegram: true` only when the skill should be exposed as a Telegram slash command
-- if `telegram: true` is set, the skill name becomes a Telegram command name and therefore must be 1-32 characters using only lowercase English letters, digits, and underscores
-- if `telegram: true` is set, `description` must be 1-256 characters because Telegram command descriptions are capped at 256 characters
+- include `telegram` only when the skill should be exposed as a Telegram slash command
+- `telegram` may be `true`, `false`, or an object with boolean `enabled`, `showInMenu`, and `showInHelp` keys
+- if Telegram exposure is enabled, the skill name becomes a Telegram command name and therefore must be 1-32 characters using only lowercase English letters, digits, and underscores
+- if Telegram exposure is enabled, `description` must be 1-256 characters because Telegram command descriptions are capped at 256 characters
 - the body must be operational, specific, and explicit about file formats the agent must preserve
 - if the skill reads/writes a file that a command also parses, define that format rigidly in the skill body
 - if the behavior is mostly natural-language interpretation, prefer a skill over a command
 
 Telegram exposure notes:
 
-- `telegram: true` exposes the skill in HAL's Telegram command surfaces
-- use `telegram: true` only for skills intended to be directly invoked as `/name`
-- if a skill should stay engine-only and not appear as a Telegram command, omit `telegram: true`
+- `telegram: true` exposes the skill in all HAL Telegram command surfaces
+- use object form when menu/help visibility should differ
+- use Telegram exposure only for skills intended to be directly invoked as `/name`
+- if a skill should stay engine-only and not appear as a Telegram command, omit `telegram` entirely or set `telegram: false`
 
 ## COMMAND FILE FORMAT
 
@@ -368,7 +373,7 @@ export default async function handler({ args, gram, agent }) {
 
 - prefer typed command returns over legacy returns
 - prefer project-level files unless asked otherwise
-- if you create a Telegram-exposed skill, include `telegram: true`
+- if you create a Telegram-exposed skill, include `telegram` metadata using either shorthand or object form
 - if you create a skill, include `name`, `title`, and `description`
 - if a command and a skill share a file format, document that format in the skill and parse it rigidly in the command
 - never rely on `process.cwd()` for project paths

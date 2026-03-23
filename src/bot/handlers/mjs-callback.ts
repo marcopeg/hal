@@ -22,11 +22,28 @@ export function createMjsCallbackDispatcher(ctx: ProjectContext) {
     if (colonIdx === -1) return next();
 
     const commandName = data.slice(0, colonIdx);
-    const filePath = resolveCommandPath(
-      commandName,
-      ctx.config.cwd,
-      ctx.config.configDir,
-    );
+    let filePath: string | null;
+    try {
+      filePath = await resolveCommandPath(
+        commandName,
+        ctx.config.cwd,
+        ctx.config.configDir,
+      );
+    } catch (err) {
+      ctx.logger.error(
+        {
+          commandName,
+          error: err instanceof Error ? err.message : String(err),
+        },
+        "MJS callback: failed to resolve command metadata",
+      );
+      try {
+        await gramCtx.answerCallbackQuery({ text: "Command unavailable." });
+      } catch {
+        // ignore
+      }
+      return;
+    }
     if (!filePath) {
       ctx.logger.debug(
         { commandName, cwd: ctx.config.cwd, configDir: ctx.config.configDir },

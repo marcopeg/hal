@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import type pino from "pino";
+import { parse as parseYaml } from "yaml";
 import {
   NpmScriptError,
   readPackageScripts,
@@ -20,9 +21,19 @@ export interface CommandEntry {
   description: string; // from file's `description` export
   filePath: string; // absolute path to .mjs or SKILL.md, or "" for built-ins
   skillPrompt?: string; // prompt body from SKILL.md (skills only)
-  telegram?: boolean; // from SKILL.md frontmatter `telegram: true`
+  enabled?: boolean; // routing/publication enabled for project/system commands and skills
+  showInMenu?: boolean; // Telegram menu visibility for project/system commands and skills
+  showInHelp?: boolean; // HAL help visibility for project/system commands and skills
   source: CommandSource; // where the command comes from
 }
+
+interface SurfaceVisibility {
+  enabled: boolean;
+  showInMenu: boolean;
+  showInHelp: boolean;
+}
+
+class VisibilityMetadataError extends Error {}
 
 export interface CommandEnabledFlags {
   start: boolean;
@@ -134,13 +145,21 @@ async function importCommandFile(
       return null;
     }
 
+    const visibility = parseCommandVisibility(filePath, mod);
+
     return {
       command,
       description: mod.description,
       filePath,
+      enabled: visibility.enabled,
+      showInMenu: visibility.showInMenu,
+      showInHelp: visibility.showInHelp,
       source,
     };
   } catch (err) {
+    if (err instanceof VisibilityMetadataError) {
+      throw err;
+    }
     logger.error(
       {
         filePath,
@@ -151,6 +170,34 @@ async function importCommandFile(
     );
     return null;
   }
+}
+
+function parseCommandVisibility(
+  filePath: string,
+  mod: Record<string, unknown>,
+): SurfaceVisibility {
+  return {
+    enabled: readBooleanExport(filePath, mod, "enabled"),
+    showInMenu: readBooleanExport(filePath, mod, "showInMenu"),
+    showInHelp: readBooleanExport(filePath, mod, "showInHelp"),
+  };
+}
+
+function readBooleanExport(
+  filePath: string,
+  mod: Record<string, unknown>,
+  key: keyof SurfaceVisibility,
+): boolean {
+  const value = mod[key];
+  if (value === undefined) {
+    return true;
+  }
+  if (typeof value !== "boolean") {
+    throw new VisibilityMetadataError(
+      `Invalid ${key} export in ${filePath}: expected boolean`,
+    );
+  }
+  return value;
 }
 
 // ─── Directory scan ──────────────────────────────────────────────────────────
@@ -203,7 +250,7 @@ async function parseSkillMd(
   name: string;
   description: string;
   prompt: string;
-  telegram: boolean;
+  visibility: SurfaceVisibility;
 } | null> {
   let content: string;
   try {
@@ -223,14 +270,43 @@ async function parseSkillMd(
     return null;
   }
 
-  const frontmatter = match[1];
+  const frontmatterRaw = match[1];
   const prompt = match[2].trim();
 
-  const nameMatch = frontmatter.match(/^name:\s*(.+)$/m);
-  const descMatch = frontmatter.match(/^description:\s*(.+)$/m);
-  const telegramMatch = frontmatter.match(/^telegram:\s*(.+)$/im);
+  let frontmatter: unknown;
+  try {
+    frontmatter = parseYaml(frontmatterRaw);
+  } catch (err) {
+    logger.warn(
+      { filePath, error: err instanceof Error ? err.message : String(err) },
+      "SKILL.md frontmatter is not valid YAML — skipping",
+    );
+    return null;
+  }
 
-  if (!nameMatch || !descMatch) {
+  if (
+    frontmatter === null ||
+    typeof frontmatter !== "object" ||
+    Array.isArray(frontmatter)
+  ) {
+    logger.warn(
+      { filePath },
+      "SKILL.md frontmatter must be a YAML object — skipping",
+    );
+    return null;
+  }
+
+  const frontmatterObj = frontmatter as Record<string, unknown>;
+  const name = frontmatterObj.name;
+  const description = frontmatterObj.description;
+  if (typeof name !== "string" || !name.trim()) {
+    logger.warn(
+      { filePath },
+      "SKILL.md frontmatter missing name or description — skipping",
+    );
+    return null;
+  }
+  if (typeof description !== "string" || !description.trim()) {
     logger.warn(
       { filePath },
       "SKILL.md frontmatter missing name or description — skipping",
@@ -239,11 +315,73 @@ async function parseSkillMd(
   }
 
   return {
-    name: nameMatch[1].trim(),
-    description: descMatch[1].trim(),
+    name: name.trim(),
+    description: description.trim(),
     prompt,
-    telegram: telegramMatch?.[1].trim().toLowerCase() === "true",
+    visibility: parseSkillTelegramVisibility(filePath, frontmatterObj.telegram),
   };
+}
+
+function parseSkillTelegramVisibility(
+  filePath: string,
+  telegram: unknown,
+): SurfaceVisibility {
+  if (telegram === undefined) {
+    return {
+      enabled: false,
+      showInMenu: false,
+      showInHelp: false,
+    };
+  }
+  if (typeof telegram === "boolean") {
+    return {
+      enabled: telegram,
+      showInMenu: telegram,
+      showInHelp: telegram,
+    };
+  }
+  if (
+    telegram === null ||
+    typeof telegram !== "object" ||
+    Array.isArray(telegram)
+  ) {
+    throw new VisibilityMetadataError(
+      `Invalid telegram frontmatter in ${filePath}: expected boolean or object`,
+    );
+  }
+
+  const allowedKeys = new Set(["enabled", "showInMenu", "showInHelp"]);
+  const value = telegram as Record<string, unknown>;
+  for (const key of Object.keys(value)) {
+    if (!allowedKeys.has(key)) {
+      throw new VisibilityMetadataError(
+        `Invalid telegram frontmatter in ${filePath}: unknown key "${key}"`,
+      );
+    }
+  }
+
+  return {
+    enabled: readSkillTelegramBoolean(filePath, value, "enabled"),
+    showInMenu: readSkillTelegramBoolean(filePath, value, "showInMenu"),
+    showInHelp: readSkillTelegramBoolean(filePath, value, "showInHelp"),
+  };
+}
+
+function readSkillTelegramBoolean(
+  filePath: string,
+  value: Record<string, unknown>,
+  key: keyof SurfaceVisibility,
+): boolean {
+  const field = value[key];
+  if (field === undefined) {
+    return true;
+  }
+  if (typeof field !== "boolean") {
+    throw new VisibilityMetadataError(
+      `Invalid telegram.${key} in ${filePath}: expected boolean`,
+    );
+  }
+  return field;
 }
 
 /**
@@ -306,7 +444,9 @@ async function scanSkillsDir(
       description: parsed.description,
       filePath: skillMdPath,
       skillPrompt: parsed.prompt,
-      telegram: parsed.telegram,
+      enabled: parsed.visibility.enabled,
+      showInMenu: parsed.visibility.showInMenu,
+      showInHelp: parsed.visibility.showInHelp,
       source: "skill",
     });
   }
@@ -321,42 +461,63 @@ export const BUILTIN_COMMANDS: CommandEntry[] = [
     command: "start",
     description: "Welcome message",
     filePath: "",
+    enabled: true,
+    showInMenu: true,
+    showInHelp: true,
     source: "builtin",
   },
   {
     command: "help",
     description: "Show help",
     filePath: "",
+    enabled: true,
+    showInMenu: true,
+    showInHelp: true,
     source: "builtin",
   },
   {
     command: "reset",
     description: "Wipes out all user data and resets the LLM session",
     filePath: "",
+    enabled: true,
+    showInMenu: true,
+    showInHelp: true,
     source: "builtin",
   },
   {
     command: "clear",
     description: "Resets the LLM session",
     filePath: "",
+    enabled: true,
+    showInMenu: true,
+    showInHelp: true,
     source: "builtin",
   },
   {
     command: "info",
     description: "Show project runtime info",
     filePath: "",
+    enabled: true,
+    showInMenu: true,
+    showInHelp: true,
     source: "builtin",
   },
   {
     command: "model",
     description: "Switch the AI model",
     filePath: "",
+    enabled: true,
+    showInMenu: true,
+    showInHelp: true,
     source: "builtin",
   },
   {
     command: "engine",
     description: "Switch the AI engine",
     filePath: "",
+    enabled: true,
+    showInMenu: true,
+    showInHelp: true,
     source: "builtin",
   },
 ];
@@ -382,24 +543,36 @@ export const GIT_COMMANDS: CommandEntry[] = [
     command: "git_init",
     description: "Initialize a git repository",
     filePath: "",
+    enabled: true,
+    showInMenu: true,
+    showInHelp: true,
     source: "git",
   },
   {
     command: "git_status",
     description: "Show git status",
     filePath: "",
+    enabled: true,
+    showInMenu: true,
+    showInHelp: true,
     source: "git",
   },
   {
     command: "git_commit",
     description: "Commit changes",
     filePath: "",
+    enabled: true,
+    showInMenu: true,
+    showInHelp: true,
     source: "git",
   },
   {
     command: "git_clean",
     description: "Revert uncommitted changes",
     filePath: "",
+    enabled: true,
+    showInMenu: true,
+    showInHelp: true,
     source: "git",
   },
 ];
@@ -443,7 +616,7 @@ export async function loadCommands(
     for (const dir of skillsDirs) {
       const dirSkills = await scanSkillsDir(dir, logger);
       for (const skill of dirSkills) {
-        if (!seenSkills.has(skill.command)) {
+        if (skill.enabled === true && !seenSkills.has(skill.command)) {
           seenSkills.add(skill.command);
           skillEntries.push(skill);
         }
@@ -469,10 +642,14 @@ export async function loadCommands(
     map.set(entry.command, entry);
   }
   for (const entry of globalEntries) {
-    map.set(entry.command, entry);
+    if (entry.enabled !== false) {
+      map.set(entry.command, entry);
+    }
   }
   for (const entry of projectEntries) {
-    map.set(entry.command, entry);
+    if (entry.enabled !== false) {
+      map.set(entry.command, entry);
+    }
   }
 
   if (enabled) {
@@ -517,6 +694,9 @@ export async function loadCommands(
             command: cmdName,
             description: `npm run ${script}`,
             filePath: "",
+            enabled: true,
+            showInMenu: npmOpts.showInMenu ?? true,
+            showInHelp: npmOpts.showInHelp ?? true,
             source: "builtin",
           });
         }
@@ -537,19 +717,30 @@ export async function loadCommands(
 
 /**
  * Return the subset of commands that should be shown in the Telegram slash menu.
- * - Built-in/git commands are filtered by showInMenu (defaults to true when not set in visibility).
- * - Skills are included only when `telegram: true`.
- * - Project/system custom commands are always included.
+ * - Built-in/git commands are filtered by visibility config when present.
+ * - Project/system/skill commands use their normalized per-entry visibility flags.
  */
 export function commandsForTelegramMenu(
   commands: CommandEntry[],
   visibility?: CommandVisibility,
 ): CommandEntry[] {
   return commands.filter((c) => {
-    if (c.source === "skill") return c.telegram === true;
+    if (
+      c.source === "project" ||
+      c.source === "system" ||
+      c.source === "skill"
+    ) {
+      return c.showInMenu !== false;
+    }
     if (c.source === "builtin" || c.source === "git") {
       if (visibility) {
-        return visibility[c.command]?.showInMenu !== false;
+        const configured = visibility[c.command]?.showInMenu;
+        if (configured !== undefined) {
+          return configured !== false;
+        }
+      }
+      if (c.showInMenu !== undefined) {
+        return c.showInMenu !== false;
       }
     }
     return true;
@@ -558,19 +749,30 @@ export function commandsForTelegramMenu(
 
 /**
  * Return the subset of commands that should be shown in HAL help output (${HAL_COMMANDS}).
- * - Built-in/git commands are filtered by showInHelp (defaults to true when not set in visibility).
- * - Skills are included only when `telegram: true`.
- * - Project/system custom commands are always included.
+ * - Built-in/git commands are filtered by visibility config when present.
+ * - Project/system/skill commands use their normalized per-entry visibility flags.
  */
 export function commandsForHelp(
   commands: CommandEntry[],
   visibility?: CommandVisibility,
 ): CommandEntry[] {
   return commands.filter((c) => {
-    if (c.source === "skill") return c.telegram === true;
+    if (
+      c.source === "project" ||
+      c.source === "system" ||
+      c.source === "skill"
+    ) {
+      return c.showInHelp !== false;
+    }
     if (c.source === "builtin" || c.source === "git") {
       if (visibility) {
-        return visibility[c.command]?.showInHelp !== false;
+        const configured = visibility[c.command]?.showInHelp;
+        if (configured !== undefined) {
+          return configured !== false;
+        }
+      }
+      if (c.showInHelp !== undefined) {
+        return c.showInHelp !== false;
       }
     }
     return true;
@@ -613,7 +815,9 @@ export async function resolveSkillEntry(
       description: parsed.description,
       filePath: skillMdPath,
       skillPrompt: parsed.prompt,
-      telegram: parsed.telegram,
+      enabled: parsed.visibility.enabled,
+      showInMenu: parsed.visibility.showInMenu,
+      showInHelp: parsed.visibility.showInHelp,
       source: "skill",
     };
   }
@@ -630,17 +834,31 @@ export function resolveCommandPath(
   commandName: string,
   projectCwd: string,
   configDir: string,
-): string | null {
-  // Check project-specific first (higher priority)
+): Promise<string | null> {
+  return resolveEnabledCommandPath(commandName, projectCwd, configDir);
+}
+
+async function resolveEnabledCommandPath(
+  commandName: string,
+  projectCwd: string,
+  configDir: string,
+): Promise<string | null> {
   const projectPath = join(projectCommandDir(projectCwd), `${commandName}.mjs`);
   if (existsSync(projectPath)) {
-    return projectPath;
+    const mod = await import(`${projectPath}?t=${Date.now()}`);
+    const visibility = parseCommandVisibility(projectPath, mod);
+    if (visibility.enabled) {
+      return projectPath;
+    }
   }
 
-  // Fall back to global
   const globalPath = join(globalCommandDir(configDir), `${commandName}.mjs`);
   if (existsSync(globalPath)) {
-    return globalPath;
+    const mod = await import(`${globalPath}?t=${Date.now()}`);
+    const visibility = parseCommandVisibility(globalPath, mod);
+    if (visibility.enabled) {
+      return globalPath;
+    }
   }
 
   return null;

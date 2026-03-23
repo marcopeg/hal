@@ -2,20 +2,45 @@
 
 Skills are prompt-based command handlers loaded from engine skill directories such as `.agents/skills/`.
 
-## Current exposure model
+## Telegram exposure model
 
-Skills are engine-available by default, but they are exposed as Telegram slash commands only when the skill frontmatter includes:
+Skills are engine-available by default. Telegram exposure is controlled by the `telegram` frontmatter key:
 
 ```yaml
 telegram: true
 ```
 
-That flag currently controls both:
+This is shorthand for:
 
-- Telegram slash-menu visibility
-- `${HAL_COMMANDS}` visibility
+- `enabled: true`
+- `showInMenu: true`
+- `showInHelp: true`
 
-Unlike built-in HAL commands, skills do not yet have separate `showInMenu` / `showInHelp` controls.
+You can also disable Telegram exposure explicitly:
+
+```yaml
+telegram: false
+```
+
+Or use the object form:
+
+```yaml
+telegram:
+  enabled: true
+  showInMenu: false
+  showInHelp: true
+```
+
+Defaults in object form:
+
+- omitted fields default to `true`
+- omitting `telegram` entirely keeps the skill engine-only
+
+Invalid Telegram metadata is fatal at boot/reload time. Supported values are only:
+
+- `true`
+- `false`
+- an object with boolean `enabled`, `showInMenu`, and `showInHelp` keys only
 
 ## Routing
 
@@ -25,7 +50,8 @@ Skills are reached only after HAL checks:
 2. project `.mjs` commands
 3. global `.mjs` commands
 
-A same-name `.mjs` command overrides the skill at slash-command routing time.
+An enabled same-name `.mjs` command overrides the skill at slash-command routing time.
+If the same-name command exists but exports `enabled: false`, HAL falls through and the skill can become the active Telegram surface again.
 
 ## Authoring
 
@@ -38,7 +64,10 @@ Minimum useful frontmatter:
 name: todo
 title: TODO Manager
 description: Read and update the project TODO list stored in TODOS.md.
-telegram: true
+telegram:
+  enabled: true
+  showInMenu: true
+  showInHelp: true
 ---
 ```
 

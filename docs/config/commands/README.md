@@ -221,7 +221,7 @@ All `message.text` values and file contents from `message.from` support:
 The special **`${HAL_COMMANDS}`** placeholder expands to a formatted list of all available commands, divided into five sections (empty sections are omitted). It uses `showInHelp` visibility independently from the Telegram menu (`showInMenu`):
 
 - **Project Commands** — `.mjs` commands from the project's `.hal/commands/` directory
-- **Project Skills** — engine skills marked with `telegram: true` in their `SKILL.md` frontmatter
+- **Project Skills** — engine skills with Telegram exposure enabled in their `SKILL.md` frontmatter
 - **System Commands** — `.mjs` commands from the global `.hal/commands/` directory (shared across projects)
 - **Hal Commands** — built-in commands with `showInHelp: true` (e.g. `/help`, `/clear`, `/info`, `/model`, `/engine`; `/start` and `/reset` are hidden by default)
 - **Versioning** — git built-in commands (`/git_init`, `/git_status`, `/git_commit`, `/git_clean`) — only when `commands.git.enabled: true`
@@ -248,7 +248,22 @@ telegram: true
 ---
 ```
 
-The previous `public` frontmatter key is no longer used; only `telegram: true` controls Telegram exposure (no backward compatibility).
+The previous `public` frontmatter key is no longer used.
+
+For finer control, use:
+
+```yaml
+---
+name: crm
+description: Manage your contacts
+telegram:
+  enabled: true
+  showInMenu: false
+  showInHelp: true
+---
+```
+
+If a same-name `.mjs` command exists but is disabled, `${HAL_COMMANDS}` and Telegram menu publication fall through to the skill entry and use the skill's description plus its own Telegram visibility flags.
 
 [System commands →](../../commands/system/README.md)
 

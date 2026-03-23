@@ -355,11 +355,26 @@ export function createTextHandler(
           },
           "Slash command received",
         );
-        const filePath = resolveCommandPath(
-          commandName,
-          config.cwd,
-          config.configDir,
-        );
+        let filePath: string | null;
+        try {
+          filePath = await resolveCommandPath(
+            commandName,
+            config.cwd,
+            config.configDir,
+          );
+        } catch (err) {
+          logger.error(
+            {
+              commandName,
+              error: err instanceof Error ? err.message : String(err),
+              stack: err instanceof Error ? err.stack : undefined,
+            },
+            "Failed to resolve custom command metadata",
+          );
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          await gramCtx.reply(`Command failed: ${errorMessage}`);
+          return;
+        }
 
         if (filePath !== null) {
           try {
@@ -466,7 +481,7 @@ export function createTextHandler(
           logger,
         );
 
-        if (skillEntry?.skillPrompt && skillEntry.telegram) {
+        if (skillEntry?.skillPrompt && skillEntry.enabled) {
           logger.info(
             {
               commandName,

@@ -3,6 +3,8 @@ import { join } from "node:path";
 import { InlineKeyboard } from "grammy";
 
 export const description = "Show TODOs or forward /todo instructions to the agent";
+export const showInMenu = true;
+export const showInHelp = true;
 
 const PAGE_SIZE = 3;
 

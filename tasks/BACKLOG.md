@@ -12,7 +12,6 @@ The commands in the menu should be sorted:
 ## Ready Tasks
 
 - [077 — Architectural refactoring for maintainability](./ready/077.architectural-refactoring-for-maintainability.md)
-- [091 — Project command and skill visibility signature](./ready/091.project-command-and-skill-visibility-signature.md) | [plan](./ready/091.project-command-and-skill-visibility-signature.plan.md)
 
 ## Drafts
 - [094 — Explicit `transcription.enabled` flag](./drafts/094.explicit-transcription-enabled-flag.md)
@@ -109,3 +108,4 @@ The commands in the menu should be sorted:
 - [087 — Fix stitched text debounce for long transcripts](./completed/087.fix-stitched-text-debounce-for-long-transcripts.md) | [plan](./completed/087.fix-stitched-text-debounce-for-long-transcripts.plan.md)
 - [088 — Slash command handlers can yield to the agent](./completed/088.slash-command-handler-yield-to-agent.md) | [notes](./completed/088.slash-command-handler-yield-to-agent.notes.md)
 - [082 — Built-in command visibility and enabled semantics](./completed/082.command-visibility-and-enabled-semantics.md) | [plan](./completed/082.command-visibility-and-enabled-semantics.plan.md) | [notes](./completed/082.command-visibility-and-enabled-semantics.notes.md)
+- [091 — Project command and skill visibility signature](./completed/091.project-command-and-skill-visibility-signature.md) | [plan](./completed/091.project-command-and-skill-visibility-signature.plan.md) | [notes](./completed/091.project-command-and-skill-visibility-signature.notes.md)
